@@ -1,2 +1,3 @@
 # mass
-typescript implementation of monero atomic swaps server
+
+Java implementation of monero atomic swaps server
