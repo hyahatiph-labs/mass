@@ -12,11 +12,13 @@
 	<artifactId>mass</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>mass</name>
-	<description>Demo project for Spring Boot</description>
+	<description>lightning powered xmr swaps</description>
+	
 	<properties>
 		<java.version>11</java.version>
 		<spring-cloud.version>2020.0.3</spring-cloud.version>
 	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -30,7 +32,11 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
 		</dependency>
-
+		<dependency>  
+			<groupId>com.h2database</groupId>  
+			<artifactId>h2</artifactId>  
+			<scope>runtime</scope>  
+			</dependency> 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

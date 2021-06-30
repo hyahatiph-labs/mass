@@ -1,0 +1,11 @@
+
+# not a big fan of h2
+# TODO: database upgrade
+
+spring.datasource:
+  #persist the data  
+  url: jdbc:h2:file:/data/ 
+  driverClassName: org.h2.Driver  
+  username: sa  
+  password: pass  
+spring.jpa.database-platform: org.hibernate.dialect.H2Dialect  
