@@ -1,0 +1,7 @@
+### use with vscode plugin humao.rest client
+
+### health check
+GET http://localhost:8080/health
+
+### monero quote
+GET http://localhost:8080/quote/xmr
