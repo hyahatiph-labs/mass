@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "mass-markup",
+    "type": "java.lang.Double",
+    "description": "The mass premium"
+  },
+  {
+    "name": "xmrprice-url",
+    "type": "java.lang.String",
+    "description": "URL for Monero price data'"
+  }
+]}

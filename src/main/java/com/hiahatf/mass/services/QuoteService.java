@@ -1,13 +1,23 @@
 package com.hiahatf.mass.services;
 
 import com.hiahatf.mass.models.MoneroQuote;
+import com.hiahatf.mass.models.MoneroRequest;
+import com.hiahatf.mass.services.rate.RateService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import reactor.core.publisher.Mono;
 
 @Service("QuoteService")
 public class QuoteService {
-    
-    // TODO: get rate data
+
+    private RateService rateService;
+
+    @Autowired
+    public QuoteService(RateService rateService) {
+        this.rateService = rateService;
+    }
 
     // TODO: validate address from request
 
@@ -22,12 +32,15 @@ public class QuoteService {
      * and returning it to the client
      * @return MoneroQuote
      */
-    public MoneroQuote buildMoneroQuote() {
-        return MoneroQuote.builder()
-        .address("4skljafjl")
-        .amount(1.0)
-        .invoice("lninvoice123")
-        .rate(0.006)
+    public Mono<MoneroQuote> processMoneroRequest(MoneroRequest request) {
+         MoneroQuote quote = MoneroQuote.builder()
+        .address(request.getAddress())
+        .amount(request.getAmount())
+        .invoice("lninvoice123" /* TODO: generate hold invoice */)
+        // this is super ugly, TODO: fix it
+        .rate(rateService.getMoneroRate().block().split(":")[1].split("}")[0])
         .build();
+        return Mono.just(quote);
     }
+
 }

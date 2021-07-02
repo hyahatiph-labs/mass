@@ -1,12 +1,16 @@
 package com.hiahatf.mass.controllers;
 
 import com.hiahatf.mass.models.MoneroQuote;
+import com.hiahatf.mass.models.MoneroRequest;
 import com.hiahatf.mass.services.QuoteService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import reactor.core.publisher.Mono;
 
 /**
  * Provides quotes that have information
@@ -36,9 +40,8 @@ public class QuoteController {
      * @return MoneroQuote
      */
     @GetMapping("/quote/xmr")
-    public MoneroQuote fetchMoneroQuote() {
-        
-
-        return quoteService.buildMoneroQuote();
+    public Mono<MoneroQuote> fetchMoneroQuote(@RequestBody MoneroRequest request) {
+        return quoteService.processMoneroRequest(request);
     }
+
 }

@@ -1,7 +1,13 @@
-
+# why is six scared of seven?
+server.port: 6789
+# markup so we can pay the bills
+mass-markup: 0.01
+# set the log level
+logging:
+  level:
+    web: DEBUG
 # not a big fan of h2
 # TODO: database upgrade
-
 spring.datasource:
   #persist the data  
   url: jdbc:h2:file:/data/ 
