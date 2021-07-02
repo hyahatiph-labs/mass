@@ -59,12 +59,6 @@
 			<artifactId>spring-boot-starter-webflux</artifactId>
 			<version>2.2.6.RELEASE</version>
 		</dependency>
-		<!-- for double precision -->
-		<dependency>
-			<groupId>org.decimal4j</groupId>
-			<artifactId>decimal4j</artifactId>
-			<version>1.0.3</version>
-		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

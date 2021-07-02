@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import reactor.core.publisher.Mono;
 
 /**
  * POJO for the Monero quote
@@ -16,6 +15,6 @@ import reactor.core.publisher.Mono;
 public class MoneroQuote {
     private String address;
     private double amount;
-    private String rate;
+    private Double rate;
     private String invoice;
 }

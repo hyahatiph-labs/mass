@@ -52,7 +52,7 @@ public class RateService {
         .retrieve()
         .bodyToMono(String.class);
         xmrRate.subscribe(r -> logger.info("XMR <-> Rate {}", r));
-        this.moneroRate = xmrRate;
+        this.moneroRate = xmrRate.retry(1);
     }
 
 }

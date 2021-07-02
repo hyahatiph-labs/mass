@@ -6,6 +6,8 @@ mass-markup: 0.01
 logging:
   level:
     web: DEBUG
+# remove stack trace from error response
+server.error.include-stacktrace: never
 # not a big fan of h2
 # TODO: database upgrade
 spring.datasource:
