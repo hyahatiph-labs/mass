@@ -1,10 +1,12 @@
 # why is six scared of seven?
 server.port: 6789
-# price data api
+# hosts for external data
 host: 
   price: https://min-api.cryptocompare.com
   monero: http://localhost:18082
-  lighting: https://localhost:8080
+  lightning: https://localhost:8180
+# macaroon path
+macaroon-path: /home/nigellchristian/.lnd2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
 markup: 0.01
 # set the log level

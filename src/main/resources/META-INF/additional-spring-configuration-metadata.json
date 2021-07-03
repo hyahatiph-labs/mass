@@ -15,8 +15,13 @@
     "description": "Host for Monero RPC"
   },
   {
-    "name": "host.lighting",
+    "name": "host.lightning",
     "type": "java.lang.String",
     "description": "Host for Lightning RPC"
+  },
+  {
+    "name": "macaroon-path",
+    "type": "java.lang.String",
+    "description": "Path to lnd admin.macaroon"
   }
 ]}
