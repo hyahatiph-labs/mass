@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
 
-import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.MoneroQuote;
 import com.hiahatf.mass.models.MoneroRequest;
 import com.hiahatf.mass.services.rate.RateService;
@@ -23,7 +22,7 @@ public class QuoteService {
 
     // logger
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
-
+    private static final String INVALID_ADDRESS = "Invalid address";
     private RateService rateService;
     private Monero moneroRpc;
     private MassUtil massUtil;
@@ -42,14 +41,10 @@ public class QuoteService {
      * @return MoneroQuote
      */
     public Mono<MoneroQuote> processMoneroRequest(MoneroRequest request) {
-        try {
-            isValidMoneroAddress(request.getAddress());
-        } catch (MassException me) { 
-            throw new ResponseStatusException
-            (
-                HttpStatus.BAD_REQUEST, me.getMessage()
-            );
-        }
+        // validate the address
+        isValidMoneroAddress(request.getAddress());
+        // TODO: save quote to db with status
+        // TODO: generate lightning invoice for the quote
          MoneroQuote quote = MoneroQuote.builder()
             .address(request.getAddress())
             .amount(request.getAmount())
@@ -64,20 +59,18 @@ public class QuoteService {
      * Validate the Monero address that will receive the swap
      * @param address
      * @return
-     * @throws MassException
      */
-    private boolean isValidMoneroAddress(String address) throws MassException {
+    private boolean isValidMoneroAddress(String address) {
         boolean isValid = moneroRpc
             .validateAddress(address).block().getResult().isValid();
         if(!isValid) {
-            logger.error("Invalid address", address);
-            throw new MassException("Invalid address");
+            logger.error(INVALID_ADDRESS, address);
+            throw new ResponseStatusException
+            (
+                HttpStatus.BAD_REQUEST, INVALID_ADDRESS
+            );
         }
         return isValid;
     }
-
-    // TODO: save quote to db with status
-
-    // TODO: generate lightning invoice for the quote
 
 }
