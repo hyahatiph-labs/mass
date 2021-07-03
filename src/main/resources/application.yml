@@ -3,7 +3,7 @@ server.port: 6789
 # price data api
 host: 
   price: https://min-api.cryptocompare.com
-  monero: http://192.168.0.156:18082
+  monero: http://localhost:18082
   lighting: https://localhost:8080
 # markup so we can pay the bills
 markup: 0.01
@@ -11,6 +11,8 @@ markup: 0.01
 logging:
   level:
     web: DEBUG
+    org:
+      springframework: INFO
 # remove stack trace from error response
 server.error.include-stacktrace: never
 # not a big fan of h2

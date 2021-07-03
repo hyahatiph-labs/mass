@@ -9,11 +9,11 @@ Content-Type: application/json
 
 {
     "amount": 1.0,
-    "address": "test"
+    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
 }
 
 ### Validate Monero address
-POST http://192.168.0.156:18082/json_rpc 
+POST http://localhost:18082/json_rpc 
 Content-Type: application/json
 
 {

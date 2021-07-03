@@ -1,5 +1,7 @@
 package com.hiahatf.mass.services;
 
+import java.util.UUID;
+
 import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.MoneroQuote;
 import com.hiahatf.mass.models.MoneroRequest;
@@ -34,11 +36,15 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     public Mono<MoneroQuote> processMoneroQuote(MoneroRequest request) {
+        String quoteId = UUID.randomUUID().toString();
+        // TODO: save quote to db with status
+        // TODO: generate lightning invoice for the quote
         return rateService.getMoneroRate().flatMap(r -> {
             // validate the address
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
-                Double rate = massUtil.splitMoneroRate(r);
+                Double rate = massUtil.parseMoneroRate(r);
                 MoneroQuote quote = MoneroQuote.builder()
+                    .quoteId(quoteId)
                     .address(request.getAddress())
                     .isValidAddress(v)
                     .amount(request.getAmount())
@@ -48,8 +54,6 @@ public class QuoteService {
                 return Mono.just(quote);
             });   
         });
-        // TODO: save quote to db with status
-        // TODO: generate lightning invoice for the quote
     }
 
     /**

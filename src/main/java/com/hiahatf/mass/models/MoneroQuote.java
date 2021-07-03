@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MoneroQuote {
+    private String quoteId;
     private String address;
     private Boolean isValidAddress;
     private double amount;
