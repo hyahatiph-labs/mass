@@ -1,7 +1,12 @@
 # why is six scared of seven?
 server.port: 6789
+# price data api
+host: 
+  price: https://min-api.cryptocompare.com
+  monero: http://192.168.0.156:18082
+  lighting: https://localhost:8080
 # markup so we can pay the bills
-mass-markup: 0.01
+markup: 0.01
 # set the log level
 logging:
   level:

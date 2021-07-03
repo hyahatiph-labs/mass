@@ -1,6 +1,5 @@
 package com.hiahatf.mass.controllers;
 
-import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.MoneroQuote;
 import com.hiahatf.mass.models.MoneroRequest;
 import com.hiahatf.mass.services.QuoteService;

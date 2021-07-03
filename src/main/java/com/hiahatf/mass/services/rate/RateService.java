@@ -3,6 +3,7 @@ package com.hiahatf.mass.services.rate;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,12 +21,14 @@ public class RateService {
 
     // update price every 10 min.
     private static final int FREQUENCY = 600000;
+    private static final int INITIAL_DELAY = 10000;
     private Mono<String> moneroRate;
     
-    private static final String xmrPriceUrl = "https://min-api.cryptocompare.com";
+    private String xmrPriceUrl;
 
-    // Monero rate web client
-    WebClient client = WebClient.builder().baseUrl(xmrPriceUrl).build();
+    public RateService(@Value("${host.price}") String url) {
+        this.xmrPriceUrl = url;
+    }
 
     /**
      * Accessor for the Monero rate
@@ -40,8 +43,10 @@ public class RateService {
      * with Spring Scheduling. Use accessor to get the 
      * most recent data.
      */
-    @Scheduled(fixedRate = FREQUENCY)
+    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = FREQUENCY)
     public void updateMoneroRate() {
+         // Monero rate web client
+        WebClient client = WebClient.builder().baseUrl(xmrPriceUrl).build();
         logger.debug("XMR price URL: {}", xmrPriceUrl);
         Mono<String> xmrRate = client.get()
         .uri(uriBuilder -> uriBuilder
