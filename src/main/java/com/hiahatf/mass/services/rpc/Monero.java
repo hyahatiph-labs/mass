@@ -1,12 +1,9 @@
 package com.hiahatf.mass.services.rpc;
 
-import org.slf4j.LoggerFactory;
-
 import com.hiahatf.mass.models.MoneroValidateAddressParameters;
 import com.hiahatf.mass.models.MoneroValidateAddressRequest;
 import com.hiahatf.mass.models.MoneroValidateAddressResponse;
 
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,8 +13,6 @@ import reactor.core.publisher.Mono;
 @Service("MoneroRpc")
 public class Monero {
     
-    // logger
-    private Logger logger = LoggerFactory.getLogger(Monero.class);
     private String moneroHost;
 
     /**
@@ -30,7 +25,7 @@ public class Monero {
 
     /**
      * Make the Monero validate_address RPC call
-     * Use blocking logic on web client to perform validation.
+     * TODO: roll custom digest authentication support
      * @param address
      * @return
      */
@@ -48,7 +43,6 @@ public class Monero {
             .bodyValue(request)
             .retrieve()
             .bodyToMono(MoneroValidateAddressResponse.class);
-            res.subscribe(r -> logger.info("XMR validate address response: {}", r));
         return res;
     }
 

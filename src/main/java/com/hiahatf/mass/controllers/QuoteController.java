@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping
-public class QuoteController {
+public class QuoteController extends BaseController {
     
     private QuoteService quoteService;
 
@@ -41,7 +41,7 @@ public class QuoteController {
      */
     @GetMapping("/quote/xmr")
     public Mono<MoneroQuote> fetchMoneroQuote(@RequestBody MoneroRequest request) {
-        return quoteService.processMoneroRequest(request);
+        return quoteService.processMoneroQuote(request);
     }
 
 }

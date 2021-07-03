@@ -6,16 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero quote
+ * POJO for the ErrorResponse
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroQuote {
-    private String address;
-    private Boolean isValidAddress;
-    private double amount;
-    private Double rate;
-    private String invoice;
+public class ErrorResponse {
+    private String message;
 }
