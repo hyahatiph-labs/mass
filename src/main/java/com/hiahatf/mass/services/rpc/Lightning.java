@@ -7,6 +7,9 @@ import java.nio.file.Paths;
 
 import javax.net.ssl.SSLException;
 
+import com.hiahatf.mass.models.AddHoldInvoiceRequest;
+import com.hiahatf.mass.models.AddHoldInvoiceResponse;
+
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -24,6 +27,7 @@ public class Lightning {
     
     private String lndHost;
     private String macaroonPath;
+    private static final String MACAROON_HEADER = "Grpc-Metadata-macaroon";
 
     /**
      * Lightning RPC constructor
@@ -38,29 +42,87 @@ public class Lightning {
 
     /**
      * Testing LND connectivity
+     * @param value - amount of invoice in satoshis
+     * @param hash - 32 byte SHA-256 preimage hash
+     * @throws IOException
+     * @returns Mono<String>
+     */
+    public Mono<String> getInfo() throws IOException {
+        // lightning rpc web client
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .path("/v1/getinfo").build())
+            .header(MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(String.class);
+    }
+
+    /**
+     * Generate a hold invoice to settle in the future once the
+     * swap has been initiated. The payment request from LND gets
+     * injected into the quote based on the amount of Monero
+     * requested in the swap.
+     * @param value
+     * @param hash
+     * @return String - payment request
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<AddHoldInvoiceResponse> 
+        generateInvoice(Double value, int[] hash) 
+        throws SSLException, IOException {
+            AddHoldInvoiceRequest request = AddHoldInvoiceRequest.builder()
+                .value(String.valueOf(value.intValue()))
+                .hash(hash)
+                .build();
+            WebClient client = createClient();
+            return client.post()
+                .uri(uriBuilder -> uriBuilder
+                .path("/v2/invoices/hodl").build())
+                .header(MACAROON_HEADER, createMacaroonHex())
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(AddHoldInvoiceResponse.class);
+    }
+
+    /**
+     * Create the SSL Context for working with 
+     * LND self-signed certificate
+     * @return HttpClient
      * @throws SSLException
      */
-    public Mono<String> getInfo() throws SSLException, IOException {
-        Path path = Paths.get(macaroonPath);
-        byte[] byteArray = Files.readAllBytes(path);
-        String macaroonHex = Hex.encodeHexString(byteArray);
+    private HttpClient createSslContext() throws SSLException {
         // work around for the self-signed TLS cert
         SslContext sslContext = SslContextBuilder
             .forClient()
             .trustManager(InsecureTrustManagerFactory.INSTANCE)
             .build();
-        HttpClient httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+        return HttpClient.create().secure(t -> t.sslContext(sslContext));
+    }
 
-        // lightning rpc web client
-        WebClient client = WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(httpClient))
-            .baseUrl(lndHost).build();
-        return client.get()
-            .uri(uriBuilder -> uriBuilder
-            .path("/v1/getinfo").build())
-            .header("Grpc-Metadata-macaroon", macaroonHex)
-            .retrieve()
-            .bodyToMono(String.class);
+    /**
+     * Convert the LND Macaroon
+     * @return String - macaroon hex-encoded
+     * @throws IOException
+     */
+    private String createMacaroonHex() throws IOException {
+        Path path = Paths.get(macaroonPath);
+        byte[] byteArray = Files.readAllBytes(path);
+        return Hex.encodeHexString(byteArray);
+    }
+
+    /**
+     * Helper method for the LND WebClient.
+     * Creates a re-usable service for making
+     * Lightning network API calls
+     * @return WebClient
+     * @throws SSLException
+     */
+    private WebClient createClient() throws SSLException {
+        return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(createSslContext()))
+        .baseUrl(lndHost).build();
     }
 
 }

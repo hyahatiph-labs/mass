@@ -8,7 +8,7 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
-    "amount": 1.0,
+    "amount": 0.1,
     "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
 }
 

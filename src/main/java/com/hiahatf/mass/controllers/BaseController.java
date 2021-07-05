@@ -30,11 +30,22 @@ public class BaseController {
     /**
      * Handle ssl exception
      * @param e
-     * @return
+     * @return HttpStatus 503
      */
     @ExceptionHandler(SSLException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public ErrorResponse handleSslException(SSLException e) {
+        return ErrorResponse.builder().message(e.getMessage()).build();
+    }
+
+    /**
+     * Handle anything that was missed
+     * @param e
+     * @return HttpStatus 503
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleException(Exception e) {
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 

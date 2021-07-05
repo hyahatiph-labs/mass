@@ -24,7 +24,10 @@ public class Monero {
     }
 
     /**
-     * Make the Monero validate_address RPC call
+     * Make the Monero validate_address RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
      * TODO: roll custom digest authentication support
      * @param address
      * @return
@@ -37,13 +40,12 @@ public class Monero {
             .builder().params(params).build();
         // monero rpc web client
         WebClient client = WebClient.builder().baseUrl(moneroHost).build();
-        Mono<MoneroValidateAddressResponse> res = client.post()
+        return client.post()
             .uri(uriBuilder -> uriBuilder
             .path("json_rpc").build())
             .bodyValue(request)
             .retrieve()
             .bodyToMono(MoneroValidateAddressResponse.class);
-        return res;
     }
 
 }
