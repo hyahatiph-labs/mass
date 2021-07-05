@@ -42,9 +42,6 @@ public class Lightning {
 
     /**
      * Testing LND connectivity
-     * @param value - amount of invoice in satoshis
-     * @param hash - 32 byte SHA-256 preimage hash
-     * @throws IOException
      * @returns Mono<String>
      */
     public Mono<String> getInfo() throws IOException {
@@ -63,9 +60,9 @@ public class Lightning {
      * swap has been initiated. The payment request from LND gets
      * injected into the quote based on the amount of Monero
      * requested in the swap.
-     * @param value
-     * @param hash
-     * @return String - payment request
+     * @param value - amount of the swap in satoshis
+     * @param hash - hash of hold invoice preimage
+     * @return AddHoldInvoiceResponse
      * @throws SSLException
      * @throws IOException
      */

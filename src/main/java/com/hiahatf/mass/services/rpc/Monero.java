@@ -30,7 +30,7 @@ public class Monero {
      * --rpc-disable-login flag.
      * TODO: roll custom digest authentication support
      * @param address
-     * @return
+     * @return MoneroValidateAddressResponse
      */
     public Mono<MoneroValidateAddressResponse> validateAddress(String address) {
         // build request
