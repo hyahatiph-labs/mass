@@ -59,10 +59,8 @@ public class QuoteService {
                 Double rate = massUtil.parseMoneroRate(r);
                 Double value = (rate * request.getAmount()) * COIN;
                 // store in db to settle the invoice later
-                byte[] bPreimage = createPreimage();
-                logger.info("preimage: {}", bPreimage);
-                int[] hash = createPreimageHash(bPreimage);
-                logger.info("preimage hash: {}", hash);
+                byte[] preimage = createPreimage();
+                byte[] hash = createPreimageHash(preimage);
                 // TODO: save quote to db with status
                 return generateMoneroQuote(value, hash, request, rate, v);
             });   
@@ -78,26 +76,26 @@ public class QuoteService {
      * @param v - boolean of address validation
      * @return Mono<MoneroQuote>
      */
-    private Mono<MoneroQuote> generateMoneroQuote(Double value, int[] hash,
+    private Mono<MoneroQuote> generateMoneroQuote(Double value, byte[] hash,
         MoneroRequest request, Double rate, Boolean v) {
-        String quoteId = UUID.randomUUID().toString();
-        try {
-            return lightning.generateInvoice(value, hash).flatMap(i -> {
-                MoneroQuote quote = MoneroQuote.builder()
-                    .quoteId(quoteId)
-                    .address(request.getAddress())
-                    .isValidAddress(v)
-                    .amount(request.getAmount())
-                    .invoice(i.getPayment_request())
-                    .rate(rate)
-                    .build();
-                return Mono.just(quote);
-            });
-        } catch (SSLException se) {
-            return Mono.error(new MassException(se.getMessage()));
-        } catch (IOException ie) {
-            return Mono.error(new MassException(ie.getMessage()));
-        }
+            String quoteId = UUID.randomUUID().toString();
+            try {
+                return lightning.generateInvoice(value, hash).flatMap(i -> {
+                    MoneroQuote quote = MoneroQuote.builder()
+                        .quoteId(quoteId)
+                        .address(request.getAddress())
+                        .isValidAddress(v)
+                        .amount(request.getAmount())
+                        .invoice(i.getPayment_request())
+                        .rate(rate)
+                        .build();
+                    return Mono.just(quote);
+                });
+            } catch (SSLException se) {
+                return Mono.error(new MassException(se.getMessage()));
+            } catch (IOException ie) {
+                return Mono.error(new MassException(ie.getMessage()));
+            }
     }
 
     /**
@@ -128,9 +126,9 @@ public class QuoteService {
     /**
      * Create the 32 byte preimage hash
      * @param preimage
-     * @return int[] - using int[] since byte array is unsigned
+     * @return byte[]
      */
-    private int[] createPreimageHash(byte[] preimage) {
+    private byte[] createPreimageHash(byte[] preimage) {
         Security.addProvider(new BouncyCastleProvider());
         MessageDigest digest = null;
         try {
@@ -138,13 +136,7 @@ public class QuoteService {
         } catch (NoSuchAlgorithmException e) {
             logger.error("Preimage hashing error: {}", e.getMessage());
         }     
-        // Java doesn't support uint[] (T_T), do the conversion
-        byte[] hash = digest.digest(preimage);
-        int[] iHash = new int[32];
-        for(int i = 0; i < hash.length; i++) {
-            iHash[i] = (hash[i] & 0xFF);
-        }
-        return iHash;
+        return digest.digest(preimage);
     }
 
 }

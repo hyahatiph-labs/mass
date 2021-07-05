@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AddHoldInvoiceRequest {
     private final String memo = "mass";
-    private int[] hash;
+    private byte[] hash;
     private String value;
     // invoices expire after 10 min.
     // TODO: make this configurable?

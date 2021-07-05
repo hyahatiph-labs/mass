@@ -70,7 +70,7 @@ public class Lightning {
      * @throws IOException
      */
     public Mono<AddHoldInvoiceResponse> 
-        generateInvoice(Double value, int[] hash) 
+        generateInvoice(Double value, byte[] hash) 
         throws SSLException, IOException {
             AddHoldInvoiceRequest request = AddHoldInvoiceRequest.builder()
                 .value(String.valueOf(value.intValue()))
