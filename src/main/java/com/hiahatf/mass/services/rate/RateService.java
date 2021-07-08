@@ -1,5 +1,7 @@
 package com.hiahatf.mass.services.rate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Mono;
 public class RateService {
 
     // update price every 10 min.
+    private Logger logger = LoggerFactory.getLogger(RateService.class);
     private static final int FREQUENCY = 600000;
     private static final int INITIAL_DELAY = 10000;
     private Mono<String> moneroRate;
@@ -39,7 +42,8 @@ public class RateService {
      */
     @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = FREQUENCY)
     public void updateMoneroRate() {
-         // Monero rate web client
+    logger.info("Updating XMR <-> BTC rate");
+        // Monero rate web client
         WebClient client = WebClient.builder().baseUrl(xmrPriceUrl).build();
         Mono<String> xmrRate = client.get()
         .uri(uriBuilder -> uriBuilder
