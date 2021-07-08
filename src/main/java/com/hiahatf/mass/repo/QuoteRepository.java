@@ -1,5 +1,16 @@
 package com.hiahatf.mass.repo;
 
-public class QuoteRepository {
+import org.springframework.stereotype.Repository;
+
+import com.hiahatf.mass.models.XmrQuoteTable;
+
+import org.springframework.data.repository.CrudRepository;  
+
+/**
+ * Interface for performing database operations on the quote table
+ */
+@Repository
+public interface QuoteRepository extends CrudRepository<XmrQuoteTable, Integer> 
+{
     
 }

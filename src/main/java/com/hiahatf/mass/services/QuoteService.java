@@ -16,6 +16,8 @@ import javax.net.ssl.SSLException;
 import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.MoneroQuote;
 import com.hiahatf.mass.models.MoneroRequest;
+import com.hiahatf.mass.models.XmrQuoteTable;
+import com.hiahatf.mass.repo.QuoteRepository;
 import com.hiahatf.mass.services.rate.RateService;
 import com.hiahatf.mass.services.rpc.Lightning;
 import com.hiahatf.mass.services.rpc.Monero;
@@ -37,14 +39,16 @@ public class QuoteService {
     private Monero moneroRpc;
     private Lightning lightning;
     private MassUtil massUtil;
+    private QuoteRepository quoteRepository;
 
     @Autowired
     public QuoteService(RateService rateService, MassUtil massUtil, 
-        Monero moneroRpc, Lightning lightning) {
+        Monero moneroRpc, Lightning lightning, QuoteRepository quoteRepository) {
             this.rateService = rateService;
             this.massUtil = massUtil;
             this.moneroRpc = moneroRpc;
             this.lightning = lightning;
+            this.quoteRepository = quoteRepository;
     }
 
     /**
@@ -56,13 +60,22 @@ public class QuoteService {
         return rateService.getMoneroRate().flatMap(r -> {
             // validate the address
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
+                String quoteId = UUID.randomUUID().toString();
                 Double rate = massUtil.parseMoneroRate(r);
                 Double value = (rate * request.getAmount()) * COIN;
-                // store in db to settle the invoice later
                 byte[] preimage = createPreimage();
                 byte[] hash = createPreimageHash(preimage);
-                // TODO: save quote to db with status
-                return generateMoneroQuote(value, hash, request, rate, v);
+                // store in db to settle the invoice later
+                XmrQuoteTable table = XmrQuoteTable.builder()
+                    .quote_id(quoteId)
+                    .xmr_address(request.getAddress())
+                    .amount(request.getAmount())
+                    .preimage(preimage)
+                    .fulfilled(false)
+                    .preimage_hash(hash)
+                    .build();
+                quoteRepository.save(table);
+                return generateMoneroQuote(value, hash, request, rate, v, quoteId);
             });   
         });
     }
@@ -74,11 +87,11 @@ public class QuoteService {
      * @param request - request from client
      * @param rate - rate with fee
      * @param v - boolean of address validation
+     * @param quoteId - id to recover quote for future reference
      * @return Mono<MoneroQuote>
      */
     private Mono<MoneroQuote> generateMoneroQuote(Double value, byte[] hash,
-        MoneroRequest request, Double rate, Boolean v) {
-            String quoteId = UUID.randomUUID().toString();
+        MoneroRequest request, Double rate, Boolean v, String quoteId) {
             try {
                 return lightning.generateInvoice(value, hash).flatMap(i -> {
                     MoneroQuote quote = MoneroQuote.builder()
