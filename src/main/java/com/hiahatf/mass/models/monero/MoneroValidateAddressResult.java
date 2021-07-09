@@ -1,4 +1,4 @@
-package com.hiahatf.mass.models;
+package com.hiahatf.mass.models.monero;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero validate address request params
+ * POJO for the Monero validate address result
  */
 @Data
 @Builder

@@ -1,7 +1,7 @@
 package com.hiahatf.mass.controllers;
 
-import com.hiahatf.mass.models.MoneroQuote;
-import com.hiahatf.mass.models.MoneroRequest;
+import com.hiahatf.mass.models.monero.MoneroQuote;
+import com.hiahatf.mass.models.monero.MoneroRequest;
 import com.hiahatf.mass.services.QuoteService;
 
 import org.springframework.beans.factory.annotation.Autowired;

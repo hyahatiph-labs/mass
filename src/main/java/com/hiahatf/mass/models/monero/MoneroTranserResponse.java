@@ -1,4 +1,4 @@
-package com.hiahatf.mass.models;
+package com.hiahatf.mass.models.monero;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero validate address response
+ * POJO for the Monero transfer response
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroValidateAddressResponse {
+public class MoneroTranserResponse {
     private String id;
     private String jsonrpc;
-    private MoneroValidateAddressResult result;
+    private MoneroTransferResult result;
 }

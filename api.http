@@ -26,3 +26,28 @@ Content-Type: application/json
         "allow_openalias": true
         }
 }
+
+### Add hold invoice
+POST https://localhost:8180/v2/invoices/hodl
+Grpc-Metadata-macaroon: 
+
+{
+    "hash": [224, 199, 253,  44, 149,  34, 254,
+  240, 249, 243, 120, 108, 140, 190,
+   74,  38, 149, 157,  65, 141, 117,
+  176,  47, 166, 199,  59, 185,  30,
+  217, 113, 161, 236],
+    "value": "10000",
+    "expiry": "600"
+}
+
+### Settle hold invoice
+POST https://localhost:8180/v2/invoices/settle
+Grpc-Metadata-macaroon: 
+
+{
+    "preimage": [0,   7, 139,  10,  57, 237, 235, 242,
+  118, 158,  49,  50, 190, 190,  47, 105,
+  129, 221,  23, 245,  73, 164, 155, 247,
+  156, 161, 114, 203, 240,  65,  20,  53]
+}

@@ -14,9 +14,9 @@ import java.util.UUID;
 import javax.net.ssl.SSLException;
 
 import com.hiahatf.mass.exception.MassException;
-import com.hiahatf.mass.models.MoneroQuote;
-import com.hiahatf.mass.models.MoneroRequest;
-import com.hiahatf.mass.models.XmrQuoteTable;
+import com.hiahatf.mass.models.monero.MoneroQuote;
+import com.hiahatf.mass.models.monero.MoneroRequest;
+import com.hiahatf.mass.models.monero.XmrQuoteTable;
 import com.hiahatf.mass.repo.QuoteRepository;
 import com.hiahatf.mass.services.rate.RateService;
 import com.hiahatf.mass.services.rpc.Lightning;

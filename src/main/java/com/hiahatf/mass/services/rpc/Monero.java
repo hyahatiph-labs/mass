@@ -1,8 +1,15 @@
 package com.hiahatf.mass.services.rpc;
 
-import com.hiahatf.mass.models.MoneroValidateAddressParameters;
-import com.hiahatf.mass.models.MoneroValidateAddressRequest;
-import com.hiahatf.mass.models.MoneroValidateAddressResponse;
+import java.util.List;
+
+import com.google.common.collect.Lists;
+import com.hiahatf.mass.models.monero.Destination;
+import com.hiahatf.mass.models.monero.MoneroTranserResponse;
+import com.hiahatf.mass.models.monero.MoneroTransferParameters;
+import com.hiahatf.mass.models.monero.MoneroTransferRequest;
+import com.hiahatf.mass.models.monero.MoneroValidateAddressParameters;
+import com.hiahatf.mass.models.monero.MoneroValidateAddressRequest;
+import com.hiahatf.mass.models.monero.MoneroValidateAddressResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,6 +20,7 @@ import reactor.core.publisher.Mono;
 @Service("MoneroRpc")
 public class Monero {
     
+    private static final long PICONERO = 1000000000000L;
     private String moneroHost;
 
     /**
@@ -46,6 +54,35 @@ public class Monero {
             .bodyValue(request)
             .retrieve()
             .bodyToMono(MoneroValidateAddressResponse.class);
+    }
+
+    /**
+     * Make the Monero transfer RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param value
+     * @param address
+     * @return MoneroTranserResponse
+     */
+    public Mono<MoneroTranserResponse> transfer(String address, Double amount) {
+        // build request
+        long piconeroAmt = amount.longValue() * PICONERO;
+        List<Destination> destinations = Lists.newArrayList();
+        Destination.builder().address(address).amount(piconeroAmt).build();
+        MoneroTransferParameters params = MoneroTransferParameters
+            .builder().destinations(destinations).build();
+        MoneroTransferRequest request = MoneroTransferRequest
+            .builder().params(params).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path("json_rpc").build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(MoneroTranserResponse.class);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.hiahatf.mass.models;
+package com.hiahatf.mass.models.monero;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
