@@ -57,5 +57,5 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "21c2d336a2ad59eb6c45cf38f8615dad9739a171056ac34670e1d7dbbdd79e3d"
+    "hash": "3218e8a768d2a3ad1e0a48c77fa09ba2274508668c6ef537086684daad18fe85"
 }

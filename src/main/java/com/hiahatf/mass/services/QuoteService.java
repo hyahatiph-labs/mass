@@ -33,7 +33,7 @@ public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
     private static final String INVALID_ADDRESS = "Invalid address";
-    private static final String KECCAK_256 = "Keccak-256";
+    private static final String SHA_256 = "SHA-256";
     private static final Long COIN = 100000000L;
     private RateService rateService;
     private Monero moneroRpc;
@@ -142,7 +142,7 @@ public class QuoteService {
         Security.addProvider(new BouncyCastleProvider());
         MessageDigest digest = null;
         try {
-            digest = MessageDigest.getInstance(KECCAK_256);
+            digest = MessageDigest.getInstance(SHA_256);
         } catch (NoSuchAlgorithmException e) {
             logger.error("Preimage hashing error: {}", e.getMessage());
         }     
