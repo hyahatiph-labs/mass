@@ -1,5 +1,6 @@
 package com.hiahatf.mass.services;
 
+import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +10,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.util.UUID;
 
 import javax.net.ssl.SSLException;
 
@@ -60,22 +60,19 @@ public class QuoteService {
         return rateService.getMoneroRate().flatMap(r -> {
             // validate the address
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
-                String quoteId = UUID.randomUUID().toString();
                 Double rate = massUtil.parseMoneroRate(r);
                 Double value = (rate * request.getAmount()) * COIN;
                 byte[] preimage = createPreimage();
                 byte[] hash = createPreimageHash(preimage);
                 // store in db to settle the invoice later
                 XmrQuoteTable table = XmrQuoteTable.builder()
-                    .quote_id(quoteId)
                     .xmr_address(request.getAddress())
                     .amount(request.getAmount())
                     .preimage(preimage)
-                    .fulfilled(false)
-                    .preimage_hash(hash)
+                    .preimage_hash(Hex.encodeHexString(hash))
                     .build();
                 quoteRepository.save(table);
-                return generateMoneroQuote(value, hash, request, rate, v, quoteId);
+                return generateMoneroQuote(value, hash, request, rate, v);
             });   
         });
     }
@@ -91,11 +88,11 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     private Mono<MoneroQuote> generateMoneroQuote(Double value, byte[] hash,
-        MoneroRequest request, Double rate, Boolean v, String quoteId) {
+        MoneroRequest request, Double rate, Boolean v) {
             try {
                 return lightning.generateInvoice(value, hash).flatMap(i -> {
                     MoneroQuote quote = MoneroQuote.builder()
-                        .quoteId(quoteId)
+                        .quoteId(Hex.encodeHexString(hash))
                         .address(request.getAddress())
                         .isValidAddress(v)
                         .amount(request.getAmount())

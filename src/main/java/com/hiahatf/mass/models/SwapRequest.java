@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapRequest {
-    private String quoteId;
+    private String hash;
 }

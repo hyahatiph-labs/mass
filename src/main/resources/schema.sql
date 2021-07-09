@@ -1,10 +1,7 @@
-DROP TABLE IF EXISTS XmrQuoteTable;
-
-CREATE TABLE XmrQuoteTable (  
-    quote_id VARCHAR(100) PRIMARY KEY,  
+-- Login in to h2 console and run this on first initialization
+CREATE TABLE XMR_QUOTE_TABLE (
+    preimage_hash VARCHAR(64) PRIMARY KEY,
     amount FLOAT(30) NOT NULL,
-    xmr_address VARCHAR(200) NOT NULL,
-    preimage_hash ARRAY[32] NOT NULL,
-    preimage ARRAY[32] NOT NULL,
-    fulfilled BOOLEAN NOT NULL
+    preimage VARCHAR(64) NOT NULL,
+    xmr_address VARCHAR(200) NOT NULL
 );  

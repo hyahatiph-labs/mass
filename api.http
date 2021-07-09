@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
     "amount": 0.1,
-    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
 }
 
 ### Validate Monero address
@@ -50,4 +50,12 @@ Grpc-Metadata-macaroon:
   118, 158,  49,  50, 190, 190,  47, 105,
   129, 221,  23, 245,  73, 164, 155, 247,
   156, 161, 114, 203, 240,  65,  20,  53]
+}
+
+### perform xmr swap
+POST http://localhost:6789/swap/xmr
+Content-Type: application/json
+
+{
+    "hash": "21c2d336a2ad59eb6c45cf38f8615dad9739a171056ac34670e1d7dbbdd79e3d"
 }

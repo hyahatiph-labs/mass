@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapResponse {
-    private String quoteId;
+    private String hash;
     private String txId;
 }

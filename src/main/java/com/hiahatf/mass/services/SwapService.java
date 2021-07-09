@@ -48,11 +48,8 @@ public class SwapService {
     public Mono<SwapResponse> processMoneroSwap(SwapRequest request) {
         // fetch quote, if not fulfilled
         XmrQuoteTable quote = 
-            quoteRepository.findById(request.getQuoteId()).get();
-        if(!quote.getFulfilled()) {
-            initiateMoneroSwap(quote);
-        }
-        return Mono.error(new MassException("Quote not found"));
+            quoteRepository.findById(request.getHash()).get();
+        return initiateMoneroSwap(quote);
     }
 
     /**
@@ -68,13 +65,15 @@ public class SwapService {
                 if(i.getStatusCode() == HttpStatus.OK) {
                     // send monero
                     // TODO: fallback for xmr transfer?
-                    return monero.transfer(quote.getXmr_address(), quote.getAmount()).flatMap(r -> {
+                    return monero.transfer(quote.getXmr_address(), 
+                            quote.getAmount()).flatMap(r -> {
                         SwapResponse res = SwapResponse.builder()
-                        .quoteId(quote.getQuote_id())
+                        .hash(quote.getPreimage_hash())
                         .txId(r.getResult().getTx_hash())
                         .build();
                         // remove quote from db
-                        quoteRepository.deleteById(quote.getQuote_id());
+                        quoteRepository
+                            .deleteById(quote.getPreimage_hash());
                         return Mono.just(res);
                     });
                 }

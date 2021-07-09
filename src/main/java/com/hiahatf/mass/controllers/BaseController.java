@@ -1,7 +1,5 @@
 package com.hiahatf.mass.controllers;
 
-import javax.net.ssl.SSLException;
-
 import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.ErrorResponse;
 
@@ -24,28 +22,6 @@ public class BaseController {
     @ExceptionHandler(MassException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMassException(MassException e) {
-        return ErrorResponse.builder().message(e.getMessage()).build();
-    }
-
-    /**
-     * Handle ssl exception
-     * @param e
-     * @return HttpStatus 503
-     */
-    @ExceptionHandler(SSLException.class)
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ErrorResponse handleSslException(SSLException e) {
-        return ErrorResponse.builder().message(e.getMessage()).build();
-    }
-
-    /**
-     * Handle anything that was missed
-     * @param e
-     * @return HttpStatus 503
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ErrorResponse handleException(Exception e) {
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 
