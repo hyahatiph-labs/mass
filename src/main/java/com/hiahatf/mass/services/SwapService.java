@@ -65,14 +65,17 @@ public class SwapService {
                 if(i.getStatusCode() == HttpStatus.OK) {
                     // send monero
                     // TODO: fallback for xmr transfer?
-                    return monero.transfer(quote.getXmr_address(), 
-                            quote.getAmount()).flatMap(r -> {
+                    return monero.transfer(quote.getXmr_address(), quote.getAmount()).flatMap(r -> {
+                        // null check, since rpc since 200 on null result
+                        if(r.getResult() == null) {
+                            return Mono.error(new MassException("XMR transfer failure!"));
+                        }
                         SwapResponse res = SwapResponse.builder()
-                        .hash(quote.getPreimage_hash())
-                        .txId(r.getResult().getTx_hash())
-                        .build();
-                        // remove quote from db
-                        quoteRepository
+                            .hash(quote.getPreimage_hash())
+                            .txId(r.getResult().getTx_hash())
+                            .build();
+                            // remove quote from db
+                            quoteRepository
                             .deleteById(quote.getPreimage_hash());
                         return Mono.just(res);
                     });

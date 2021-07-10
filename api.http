@@ -8,7 +8,7 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
-    "amount": 0.1,
+    "amount": 0.0123,
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
 }
 
@@ -57,5 +57,11 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "3218e8a768d2a3ad1e0a48c77fa09ba2274508668c6ef537086684daad18fe85"
+    "hash": "cb5ab3aa6fe542e89dc5b052ab61f9b50e8a94215f9759b93ce3e6dfe5095478"
 }
+
+### Validate Monero address
+POST http://localhost:18082/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}

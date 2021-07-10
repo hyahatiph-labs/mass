@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 @Service("MoneroRpc")
 public class Monero {
     
-    private static final long PICONERO = 1000000000000L;
+    private static final double PICONERO = 1.0E12;
     private String moneroHost;
 
     /**
@@ -68,9 +68,11 @@ public class Monero {
      */
     public Mono<MoneroTranserResponse> transfer(String address, Double amount) {
         // build request
-        long piconeroAmt = amount.longValue() * PICONERO;
+        Double piconeroAmt = amount * PICONERO;
         List<Destination> destinations = Lists.newArrayList();
-        Destination.builder().address(address).amount(piconeroAmt).build();
+        Destination destination = Destination.builder()
+            .address(address).amount(piconeroAmt.longValue()).build();
+        destinations.add(destination);
         MoneroTransferParameters params = MoneroTransferParameters
             .builder().destinations(destinations).build();
         MoneroTransferRequest request = MoneroTransferRequest

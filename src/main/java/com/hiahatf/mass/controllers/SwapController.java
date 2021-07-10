@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 
 @RestController("SwapController")
 @RequestMapping
-public class SwapController {
+public class SwapController extends BaseController {
 
     private SwapService swapService;
 

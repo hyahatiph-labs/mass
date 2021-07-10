@@ -25,4 +25,15 @@ public class BaseController {
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 
+    /**
+     * Handle application exceptions and bad data
+     * @param e
+     * @return HttpStatus 500
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleException(Exception e) {
+        return ErrorResponse.builder().message(e.getMessage()).build();
+    }
+
 }
