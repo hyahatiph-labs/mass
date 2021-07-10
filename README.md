@@ -19,6 +19,12 @@ If successfully settled the equivalent amount in Monero is sent
 6. H2 db runs at host/h2-console. Execute the `src/main/resources/schema.sql` first
 7. Currently working on Bitcoin core 0.21, LND 0.12.x, Debian 10, java 11, Monero 0.17.2
 
+NOTE: currently have an issue with Monero digest authentication rpc calls, so use `--disable-rpc-login`
+
+```bash
+~/monero-gui-v0.17.2.2/extras/monero-wallet-rpc --rpc-bind-port=18082 --wallet-file=/path/to/wallet --prompt-for-password --disable-rpc-login --daemon-address monero-stagenet.exan.tech:38081 --stagenet
+```
+
 ## API
 
 samples at `./api.http`
