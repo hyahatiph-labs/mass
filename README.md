@@ -11,7 +11,7 @@ If successfully settled the equivalent amount in Monero is sent
 
 ## Development
 
-1. Run as Spring Boot App from your favorite IDE or do `mvn clean install && java -jar MassApplication.java`
+1. Run as Spring Boot App from your favorite IDE or do `mvn clean install && java -jar target/mass-0.0.1-SNAPSHOT.jar`
 2. The application.yml can be configured as needed.
 3. Run bitcoind on [regtest](https://developer.bitcoin.org/examples/testing.html)
 4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
