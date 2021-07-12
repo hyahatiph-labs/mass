@@ -1,0 +1,67 @@
+### use with vscode plugin humao.rest client
+
+### health check
+GET http://localhost:6789/health
+
+### monero quote
+GET http://localhost:6789/quote/xmr
+Content-Type: application/json
+
+{
+    "amount": 0.0123,
+    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
+}
+
+### Validate Monero address
+POST http://localhost:18082/json_rpc 
+Content-Type: application/json
+
+{
+    "jsonrpc":"2.0",
+    "id":"0",
+    "method":"validate_address", 
+    "params": {
+        "address":"42go2d3XqA9Mx4HjZoqr93BHspcMxwAUBivs3yJKV1FyTycEcbgjNyEaGNEcgnUE9DDDAXNanzB16YgMt88Sa8cFSm2QcHK",
+        "any_net_type": true,
+        "allow_openalias": true
+        }
+}
+
+### Add hold invoice
+POST https://localhost:8180/v2/invoices/hodl
+Grpc-Metadata-macaroon: 
+
+{
+    "hash": [224, 199, 253,  44, 149,  34, 254,
+  240, 249, 243, 120, 108, 140, 190,
+   74,  38, 149, 157,  65, 141, 117,
+  176,  47, 166, 199,  59, 185,  30,
+  217, 113, 161, 236],
+    "value": "10000",
+    "expiry": "600"
+}
+
+### Settle hold invoice
+POST https://localhost:8180/v2/invoices/settle
+Grpc-Metadata-macaroon: 
+
+{
+    "preimage": [0,   7, 139,  10,  57, 237, 235, 242,
+  118, 158,  49,  50, 190, 190,  47, 105,
+  129, 221,  23, 245,  73, 164, 155, 247,
+  156, 161, 114, 203, 240,  65,  20,  53]
+}
+
+### perform xmr swap
+POST http://localhost:6789/swap/xmr
+Content-Type: application/json
+
+{
+    "hash": "7d063dc2262c1ef6e564ff5e107a1167a2cd9f20f39567bff2084e9489954f0e"
+}
+
+### get balances of xmr wallet
+POST http://localhost:18082/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}
