@@ -1,11 +1,10 @@
 package com.hiahatf.mass.models;
 
 /**
- * Enum for the invoice state
- * Mass creates an OPEN invoices
- * and expects and ACCEPTED state
- * when swapping. Failure to complete
- * a swap sends it to CANCELLED.
+ * Enum for the invoice state. Mass creates OPEN invoices
+ * and expects an ACCEPTED state when swapping. 
+ * Failure to complete a swap sends it to CANCELLED.
+ * Successful swaps are put to SETTLED state.
  */
 public enum InvoiceState {
     ACCEPTED,

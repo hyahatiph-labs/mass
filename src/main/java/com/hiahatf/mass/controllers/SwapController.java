@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Controller for handling swaps
+ */
 @RestController("SwapController")
 @RequestMapping
 public class SwapController extends BaseController {

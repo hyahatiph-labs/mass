@@ -11,7 +11,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Model for the Monero Quote DB persistance
+ * Model for the Monero Quote DB persistance.
+ * The payment hash is duplicated due to some
+ * conversion with hibernate. The String value
+ * is needed for DB query. The byte[] is needed
+ * to cancel an invoice.
  */
 @Entity
 @Table

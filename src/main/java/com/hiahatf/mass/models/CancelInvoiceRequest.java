@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the cancel hold invoice request
+ * POJO for the cancel hold invoice request.
+ * See lightning API for more info.
  */
 @Data
 @Builder

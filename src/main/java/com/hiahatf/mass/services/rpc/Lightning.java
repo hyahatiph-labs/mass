@@ -66,7 +66,8 @@ public class Lightning {
     /**
      * Lookup the invoice status. MASS is only concerned that
      * the invoice is in the proper state of ACCEPTED.
-     * @param preimage - hold invoice preimage
+     * @param hash - hold invoice payment hash
+     * @return - InvoiceState
      * @throws SSLException
      * @throws IOException
      */

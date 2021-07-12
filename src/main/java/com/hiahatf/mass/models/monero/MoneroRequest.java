@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MoneroRequest {
+    // valid monero address
     private String address;
+    // amount in monero
     private double amount;
 }

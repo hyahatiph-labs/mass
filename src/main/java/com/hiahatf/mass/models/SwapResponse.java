@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapResponse {
+    // payment hash / quoteId
     private String hash;
+    // tx id of the xmr transfer
     private String txId;
 }

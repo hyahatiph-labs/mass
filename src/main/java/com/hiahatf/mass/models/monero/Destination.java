@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Destination {
+    // amount in monero
     private Long amount;
+    // monero address
     private String address;
 }

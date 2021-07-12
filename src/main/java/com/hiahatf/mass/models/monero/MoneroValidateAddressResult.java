@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero validate address result
+ * POJO for the Monero validate address result.
+ * See Monero RPC docs for more details.
  */
 @Data
 @Builder

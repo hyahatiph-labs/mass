@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Invoice Lookup Response
+ * POJO for the Invoice Lookup Response.
+ * See lightning API for more info.
  */
 @Data
 @Builder

@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Settle Invoice Request
+ * POJO for the Settle Invoice Request.
+ * See lightning API for more info.
  */
 @Data
 @Builder

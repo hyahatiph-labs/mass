@@ -17,6 +17,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Class for handling Monero RPC operations
+ */
 @Service("MoneroRpc")
 public class Monero {
     

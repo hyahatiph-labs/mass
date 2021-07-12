@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Class for handling all swap logic
+ */
 @Service("SwapService")
 public class SwapService {
     

@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero transfer result
+ * POJO for the Monero transfer result.
+ * See Monero RPC docs for more details.
  */
 @Data
 @Builder

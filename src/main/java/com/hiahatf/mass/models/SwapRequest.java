@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapRequest {
+    // payment hash / quoteId
     private String hash;
 }
