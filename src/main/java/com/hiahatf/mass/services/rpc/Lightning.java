@@ -10,7 +10,10 @@ import javax.net.ssl.SSLException;
 import com.hiahatf.mass.exception.MassException;
 import com.hiahatf.mass.models.AddHoldInvoiceRequest;
 import com.hiahatf.mass.models.AddHoldInvoiceResponse;
+import com.hiahatf.mass.models.CancelInvoiceRequest;
+import com.hiahatf.mass.models.InvoiceLookupResponse;
 import com.hiahatf.mass.models.SettleInvoiceRequest;
+import com.hiahatf.mass.models.monero.XmrQuoteTable;
 
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +64,25 @@ public class Lightning {
     }
 
     /**
+     * Lookup the invoice status. MASS is only concerned that
+     * the invoice is in the proper state of ACCEPTED.
+     * @param preimage - hold invoice preimage
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<InvoiceLookupResponse> lookupInvoice(String hash) 
+        throws SSLException, IOException {
+            WebClient client = createClient();
+            return client.get()
+                .uri(uriBuilder -> uriBuilder
+                .pathSegment("v1", "invoice", "{hash}")
+                .build(hash))
+                .header(MACAROON_HEADER, createMacaroonHex())
+                .retrieve()
+                .bodyToMono(InvoiceLookupResponse.class);
+    }
+
+    /**
      * Generate a hold invoice to settle in the future once the
      * swap has been initiated. The payment request from LND gets
      * injected into the quote based on the amount of Monero
@@ -71,8 +93,7 @@ public class Lightning {
      * @throws SSLException
      * @throws IOException
      */
-    public Mono<AddHoldInvoiceResponse> 
-        generateInvoice(Double value, byte[] hash) 
+    public Mono<AddHoldInvoiceResponse> generateInvoice(Double value, byte[] hash) 
         throws SSLException, IOException {
             AddHoldInvoiceRequest request = AddHoldInvoiceRequest.builder()
                 .value(String.valueOf(value.intValue()))
@@ -91,31 +112,32 @@ public class Lightning {
     /**
      * Settle the hold invoice with the preimage.
      * If the invoice is not open the the call will
-     * succeed.
+     * succeed. 
      * @param preimage - hold invoice preimage
+     * @param settle - flag to drive settle or cancel logic
      * @throws SSLException
      * @throws IOException
      */
-    public Mono<ResponseEntity<Void>> 
-        settleInvoice(byte[] preimage) 
+    public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
         throws SSLException, IOException {
-            SettleInvoiceRequest request = SettleInvoiceRequest
-                .builder()
-                .preimage(preimage)
-                .build();
+            String path = settle ? "settle" : "cancel";
+            SettleInvoiceRequest settleReq = SettleInvoiceRequest
+                .builder().preimage(quote.getPreimage()).build();
+            CancelInvoiceRequest cancelReq = CancelInvoiceRequest
+                .builder().payment_hash(quote.getPayment_hash()).build();
             WebClient client = createClient();
             return client.post()
                 .uri(uriBuilder -> uriBuilder
-                .path("/v2/invoices/settle")
+                .pathSegment("v2", "invoices", path)
                 .build())
                 .header(MACAROON_HEADER, createMacaroonHex())
-                .bodyValue(request)
+                .bodyValue(settle ? settleReq : cancelReq)
                 .retrieve()
                 .toBodilessEntity()
                 .onErrorResume(WebClientResponseException.class, 
                 e -> e.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
                 ? Mono.error(new MassException("Invoice not settled!"))
-                : Mono.error(new MassException("Unknown error occurred while attempting to settle the invoice")));
+                : Mono.error(new MassException("Unknown error occurred")));
     }
 
     /**
