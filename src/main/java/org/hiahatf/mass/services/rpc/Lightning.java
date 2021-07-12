@@ -1,0 +1,183 @@
+package org.hiahatf.mass.services.rpc;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import javax.net.ssl.SSLException;
+
+import org.hiahatf.mass.exception.MassException;
+import org.hiahatf.mass.models.AddHoldInvoiceRequest;
+import org.hiahatf.mass.models.AddHoldInvoiceResponse;
+import org.hiahatf.mass.models.CancelInvoiceRequest;
+import org.hiahatf.mass.models.InvoiceLookupResponse;
+import org.hiahatf.mass.models.SettleInvoiceRequest;
+import org.hiahatf.mass.models.monero.XmrQuoteTable;
+
+import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+
+@Service("LightningRpc")
+public class Lightning {
+    
+    private String lndHost;
+    private String macaroonPath;
+    private static final String MACAROON_HEADER = "Grpc-Metadata-macaroon";
+
+    /**
+     * Lightning RPC constructor
+     * @param host
+     * @param macaroonPath
+     */
+    public Lightning(@Value("${host.lightning}") String host,
+    @Value("${macaroon-path}") String macaroonPath) {
+        this.lndHost = host;
+        this.macaroonPath = macaroonPath;
+    }
+
+    /**
+     * Testing LND connectivity
+     * @returns Mono<String>
+     */
+    public Mono<String> getInfo() throws IOException {
+        // lightning rpc web client
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .path("/v1/getinfo").build())
+            .header(MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(String.class);
+    }
+
+    /**
+     * Lookup the invoice status. MASS is only concerned that
+     * the invoice is in the proper state of ACCEPTED.
+     * @param hash - hold invoice payment hash
+     * @return - InvoiceState
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<InvoiceLookupResponse> lookupInvoice(String hash) 
+        throws SSLException, IOException {
+            WebClient client = createClient();
+            return client.get()
+                .uri(uriBuilder -> uriBuilder
+                .pathSegment("v1", "invoice", "{hash}")
+                .build(hash))
+                .header(MACAROON_HEADER, createMacaroonHex())
+                .retrieve()
+                .bodyToMono(InvoiceLookupResponse.class);
+    }
+
+    /**
+     * Generate a hold invoice to settle in the future once the
+     * swap has been initiated. The payment request from LND gets
+     * injected into the quote based on the amount of Monero
+     * requested in the swap.
+     * @param value - amount of the swap in satoshis
+     * @param hash - hash of hold invoice preimage
+     * @return AddHoldInvoiceResponse
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<AddHoldInvoiceResponse> generateInvoice(Double value, byte[] hash) 
+        throws SSLException, IOException {
+            AddHoldInvoiceRequest request = AddHoldInvoiceRequest.builder()
+                .value(String.valueOf(value.intValue()))
+                .hash(hash)
+                .build();
+            WebClient client = createClient();
+            return client.post()
+                .uri(uriBuilder -> uriBuilder
+                .path("/v2/invoices/hodl").build())
+                .header(MACAROON_HEADER, createMacaroonHex())
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(AddHoldInvoiceResponse.class);
+    }
+
+    /**
+     * Settle the hold invoice with the preimage.
+     * If the invoice is not open the the call will
+     * succeed. 
+     * @param preimage - hold invoice preimage
+     * @param settle - flag to drive settle or cancel logic
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
+        throws SSLException, IOException {
+            String path = settle ? "settle" : "cancel";
+            SettleInvoiceRequest settleReq = SettleInvoiceRequest
+                .builder().preimage(quote.getPreimage()).build();
+            CancelInvoiceRequest cancelReq = CancelInvoiceRequest
+                .builder().payment_hash(quote.getPayment_hash()).build();
+            WebClient client = createClient();
+            return client.post()
+                .uri(uriBuilder -> uriBuilder
+                .pathSegment("v2", "invoices", path)
+                .build())
+                .header(MACAROON_HEADER, createMacaroonHex())
+                .bodyValue(settle ? settleReq : cancelReq)
+                .retrieve()
+                .toBodilessEntity()
+                .onErrorResume(WebClientResponseException.class, 
+                e -> e.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ? Mono.error(new MassException("Invoice not settled!"))
+                : Mono.error(new MassException("Unknown error occurred")));
+    }
+
+    /**
+     * Create the SSL Context for working with 
+     * LND self-signed certificate
+     * @return HttpClient
+     * @throws SSLException
+     */
+    private HttpClient createSslContext() throws SSLException {
+        // work around for the self-signed TLS cert
+        SslContext sslContext = SslContextBuilder
+            .forClient()
+            .trustManager(InsecureTrustManagerFactory.INSTANCE)
+            .build();
+        return HttpClient.create().secure(t -> t.sslContext(sslContext));
+    }
+
+    /**
+     * Convert the LND Macaroon
+     * @return String - macaroon hex-encoded
+     * @throws IOException
+     */
+    private String createMacaroonHex() throws IOException {
+        Path path = Paths.get(macaroonPath);
+        byte[] byteArray = Files.readAllBytes(path);
+        return Hex.encodeHexString(byteArray);
+    }
+
+    /**
+     * Helper method for the LND WebClient.
+     * Creates a re-usable service for making
+     * Lightning network API calls
+     * @return WebClient
+     * @throws SSLException
+     */
+    private WebClient createClient() throws SSLException {
+        return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(createSslContext()))
+        .baseUrl(lndHost).build();
+    }
+
+}
