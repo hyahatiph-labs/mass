@@ -22,11 +22,13 @@ import lombok.NoArgsConstructor;
 public class XmrQuoteTable {
 
     @Id
-    private String preimage_hash;
+    private String quote_id;
     @Column
     private Double amount;
     @Column
     private byte[] preimage;
+    @Column
+    private byte[] payment_hash;
     @Column
     private String xmr_address;
 

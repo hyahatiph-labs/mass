@@ -54,6 +54,7 @@ public class QuoteService {
     /**
      * Method for building the monero quote
      * and returning it to the client
+     * TODO: min, max and xmr balance checks to verify we can do the swap
      * @return Mono<MoneroQuote>
      */
     public Mono<MoneroQuote> processMoneroQuote(MoneroRequest request) {
@@ -69,7 +70,8 @@ public class QuoteService {
                     .xmr_address(request.getAddress())
                     .amount(request.getAmount())
                     .preimage(preimage)
-                    .preimage_hash(Hex.encodeHexString(hash))
+                    .payment_hash(hash)
+                    .quote_id(Hex.encodeHexString(hash))
                     .build();
                 quoteRepository.save(table);
                 return generateMoneroQuote(value, hash, request, rate, v);

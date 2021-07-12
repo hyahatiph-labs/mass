@@ -57,7 +57,7 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "e8754cd5189125b46490b30cb958792e88ae34e76b954d32ad70ced27ac21c2a"
+    "hash": "7d063dc2262c1ef6e564ff5e107a1167a2cd9f20f39567bff2084e9489954f0e"
 }
 
 ### get balances of xmr wallet
