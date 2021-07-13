@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
+import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceRequest;
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
 import org.hiahatf.mass.models.lightning.CancelInvoiceRequest;
@@ -35,12 +36,11 @@ import reactor.netty.http.client.HttpClient;
 /**
  * Class for performing LND API calls
  */
-@Service("LightningRpc")
+@Service
 public class Lightning {
     
     private String lndHost;
     private String macaroonPath;
-    private static final String MACAROON_HEADER = "Grpc-Metadata-macaroon";
 
     /**
      * Lightning RPC constructor
@@ -48,8 +48,8 @@ public class Lightning {
      * @param macaroonPath
      */
     public Lightning(
-        @Value("${host.lightning}") String host,
-        @Value("${macaroon-path}") String macaroonPath) {
+        @Value(Constants.LND_PATH) String host,
+        @Value(Constants.MACAROON_PATH) String macaroonPath) {
             this.lndHost = host;
             this.macaroonPath = macaroonPath;
     }
@@ -63,8 +63,8 @@ public class Lightning {
         WebClient client = createClient();
         return client.get()
             .uri(uriBuilder -> uriBuilder
-            .path("/v1/getinfo").build())
-            .header(MACAROON_HEADER, createMacaroonHex())
+            .path(Constants.INFO_PATH).build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
             .retrieve()
             .bodyToMono(Info.class);
     }
@@ -82,9 +82,9 @@ public class Lightning {
             WebClient client = createClient();
             return client.get()
                 .uri(uriBuilder -> uriBuilder
-                .pathSegment("v1", "invoice", "{hash}")
+                .pathSegment(Constants.V1, Constants.INVOICE, Constants.HASH_PARAM)
                 .build(hash))
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .retrieve()
                 .bodyToMono(InvoiceLookupResponse.class);
     }
@@ -109,8 +109,8 @@ public class Lightning {
             WebClient client = createClient();
             return client.post()
                 .uri(uriBuilder -> uriBuilder
-                .path("/v2/invoices/hodl").build())
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .path(Constants.ADD_INVOICE_PATH).build())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(AddHoldInvoiceResponse.class);
@@ -127,7 +127,7 @@ public class Lightning {
      */
     public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
         throws SSLException, IOException {
-            String path = settle ? "settle" : "cancel";
+            String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest
                 .builder().preimage(quote.getPreimage()).build();
             CancelInvoiceRequest cancelReq = CancelInvoiceRequest
@@ -135,16 +135,16 @@ public class Lightning {
             WebClient client = createClient();
             return client.post()
                 .uri(uriBuilder -> uriBuilder
-                .pathSegment("v2", "invoices", path)
+                .pathSegment(Constants.V2, Constants.INVOICES, path)
                 .build())
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .bodyValue(settle ? settleReq : cancelReq)
                 .retrieve()
                 .toBodilessEntity()
                 .onErrorResume(WebClientResponseException.class, 
                 e -> e.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
-                ? Mono.error(new MassException("Invoice not settled!"))
-                : Mono.error(new MassException("Unknown error occurred")));
+                ? Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR_MSG))
+                : Mono.error(new MassException(Constants.UNK_ERROR_MSG)));
     }
 
     /**
@@ -158,9 +158,9 @@ public class Lightning {
         WebClient client = createClient();
         return client.get()
             .uri(uriBuilder -> uriBuilder
-            .path("/v1/balance/channels")
+            .path(Constants.BALANCE_PATH)
             .build())
-            .header(MACAROON_HEADER, createMacaroonHex())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
             .retrieve()
             .bodyToMono(Liquidity.class);
     }

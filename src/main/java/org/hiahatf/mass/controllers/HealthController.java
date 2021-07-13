@@ -6,6 +6,7 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.services.rpc.Lightning;
+import org.hiahatf.mass.models.Constants;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class HealthController extends BaseController{
 	 * @throws SSLException
 	 * @throws IOException
 	 */
-    @GetMapping("/health")
+    @GetMapping(Constants.HEALTH_PATH)
 	@ResponseStatus(HttpStatus.OK)
 	public Mono<Info> ping() throws SSLException, IOException {
 		// return http 200 status code

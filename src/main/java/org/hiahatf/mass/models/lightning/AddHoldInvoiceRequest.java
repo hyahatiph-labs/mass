@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.lightning;
 
+import org.hiahatf.mass.models.Constants;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,10 +16,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddHoldInvoiceRequest {
-    private final String memo = "mass";
+    // memo for the invoice
+    private final String memo = Constants.MEMO;
+    // preimage hash
     private byte[] hash;
+    // invoice amount in satoshis
     private String value;
     // invoices expire after 10 min.
-    // TODO: make this configurable?
-    private final String expiry = "600";
+    private final String expiry = Constants.EXPIRY;
 }

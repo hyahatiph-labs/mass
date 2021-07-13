@@ -14,6 +14,7 @@ import java.security.Security;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
+import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.MoneroRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
@@ -24,6 +25,7 @@ import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
@@ -31,19 +33,17 @@ import reactor.core.publisher.Mono;
 /**
  * Class for handling quote logic
  */
-@Service("QuoteService")
+@Service
 public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
-    private static final String INVALID_ADDRESS = "Invalid address";
-    private static final String HASH_ERROR_MSG = "Preimage hashing error: {}";
-    private static final String SHA_256 = "SHA-256";
-    private static final Long COIN = 100000000L;
     private RateService rateService;
     private Monero moneroRpc;
     private Lightning lightning;
     private MassUtil massUtil;
     private QuoteRepository quoteRepository;
+    private long minPay;
+    private long maxPay;
 
     @Autowired
     public QuoteService(
@@ -51,12 +51,16 @@ public class QuoteService {
         MassUtil massUtil, 
         Monero moneroRpc, 
         Lightning lightning, 
-        QuoteRepository quoteRepository) {
+        QuoteRepository quoteRepository,
+        @Value(Constants.MIN_PAY) long minPay,
+        @Value(Constants.MAX_PAY) long maxPay) {
             this.rateService = rateService;
             this.massUtil = massUtil;
             this.moneroRpc = moneroRpc;
             this.lightning = lightning;
             this.quoteRepository = quoteRepository;
+            this.minPay = minPay;
+            this.maxPay = maxPay;
     }
 
     /**
@@ -71,7 +75,7 @@ public class QuoteService {
             // TODO: inject into quote validation, move quote validation here
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
                 Double rate = massUtil.parseMoneroRate(r);
-                Double value = (rate * request.getAmount()) * COIN;
+                Double value = (rate * request.getAmount()) * Constants.COIN;
                 byte[] preimage = createPreimage();
                 byte[] hash = createPreimageHash(preimage);
                 persistQuote(request, preimage, hash);
@@ -119,15 +123,39 @@ public class QuoteService {
     private Mono<Boolean> validateMoneroAddress(String address) {
         return moneroRpc.validateAddress(address).flatMap(r -> {
                 if(!r.getResult().isValid()) {
-                    return Mono.error(new MassException(INVALID_ADDRESS));
+                    return Mono.error(
+                        new MassException(Constants.INVALID_ADDRESS))
+                    ;
                 }
                 return Mono.just(true);
             });
     }
 
-    // private Mono<Boolean> validateInboundLiquidity(Double value) {
-        
-    // }
+    /**
+     * Perform validations on channel balance to ensure
+     * that a payment proposed on the XMR quote MAY
+     * possibly be fulfilled.
+     * @param value
+     * @return
+     */
+    private Mono<Boolean> validateInboundLiquidity(Double value) {
+        try {
+            return lightning.fetchBalance().flatMap(b -> {
+                // sum of sats in channels remote balance
+                long balance = Long.valueOf(b.getRemote_balance().getSat());
+                // satoshi value on the invoice
+                long sValue = value.longValue();
+                if(sValue <= balance) {
+                    return Mono.just(true);
+                }
+                return Mono.error(new MassException(Constants.LIQUIDITY_ERROR));
+            });
+        } catch (SSLException se) {
+            return Mono.error(new MassException(se.getMessage()));
+        } catch (IOException ie) {
+            return Mono.error(new MassException(ie.getMessage()));
+        }
+    }
 
     /**
      * Create the 32 byte preimage
@@ -149,9 +177,9 @@ public class QuoteService {
         Security.addProvider(new BouncyCastleProvider());
         MessageDigest digest = null;
         try {
-            digest = MessageDigest.getInstance(SHA_256);
+            digest = MessageDigest.getInstance(Constants.SHA_256);
         } catch (NoSuchAlgorithmException e) {
-            logger.error(HASH_ERROR_MSG, e.getMessage());
+            logger.error(Constants.HASH_ERROR_MSG, e.getMessage());
         }     
         return digest.digest(preimage);
     }
@@ -184,8 +212,9 @@ public class QuoteService {
      */
     private Mono<MoneroQuote> validateQuote(Double amount) {
         // TODO: inject and build on the validate address logic
-
+        //boolean isValidAmt = amount.longValue() <= 
         // validate min. and max. MASS payments in satoshis
+        
 
         // validate channel liquidity
 

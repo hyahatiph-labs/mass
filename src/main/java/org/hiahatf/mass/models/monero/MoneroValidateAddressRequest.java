@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.monero;
 
+import org.hiahatf.mass.models.Constants;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MoneroValidateAddressRequest {
-    private final String jsonrpc = "2.0";
-    private final String id = "0";
-    private final String method = "validate_address";
+    private final String jsonrpc = Constants.XMR_RPC_VER;
+    private final String id = Constants.XMR_RPC_ID;
+    private final String method = Constants.XMR_RPC_VALIDATE_ADDRESS;
     private MoneroValidateAddressParameters params;
 }

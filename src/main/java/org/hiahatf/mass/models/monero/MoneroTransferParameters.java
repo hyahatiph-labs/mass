@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 /**
  * POJO for the Monero transfer request.
  * See Monero RPC docs for more details.
- * TODO: more configurable params
  */
 @Data
 @Builder

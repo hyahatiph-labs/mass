@@ -1,5 +1,6 @@
 package org.hiahatf.mass.controllers;
 
+import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.MoneroRequest;
 import org.hiahatf.mass.services.QuoteService;
@@ -39,7 +40,7 @@ public class QuoteController extends BaseController {
      * with additional details.
      * @return MoneroQuote
      */
-    @GetMapping("/quote/xmr")
+    @GetMapping(Constants.XMR_QUOTE_PATH)
     public Mono<MoneroQuote> fetchMoneroQuote(@RequestBody MoneroRequest request) {
         return quoteService.processMoneroQuote(request);
     }
