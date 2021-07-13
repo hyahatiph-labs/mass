@@ -19,6 +19,8 @@ public class MoneroQuote {
     private String address;
     // proof of address validity
     private Boolean isValidAddress;
+    // reserve proof
+    private String reserve_proof;
     // amount in monero
     private double amount;
     // this the mass rate including markup?

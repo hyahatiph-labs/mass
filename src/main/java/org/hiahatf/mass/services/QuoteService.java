@@ -42,8 +42,12 @@ public class QuoteService {
     private QuoteRepository quoteRepository;
 
     @Autowired
-    public QuoteService(RateService rateService, MassUtil massUtil, 
-        Monero moneroRpc, Lightning lightning, QuoteRepository quoteRepository) {
+    public QuoteService(
+        RateService rateService, 
+        MassUtil massUtil, 
+        Monero moneroRpc, 
+        Lightning lightning, 
+        QuoteRepository quoteRepository) {
             this.rateService = rateService;
             this.massUtil = massUtil;
             this.moneroRpc = moneroRpc;
@@ -60,11 +64,15 @@ public class QuoteService {
     public Mono<MoneroQuote> processMoneroQuote(MoneroRequest request) {
         return rateService.getMoneroRate().flatMap(r -> {
             // validate the address
+
+            // TODO: inject into quote validation, move quote validation here
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
                 Double rate = massUtil.parseMoneroRate(r);
                 Double value = (rate * request.getAmount()) * COIN;
                 byte[] preimage = createPreimage();
                 byte[] hash = createPreimageHash(preimage);
+                
+                // TODO: move db stuff to separate method
                 // store in db to settle the invoice later
                 XmrQuoteTable table = XmrQuoteTable.builder()
                     .xmr_address(request.getAddress())
@@ -74,6 +82,8 @@ public class QuoteService {
                     .quote_id(Hex.encodeHexString(hash))
                     .build();
                 quoteRepository.save(table);
+                // TODO: move db stuff to separate method
+
                 return generateMoneroQuote(value, hash, request, rate, v);
             });   
         });
@@ -149,6 +159,26 @@ public class QuoteService {
             logger.error("Preimage hashing error: {}", e.getMessage());
         }     
         return digest.digest(preimage);
+    }
+
+    /**
+     * The quote amount is validated before a response is sent.
+     * Minimum and maximum payments are configured via the MASS
+     * application.yml. There is no limit on requests. The amount
+     * is also validated with Monero reserve proof.
+     * @param amount
+     * @return Mono<MoneroQuote>
+     */
+    private Mono<MoneroQuote> validateQuote(Double amount) {
+        // TODO: inject and build on the validate address logic
+
+        // validate min. and max. MASS payments in satoshis
+
+        // validate channel liquidity
+
+        // validate Monero reserves proof
+
+        return Mono.just(MoneroQuote.builder().build());
     }
 
 }

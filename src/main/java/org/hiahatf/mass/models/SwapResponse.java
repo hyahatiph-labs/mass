@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 public class SwapResponse {
     // payment hash / quoteId
     private String hash;
-    // tx id of the xmr transfer
-    private String txId;
+    // spend proof of the xmr transfer
+    private String spend_proof;
 }

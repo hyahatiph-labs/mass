@@ -117,9 +117,10 @@ public class SwapService {
             return lightning.handleInvoice(quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     // monero transfer succeeded, settle invoice
+
+                    // TODO: dont send txid, send spend proof
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())
-                        .txId(r.getResult().getTx_hash())
                         .build();
                     // remove quote from db
                     quoteRepository.deleteById(quote.getQuote_id());
