@@ -1,5 +1,5 @@
-# Mass workflow
-name: CI
+# Mass build workflow
+name: Build
 
 # Controls when the action will run. 
 on:
@@ -24,6 +24,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
+      # Build the .jar
       - name: Build
-        run: mvn clean && mvn install
+        run: mvn clean && mvn install -DskipTests=true
