@@ -8,11 +8,13 @@ import java.nio.file.Paths;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
-import org.hiahatf.mass.models.AddHoldInvoiceRequest;
-import org.hiahatf.mass.models.AddHoldInvoiceResponse;
-import org.hiahatf.mass.models.CancelInvoiceRequest;
-import org.hiahatf.mass.models.InvoiceLookupResponse;
-import org.hiahatf.mass.models.SettleInvoiceRequest;
+import org.hiahatf.mass.models.lightning.AddHoldInvoiceRequest;
+import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
+import org.hiahatf.mass.models.lightning.CancelInvoiceRequest;
+import org.hiahatf.mass.models.lightning.Info;
+import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
+import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 
 import org.apache.commons.codec.binary.Hex;
@@ -30,6 +32,9 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
+/**
+ * Class for performing LND API calls
+ */
 @Service("LightningRpc")
 public class Lightning {
     
@@ -42,17 +47,18 @@ public class Lightning {
      * @param host
      * @param macaroonPath
      */
-    public Lightning(@Value("${host.lightning}") String host,
-    @Value("${macaroon-path}") String macaroonPath) {
-        this.lndHost = host;
-        this.macaroonPath = macaroonPath;
+    public Lightning(
+        @Value("${host.lightning}") String host,
+        @Value("${macaroon-path}") String macaroonPath) {
+            this.lndHost = host;
+            this.macaroonPath = macaroonPath;
     }
 
     /**
      * Testing LND connectivity
      * @returns Mono<String>
      */
-    public Mono<String> getInfo() throws IOException {
+    public Mono<Info> getInfo() throws IOException {
         // lightning rpc web client
         WebClient client = createClient();
         return client.get()
@@ -60,7 +66,7 @@ public class Lightning {
             .path("/v1/getinfo").build())
             .header(MACAROON_HEADER, createMacaroonHex())
             .retrieve()
-            .bodyToMono(String.class);
+            .bodyToMono(Info.class);
     }
 
     /**
@@ -141,6 +147,24 @@ public class Lightning {
                 : Mono.error(new MassException("Unknown error occurred")));
     }
 
+    /**
+     * Make a request to the LND API for retrieving the local and 
+     * remote balances.
+     * @return Mono<Liquidity>
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<Liquidity> fetchBalance() throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .path("/v1/balance/channels")
+            .build())
+            .header(MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(Liquidity.class);
+    }
+    
     /**
      * Create the SSL Context for working with 
      * LND self-signed certificate

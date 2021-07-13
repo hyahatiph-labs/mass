@@ -1,4 +1,4 @@
-# mass
+# MASS
 
 [![CI](https://github.com/hyahatiph-labs/mass/actions/workflows/main.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/main.yml)
 [![CodeQL](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml)
@@ -28,6 +28,8 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 ## API
 
 samples at `./api.http`
+
+health check at GET `http://localhost:6789/health`
 
 generate a quote at GET `http://localhost:6789/quote/xmr`
 

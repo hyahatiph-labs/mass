@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLException;
 
+import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.services.rpc.Lightning;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +25,25 @@ public class HealthController extends BaseController{
     
 	private Lightning lightning;
 
+	/**
+	 * HealthController dependency injection
+	 * @param lightning
+	 */
 	@Autowired
 	public HealthController(Lightning lightning) {
 		this.lightning = lightning;
 	}
 
+	/**
+	 * Ping MASS and return information about the underlying
+	 * LND node. 
+	 * @return Mono<Info>
+	 * @throws SSLException
+	 * @throws IOException
+	 */
     @GetMapping("/health")
 	@ResponseStatus(HttpStatus.OK)
-	public Mono<String> ping() throws SSLException, IOException {
+	public Mono<Info> ping() throws SSLException, IOException {
 		// return http 200 status code
 		return lightning.getInfo();
 	}

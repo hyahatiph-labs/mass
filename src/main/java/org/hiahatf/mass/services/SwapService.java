@@ -5,9 +5,9 @@ import java.io.IOException;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
-import org.hiahatf.mass.models.InvoiceState;
 import org.hiahatf.mass.models.SwapRequest;
 import org.hiahatf.mass.models.SwapResponse;
+import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.monero.MoneroTranserResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.repo.QuoteRepository;
@@ -95,9 +95,12 @@ public class SwapService {
         try {
             return lightning.handleInvoice(quote, false).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
-                    return Mono.error(new MassException("Unable to send XMR. Invoice cancelled"));
+                    return 
+                    Mono.error(
+                        new MassException("Tx failed. Invoice cancelled")
+                        );
                 }
-                return Mono.error(new MassException("XMR transfer failure!"));
+                return Mono.error(new MassException("XMR tx failure!"));
             });
         } catch (SSLException se) {
             return Mono.error(new MassException(se.getMessage()));

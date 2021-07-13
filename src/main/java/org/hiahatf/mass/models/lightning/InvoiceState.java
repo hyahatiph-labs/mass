@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.lightning;
 
 /**
  * Enum for the invoice state. Mass creates OPEN invoices

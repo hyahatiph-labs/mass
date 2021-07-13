@@ -28,11 +28,15 @@ import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Class for handling quote logic
+ */
 @Service("QuoteService")
 public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
     private static final String INVALID_ADDRESS = "Invalid address";
+    private static final String HASH_ERROR_MSG = "Preimage hashing error: {}";
     private static final String SHA_256 = "SHA-256";
     private static final Long COIN = 100000000L;
     private RateService rateService;
@@ -58,7 +62,6 @@ public class QuoteService {
     /**
      * Method for building the monero quote
      * and returning it to the client
-     * TODO: min, max and xmr balance checks to verify we can do the swap
      * @return Mono<MoneroQuote>
      */
     public Mono<MoneroQuote> processMoneroQuote(MoneroRequest request) {
@@ -71,19 +74,7 @@ public class QuoteService {
                 Double value = (rate * request.getAmount()) * COIN;
                 byte[] preimage = createPreimage();
                 byte[] hash = createPreimageHash(preimage);
-                
-                // TODO: move db stuff to separate method
-                // store in db to settle the invoice later
-                XmrQuoteTable table = XmrQuoteTable.builder()
-                    .xmr_address(request.getAddress())
-                    .amount(request.getAmount())
-                    .preimage(preimage)
-                    .payment_hash(hash)
-                    .quote_id(Hex.encodeHexString(hash))
-                    .build();
-                quoteRepository.save(table);
-                // TODO: move db stuff to separate method
-
+                persistQuote(request, preimage, hash);
                 return generateMoneroQuote(value, hash, request, rate, v);
             });   
         });
@@ -134,6 +125,10 @@ public class QuoteService {
             });
     }
 
+    // private Mono<Boolean> validateInboundLiquidity(Double value) {
+        
+    // }
+
     /**
      * Create the 32 byte preimage
      * @return byte[]
@@ -156,9 +151,27 @@ public class QuoteService {
         try {
             digest = MessageDigest.getInstance(SHA_256);
         } catch (NoSuchAlgorithmException e) {
-            logger.error("Preimage hashing error: {}", e.getMessage());
+            logger.error(HASH_ERROR_MSG, e.getMessage());
         }     
         return digest.digest(preimage);
+    }
+
+    /**
+     * Persist the MoneroQuote to the database for future processing.
+     * @param request
+     * @param preimage
+     * @param hash
+     */
+    private void persistQuote(MoneroRequest request, byte[] preimage, byte[] hash) {
+        // store in db to settle the invoice later
+        XmrQuoteTable table = XmrQuoteTable.builder()
+            .xmr_address(request.getAddress())
+            .amount(request.getAmount())
+            .preimage(preimage)
+            .payment_hash(hash)
+            .quote_id(Hex.encodeHexString(hash))
+            .build();
+        quoteRepository.save(table);
     }
 
     /**

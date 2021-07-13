@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.lightning;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

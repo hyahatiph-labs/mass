@@ -9,6 +9,9 @@ host:
 macaroon-path: /home/nigellchristian/.lnd2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
 markup: 0.01
+# minimum payment threshold in satoshis
+min-pay: 100000
+max-pay: 10000000
 # set the log level
 logging:
   level:
