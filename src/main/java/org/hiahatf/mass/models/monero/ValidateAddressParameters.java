@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroValidateAddressParameters {
+public class ValidateAddressParameters {
     private String address;
     private final boolean any_net_type = true;
     private final boolean allow_openalias = true;

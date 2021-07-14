@@ -1,4 +1,4 @@
-package org.hiahatf.mass.services;
+package org.hiahatf.mass.services.monero;
 
 import java.io.IOException;
 
@@ -6,10 +6,10 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.SwapRequest;
-import org.hiahatf.mass.models.SwapResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
-import org.hiahatf.mass.models.monero.MoneroTransferResponse;
+import org.hiahatf.mass.models.monero.TransferResponse;
+import org.hiahatf.mass.models.monero.SwapRequest;
+import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.repo.QuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -61,7 +61,7 @@ public class SwapService {
                 if(l.getState() == InvoiceState.ACCEPTED) {
                     return transferMonero(quote);
                 }
-                return Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR_MSG));
+                return Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR));
             });
         } catch (SSLException se) {
             return Mono.error(new MassException(se.getMessage()));
@@ -98,10 +98,10 @@ public class SwapService {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     return 
                     Mono.error(
-                        new MassException(Constants.SWAP_CANCELLED_ERR_MSG)
+                        new MassException(Constants.SWAP_CANCELLED_ERROR)
                         );
                 }
-                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR_MSG));
+                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
             });
         } catch (SSLException se) {
             return Mono.error(new MassException(se.getMessage()));
@@ -116,7 +116,7 @@ public class SwapService {
      * @return Mono<SwapResponse>
      */
     private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, 
-    MoneroTransferResponse r) {
+    TransferResponse r) {
         try {
             return lightning.handleInvoice(quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
@@ -130,7 +130,7 @@ public class SwapService {
                     quoteRepository.deleteById(quote.getQuote_id());
                     return Mono.just(res);
                 }
-                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR_MSG));
+                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
             });
         } catch (SSLException se) {
             return Mono.error(new MassException(se.getMessage()));

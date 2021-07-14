@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.monero;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,15 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Swap Response
+ * POJO for the Swap Request
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SwapResponse {
+public class SwapRequest {
     // payment hash / quoteId
     private String hash;
-    // spend proof of the xmr transfer
-    private String spend_proof;
 }

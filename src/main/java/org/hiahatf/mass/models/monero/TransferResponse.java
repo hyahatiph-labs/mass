@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroTransferResponse {
+public class TransferResponse {
     private String id;
     private String jsonrpc;
-    private MoneroTransferResult result;
+    private TransferResult result;
 }

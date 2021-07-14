@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroValidateAddressResult {
+public class ValidateAddressResult {
     private boolean valid;
     private boolean integrated;
     private boolean subaddress;

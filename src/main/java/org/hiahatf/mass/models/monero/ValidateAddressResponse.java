@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroValidateAddressResponse {
+public class ValidateAddressResponse {
     private String id;
     private String jsonrpc;
-    private MoneroValidateAddressResult result;
+    private ValidateAddressResult result;
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroQuote {
+public class Quote {
     // quote id is the same as lnd payment hash  
     private String quoteId;
     // monero rx address
@@ -21,6 +21,10 @@ public class MoneroQuote {
     private Boolean isValidAddress;
     // reserve proof
     private String reserve_proof;
+    // minimum swap amount in satoshis
+    private Long minSwapAmt;
+    // maximum swap amount in satoshis
+    private Long maxSwapAmt;
     // amount in monero
     private double amount;
     // this the mass rate including markup?

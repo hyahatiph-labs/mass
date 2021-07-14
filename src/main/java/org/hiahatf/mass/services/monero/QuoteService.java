@@ -1,4 +1,4 @@
-package org.hiahatf.mass.services;
+package org.hiahatf.mass.services.monero;
 
 import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -15,8 +15,8 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.monero.MoneroQuote;
-import org.hiahatf.mass.models.monero.MoneroRequest;
+import org.hiahatf.mass.models.monero.Quote;
+import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.repo.QuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
@@ -68,11 +68,12 @@ public class QuoteService {
      * and returning it to the client
      * @return Mono<MoneroQuote>
      */
-    public Mono<MoneroQuote> processMoneroQuote(MoneroRequest request) {
+    public Mono<Quote> processMoneroQuote(Request request) {
         return rateService.getMoneroRate().flatMap(r -> {
-            // validate the address
+            
+            // TODO: return validateQuote injection
 
-            // TODO: inject into quote validation, move quote validation here
+            // validate the address
             return validateMoneroAddress(request.getAddress()).flatMap(v -> {
                 Double rate = massUtil.parseMoneroRate(r);
                 Double value = (rate * request.getAmount()) * Constants.COIN;
@@ -85,51 +86,28 @@ public class QuoteService {
     }
 
     /**
-     * Helper function for generating the Monero quote
-     * @param value - amount of quote in satoshis
-     * @param hash - preimage hash
-     * @param request - request from client
-     * @param rate - rate with fee
-     * @param v - boolean of address validation
-     * @param quoteId - id to recover quote for future reference
+     * The quote amount is validated before a response is sent.
+     * Minimum and maximum payments are configured via the MASS
+     * application.yml. There is no limit on requests. The amount
+     * is also validated with Monero reserve proof.
+     * @param amount
      * @return Mono<MoneroQuote>
      */
-    private Mono<MoneroQuote> generateMoneroQuote(Double value, byte[] hash,
-        MoneroRequest request, Double rate, Boolean v) {
-            try {
-                return lightning.generateInvoice(value, hash).flatMap(i -> {
-                    MoneroQuote quote = MoneroQuote.builder()
-                        .quoteId(Hex.encodeHexString(hash))
-                        .address(request.getAddress())
-                        .isValidAddress(v)
-                        .amount(request.getAmount())
-                        .invoice(i.getPayment_request())
-                        .rate(rate)
-                        .build();
-                    return Mono.just(quote);
-                });
-            } catch (SSLException se) {
-                return Mono.error(new MassException(se.getMessage()));
-            } catch (IOException ie) {
-                return Mono.error(new MassException(ie.getMessage()));
-            }
+    private Mono<Quote> validateQuote(Double amount) {
+        validateInboundLiquidity(amount).flatMap(l -> {
+
+            // TODO: Return reserve proof injection
+            return null;
+
+        });
+    
+
+        // validate Monero reserves proof
+
+        return Mono.just(Quote.builder().build());
     }
 
-    /**
-     * Validate the Monero address that will receive the swap
-     * @param address
-     * @return Mono<Boolean> - true if valid
-     */
-    private Mono<Boolean> validateMoneroAddress(String address) {
-        return moneroRpc.validateAddress(address).flatMap(r -> {
-                if(!r.getResult().isValid()) {
-                    return Mono.error(
-                        new MassException(Constants.INVALID_ADDRESS))
-                    ;
-                }
-                return Mono.just(true);
-            });
-    }
+    
 
     /**
      * Perform validations on channel balance to ensure
@@ -139,6 +117,14 @@ public class QuoteService {
      * @return
      */
     private Mono<Boolean> validateInboundLiquidity(Double value) {
+        // payment threshold validation
+        long lValue = value.longValue();
+        boolean isValid = lValue <= maxPay && lValue >= minPay;
+        if(!isValid) {
+            return Mono.error(
+                new MassException(Constants.PAYMENT_THRESHOLD_ERROR)
+                );
+        }
         try {
             return lightning.fetchBalance().flatMap(b -> {
                 // sum of sats in channels remote balance
@@ -156,6 +142,22 @@ public class QuoteService {
             return Mono.error(new MassException(ie.getMessage()));
         }
     }
+
+    /**
+     * Validate the Monero address that will receive the swap
+     * @param address
+     * @return Mono<Boolean> - true if valid
+     */
+    private Mono<Boolean> validateMoneroAddress(String address) {
+        return moneroRpc.validateAddress(address).flatMap(r -> {
+                if(!r.getResult().isValid()) {
+                    return Mono.error(
+                        new MassException(Constants.INVALID_ADDRESS_ERROR));
+                }
+                return Mono.just(true);
+            });
+    }
+
 
     /**
      * Create the 32 byte preimage
@@ -179,7 +181,7 @@ public class QuoteService {
         try {
             digest = MessageDigest.getInstance(Constants.SHA_256);
         } catch (NoSuchAlgorithmException e) {
-            logger.error(Constants.HASH_ERROR_MSG, e.getMessage());
+            logger.error(Constants.HASH_ERROR, e.getMessage());
         }     
         return digest.digest(preimage);
     }
@@ -190,7 +192,8 @@ public class QuoteService {
      * @param preimage
      * @param hash
      */
-    private void persistQuote(MoneroRequest request, byte[] preimage, byte[] hash) {
+    private void persistQuote(Request request, byte[] preimage, 
+    byte[] hash) {
         // store in db to settle the invoice later
         XmrQuoteTable table = XmrQuoteTable.builder()
             .xmr_address(request.getAddress())
@@ -203,24 +206,36 @@ public class QuoteService {
     }
 
     /**
-     * The quote amount is validated before a response is sent.
-     * Minimum and maximum payments are configured via the MASS
-     * application.yml. There is no limit on requests. The amount
-     * is also validated with Monero reserve proof.
-     * @param amount
+     * Helper function for generating the Monero quote
+     * @param value - amount of quote in satoshis
+     * @param hash - preimage hash
+     * @param request - request from client
+     * @param rate - rate with fee
+     * @param v - boolean of address validation
+     * @param quoteId - id to recover quote for future reference
      * @return Mono<MoneroQuote>
      */
-    private Mono<MoneroQuote> validateQuote(Double amount) {
-        // TODO: inject and build on the validate address logic
-        //boolean isValidAmt = amount.longValue() <= 
-        // validate min. and max. MASS payments in satoshis
-        
-
-        // validate channel liquidity
-
-        // validate Monero reserves proof
-
-        return Mono.just(MoneroQuote.builder().build());
+    private Mono<Quote> generateMoneroQuote(Double value, byte[] hash,
+        Request request, Double rate, Boolean v) {
+            try {
+                return lightning.generateInvoice(value, hash).flatMap(i -> {
+                    Quote quote = Quote.builder()
+                        .quoteId(Hex.encodeHexString(hash))
+                        .address(request.getAddress())
+                        .isValidAddress(v)
+                        .amount(request.getAmount())
+                        .invoice(i.getPayment_request())
+                        .rate(rate)
+                        .minSwapAmt(minPay)
+                        .maxSwapAmt(maxPay)
+                        .build();
+                    return Mono.just(quote);
+                });
+            } catch (SSLException se) {
+                return Mono.error(new MassException(se.getMessage()));
+            } catch (IOException ie) {
+                return Mono.error(new MassException(ie.getMessage()));
+            }
     }
 
 }

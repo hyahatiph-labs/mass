@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroTransferParameters {
+public class TransferParameters {
     private List<Destination> destinations;
     private final int account_index = 0;
     private final int[] subaddr_indices = {0};

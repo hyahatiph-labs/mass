@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroTransferResult {
+public class TransferResult {
     private long amount;
     private long fee;
     private String multisig_txset;

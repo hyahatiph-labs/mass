@@ -1,10 +1,9 @@
 package org.hiahatf.mass.controllers;
 
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.SwapRequest;
-import org.hiahatf.mass.models.SwapResponse;
-import org.hiahatf.mass.services.SwapService;
-
+import org.hiahatf.mass.models.monero.SwapRequest;
+import org.hiahatf.mass.models.monero.SwapResponse;
+import org.hiahatf.mass.services.monero.SwapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroRequest {
+public class Request {
     // valid monero address
     private String address;
     // amount in monero

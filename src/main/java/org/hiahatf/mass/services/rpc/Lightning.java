@@ -143,8 +143,8 @@ public class Lightning {
                 .toBodilessEntity()
                 .onErrorResume(WebClientResponseException.class, 
                 e -> e.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
-                ? Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR_MSG))
-                : Mono.error(new MassException(Constants.UNK_ERROR_MSG)));
+                ? Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR))
+                : Mono.error(new MassException(Constants.UNK_ERROR)));
     }
 
     /**

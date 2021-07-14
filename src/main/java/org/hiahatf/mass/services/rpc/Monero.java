@@ -6,12 +6,12 @@ import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Destination;
-import org.hiahatf.mass.models.monero.MoneroTransferResponse;
-import org.hiahatf.mass.models.monero.MoneroTransferParameters;
-import org.hiahatf.mass.models.monero.MoneroTransferRequest;
-import org.hiahatf.mass.models.monero.MoneroValidateAddressParameters;
-import org.hiahatf.mass.models.monero.MoneroValidateAddressRequest;
-import org.hiahatf.mass.models.monero.MoneroValidateAddressResponse;
+import org.hiahatf.mass.models.monero.TransferResponse;
+import org.hiahatf.mass.models.monero.TransferParameters;
+import org.hiahatf.mass.models.monero.TransferRequest;
+import org.hiahatf.mass.models.monero.ValidateAddressParameters;
+import org.hiahatf.mass.models.monero.ValidateAddressRequest;
+import org.hiahatf.mass.models.monero.ValidateAddressResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,11 +45,11 @@ public class Monero {
      * @param address
      * @return MoneroValidateAddressResponse
      */
-    public Mono<MoneroValidateAddressResponse> validateAddress(String address) {
+    public Mono<ValidateAddressResponse> validateAddress(String address) {
         // build request
-        MoneroValidateAddressParameters params = MoneroValidateAddressParameters
+        ValidateAddressParameters params = ValidateAddressParameters
             .builder().address(address).build();
-        MoneroValidateAddressRequest request = MoneroValidateAddressRequest
+        ValidateAddressRequest request = ValidateAddressRequest
             .builder().params(params).build();
         // monero rpc web client
         WebClient client = WebClient.builder().baseUrl(moneroHost).build();
@@ -58,7 +58,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(MoneroValidateAddressResponse.class);
+            .bodyToMono(ValidateAddressResponse.class);
     }
 
     /**
@@ -69,18 +69,18 @@ public class Monero {
      * TODO: roll custom digest authentication support
      * @param value
      * @param address
-     * @return MoneroTranserResponse
+     * @return Mono<MoneroTransferResponse>
      */
-    public Mono<MoneroTransferResponse> transfer(String address, Double amount) {
+    public Mono<TransferResponse> transfer(String address, Double amount) {
         // build request
         Double piconeroAmt = amount * PICONERO;
         List<Destination> destinations = Lists.newArrayList();
         Destination destination = Destination.builder()
             .address(address).amount(piconeroAmt.longValue()).build();
         destinations.add(destination);
-        MoneroTransferParameters params = MoneroTransferParameters
+        TransferParameters params = TransferParameters
             .builder().destinations(destinations).build();
-        MoneroTransferRequest request = MoneroTransferRequest
+        TransferRequest request = TransferRequest
             .builder().params(params).build();
         // monero rpc web client
         WebClient client = WebClient.builder().baseUrl(moneroHost).build();
@@ -89,7 +89,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(MoneroTransferResponse.class);
+            .bodyToMono(TransferResponse.class);
     }
 
 }
