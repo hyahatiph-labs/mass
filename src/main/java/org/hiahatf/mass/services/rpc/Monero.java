@@ -6,6 +6,9 @@ import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Destination;
+import org.hiahatf.mass.models.monero.GetReserveProofParameters;
+import org.hiahatf.mass.models.monero.GetReserveProofRequest;
+import org.hiahatf.mass.models.monero.GetReserveProofResponse;
 import org.hiahatf.mass.models.monero.TransferResponse;
 import org.hiahatf.mass.models.monero.TransferParameters;
 import org.hiahatf.mass.models.monero.TransferRequest;
@@ -90,6 +93,34 @@ public class Monero {
             .bodyValue(request)
             .retrieve()
             .bodyToMono(TransferResponse.class);
+    }
+
+    /**
+     * Make the Monero get_reserve_proof RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param value
+     * @param address
+     * @return Mono<GetReserveProofResponse>
+     */
+    public Mono<GetReserveProofResponse> 
+    getReserveProof(String address, Double amount) {
+        // build request
+        Double piconeroAmt = amount * PICONERO;
+        GetReserveProofParameters parameters = GetReserveProofParameters
+            .builder().amount(piconeroAmt.longValue()).build();
+        GetReserveProofRequest request = GetReserveProofRequest
+            .builder().params(parameters).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.JSON_RPC).build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(GetReserveProofResponse.class);
     }
 
 }
