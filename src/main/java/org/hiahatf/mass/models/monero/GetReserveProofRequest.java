@@ -18,6 +18,6 @@ import lombok.NoArgsConstructor;
 public class GetReserveProofRequest {
     private final String jsonrpc = Constants.XMR_RPC_VER;
     private final String id = Constants.XMR_RPC_ID;
-    private final String method = Constants.XMR_RPC_TRANSFER;
+    private final String method = Constants.XMR_RPC_GET_RESERVE_PROOF;
     private GetReserveProofParameters params;
 }

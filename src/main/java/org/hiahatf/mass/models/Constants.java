@@ -20,6 +20,7 @@ public final class Constants {
     public static final String XMR_RPC_ID = "0";
     public static final String XMR_RPC_TRANSFER = "transfer";
     public static final String XMR_RPC_VALIDATE_ADDRESS = "validate_address";
+    public static final String XMR_RPC_GET_RESERVE_PROOF = "get_reserve_proof";
     
     // rate service values
     public static final String UPDATE_RATE_MSG = "Updating XMR <-> BTC rate";
@@ -70,8 +71,9 @@ public final class Constants {
     public static final String SWAP_CANCELLED_ERROR = "Tx failed. Invoice cancelled";
     public static final String FATAL_SWAP_ERROR = "Fatal, swap failure!";
     public static final String INVALID_ADDRESS_ERROR = "Invalid address";
-    public static final String LIQUIDITY_ERROR = "Liquidity error";
-    public static final String PAYMENT_THRESHOLD_ERROR = "Payment threshold error";
+    public static final String LIQUIDITY_ERROR = "Liquidity validation error";
+    public static final String PAYMENT_THRESHOLD_ERROR = 
+        "Payment threshold error. (min: {0}, max: {1} satoshis)";
     public static final String HASH_ERROR = "Preimage hashing error: {}";
 
 }

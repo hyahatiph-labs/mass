@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.text.MessageFormat;
 
 import javax.net.ssl.SSLException;
 
@@ -42,16 +43,12 @@ public class QuoteService {
     private Lightning lightning;
     private MassUtil massUtil;
     private QuoteRepository quoteRepository;
-    private long minPay;
-    private long maxPay;
+    private Long minPay;
+    private Long maxPay;
 
     @Autowired
-    public QuoteService(
-        RateService rateService, 
-        MassUtil massUtil, 
-        Monero moneroRpc, 
-        Lightning lightning, 
-        QuoteRepository quoteRepository,
+    public QuoteService(RateService rateService, MassUtil massUtil, 
+        Monero moneroRpc, Lightning lightning, QuoteRepository quoteRepository,
         @Value(Constants.MIN_PAY) long minPay,
         @Value(Constants.MAX_PAY) long maxPay) {
             this.rateService = rateService;
@@ -66,72 +63,52 @@ public class QuoteService {
     /**
      * Method for building the monero quote
      * and returning it to the client
+     * @param request - quote request from client
      * @return Mono<MoneroQuote>
      */
     public Mono<Quote> processMoneroQuote(Request request) {
         return rateService.getMoneroRate().flatMap(r -> {
-            
-            // TODO: return validateQuote injection
-
-            // validate the address
-            return validateMoneroAddress(request.getAddress()).flatMap(v -> {
-                Double rate = massUtil.parseMoneroRate(r);
-                Double value = (rate * request.getAmount()) * Constants.COIN;
-                byte[] preimage = createPreimage();
-                byte[] hash = createPreimageHash(preimage);
-                persistQuote(request, preimage, hash);
-                return generateMoneroQuote(value, hash, request, rate, v);
-            });   
+            Double rate = massUtil.parseMoneroRate(r);
+            Double value = (rate * request.getAmount()) * Constants.COIN;
+            /*  
+             * The quote amount is validated before a response is sent.
+             * Minimum and maximum payments are configured via the MASS
+             * application.yml. There is no limit on requests. The amount
+             * is also validated with Monero reserve proof.
+             */
+            return validateInboundLiquidity(value).flatMap(l -> {
+                if(l) {
+                    return generateReserveProof(request, value, rate);
+                }
+                // edge case, this should never happen...
+                return Mono.error(new MassException(Constants.UNK_ERROR));
+             });
         });
     }
-
-    /**
-     * The quote amount is validated before a response is sent.
-     * Minimum and maximum payments are configured via the MASS
-     * application.yml. There is no limit on requests. The amount
-     * is also validated with Monero reserve proof.
-     * @param amount
-     * @return Mono<MoneroQuote>
-     */
-    private Mono<Quote> validateQuote(Double amount) {
-        validateInboundLiquidity(amount).flatMap(l -> {
-
-            // TODO: Return reserve proof injection
-            return null;
-
-        });
-    
-
-        // validate Monero reserves proof
-
-        return Mono.just(Quote.builder().build());
-    }
-
-    
 
     /**
      * Perform validations on channel balance to ensure
      * that a payment proposed on the XMR quote MAY
      * possibly be fulfilled.
-     * @param value
-     * @return
+     * @param value - satoshi value of invoice
+     * @return Mono<Boolean>
      */
     private Mono<Boolean> validateInboundLiquidity(Double value) {
         // payment threshold validation
         long lValue = value.longValue();
         boolean isValid = lValue <= maxPay && lValue >= minPay;
         if(!isValid) {
-            return Mono.error(
-                new MassException(Constants.PAYMENT_THRESHOLD_ERROR)
+            String error = MessageFormat.format(
+                Constants.PAYMENT_THRESHOLD_ERROR, 
+                String.valueOf(minPay), String.valueOf(maxPay)
                 );
+            return Mono.error(new MassException(error));
         }
         try {
             return lightning.fetchBalance().flatMap(b -> {
                 // sum of sats in channels remote balance
                 long balance = Long.valueOf(b.getRemote_balance().getSat());
-                // satoshi value on the invoice
-                long sValue = value.longValue();
-                if(sValue <= balance) {
+                if(lValue <= balance) {
                     return Mono.just(true);
                 }
                 return Mono.error(new MassException(Constants.LIQUIDITY_ERROR));
@@ -141,6 +118,29 @@ public class QuoteService {
         } catch (IOException ie) {
             return Mono.error(new MassException(ie.getMessage()));
         }
+    }
+
+    /**
+     * Call Monero RPC to generate the reserve proof. Also call
+     * some helper methods for generating the preimage and hash.
+     * Finally validate the Monero address, persist the quote to
+     * the database and return the quote as requested.
+     * @param request
+     * @param rawRate
+     * @return Mono<Quote>
+     */
+    private Mono<Quote> generateReserveProof(Request request, 
+        Double value, Double rate) {
+            return moneroRpc.getReserveProof(request.getAddress(), 
+                request.getAmount()).flatMap(r -> {
+                    return validateMoneroAddress(request.getAddress()).flatMap(v -> { 
+                        byte[] preimage = createPreimage();
+                        byte[] hash = createPreimageHash(preimage);
+                        persistQuote(request, preimage, hash);
+                        return generateMoneroQuote(value, hash, request, rate, v, 
+                            r.getResult().getSignature());
+            });
+        });
     }
 
     /**
@@ -207,6 +207,7 @@ public class QuoteService {
 
     /**
      * Helper function for generating the Monero quote
+     * Uses the LND addholdinvoice API call.
      * @param value - amount of quote in satoshis
      * @param hash - preimage hash
      * @param request - request from client
@@ -216,7 +217,7 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     private Mono<Quote> generateMoneroQuote(Double value, byte[] hash,
-        Request request, Double rate, Boolean v) {
+        Request request, Double rate, Boolean v, String proof) {
             try {
                 return lightning.generateInvoice(value, hash).flatMap(i -> {
                     Quote quote = Quote.builder()
@@ -225,6 +226,7 @@ public class QuoteService {
                         .isValidAddress(v)
                         .amount(request.getAmount())
                         .invoice(i.getPayment_request())
+                        .reserve_proof(proof)
                         .rate(rate)
                         .minSwapAmt(minPay)
                         .maxSwapAmt(maxPay)
