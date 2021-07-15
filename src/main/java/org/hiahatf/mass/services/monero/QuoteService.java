@@ -133,6 +133,11 @@ public class QuoteService {
         Double value, Double rate) {
             return moneroRpc.getReserveProof(request.getAddress(), 
                 request.getAmount()).flatMap(r -> {
+                    if(r.getResult() == null) {
+                        return Mono.error(
+                            new MassException(Constants.RESERVE_PROOF_ERROR)
+                            );
+                    }
                     return validateMoneroAddress(request.getAddress()).flatMap(v -> { 
                         byte[] preimage = createPreimage();
                         byte[] hash = createPreimageHash(preimage);

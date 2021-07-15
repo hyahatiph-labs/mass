@@ -75,5 +75,6 @@ public final class Constants {
     public static final String PAYMENT_THRESHOLD_ERROR = 
         "Payment threshold error. (min: {0}, max: {1} satoshis)";
     public static final String HASH_ERROR = "Preimage hashing error: {}";
+    public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
 
 }
