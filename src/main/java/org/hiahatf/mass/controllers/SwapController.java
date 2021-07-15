@@ -25,7 +25,7 @@ public class SwapController extends BaseController {
 
     /**
      * Swap Controller constructor dependency injection
-     * @param quoteService
+     * @param service
      */
     @Autowired
     public SwapController(SwapService service) {
@@ -40,7 +40,7 @@ public class SwapController extends BaseController {
      */
     @PostMapping(Constants.XMR_SWAP_PATH)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SwapResponse> fetchMoneroQuote(@RequestBody SwapRequest request) {
+    public Mono<SwapResponse> fetchMoneroSwap(@RequestBody SwapRequest request) {
         return swapService.processMoneroSwap(request);
     }
 
