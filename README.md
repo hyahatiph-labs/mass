@@ -85,6 +85,8 @@ response:
 
 ```
 
+relay the transaction with [relay_tx](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#relay_tx)
+
 ## TODOs
 
-Refund / Cancel logic, Tests, etc
+XMR -> BTC logic, Tests, etc
