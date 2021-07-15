@@ -2,7 +2,7 @@
   {
     "name": "markup",
     "type": "java.lang.String",
-    "description": "A description for 'markup'"
+    "description": "Used to calculate MASS premium"
   },
   {
     "name": "host.price",
@@ -23,5 +23,15 @@
     "name": "macaroon-path",
     "type": "java.lang.String",
     "description": "Path to lnd admin.macaroon"
+  },
+  {
+    "name": "min-pay",
+    "type": "java.lang.Long",
+    "description": "The minimum amount in satoshis accepted"
+  },
+  {
+    "name": "max-pay",
+    "type": "java.lang.Long",
+    "description": "The maximum amount in satoshis accepted"
   }
 ]}
