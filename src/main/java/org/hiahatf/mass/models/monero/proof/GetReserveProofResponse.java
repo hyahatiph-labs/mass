@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models.monero;
+package org.hiahatf.mass.models.monero.proof;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,15 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero validate address response.
- * See Monero RPC docs for more details.
+ * POJO for the get_reserve_proof response.
+ * See Monero RPC docs for more info.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ValidateAddressResponse {
+public class GetReserveProofResponse {
     private String id;
     private String jsonrpc;
-    private ValidateAddressResult result;
+    private GetProofResult result;
 }

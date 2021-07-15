@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models.monero;
+package org.hiahatf.mass.models.monero.transfer;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero transfer result.
+ * POJO for the transfer result.
  * See Monero RPC docs for more details.
  */
 @Data

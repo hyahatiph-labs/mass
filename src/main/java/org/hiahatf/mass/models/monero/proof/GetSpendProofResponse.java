@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models.monero;
+package org.hiahatf.mass.models.monero.proof;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,15 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero transfer response.
+ * POJO for the get_spend_proof response.
  * See Monero RPC docs for more info.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransferResponse {
+public class GetSpendProofResponse {
     private String id;
     private String jsonrpc;
-    private TransferResult result;
+    private GetProofResult result;
 }

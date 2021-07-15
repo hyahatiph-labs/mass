@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero request
+ * POJO for the Monero quote request
  */
 @Data
 @Builder

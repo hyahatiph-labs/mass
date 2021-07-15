@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero quote
+ * POJO for the Monero quote response
  */
 @Data
 @Builder
@@ -20,7 +20,7 @@ public class Quote {
     // proof of address validity
     private Boolean isValidAddress;
     // reserve proof
-    private String reserve_proof;
+    private String reserveProof;
     // minimum swap amount in satoshis
     private Long minSwapAmt;
     // maximum swap amount in satoshis

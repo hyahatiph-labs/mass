@@ -6,16 +6,15 @@ import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Destination;
-import org.hiahatf.mass.models.monero.GetReserveProofParameters;
-import org.hiahatf.mass.models.monero.GetReserveProofRequest;
-import org.hiahatf.mass.models.monero.GetReserveProofResponse;
-import org.hiahatf.mass.models.monero.TransferResponse;
-import org.hiahatf.mass.models.monero.TransferParameters;
-import org.hiahatf.mass.models.monero.TransferRequest;
-import org.hiahatf.mass.models.monero.ValidateAddressParameters;
-import org.hiahatf.mass.models.monero.ValidateAddressRequest;
-import org.hiahatf.mass.models.monero.ValidateAddressResponse;
-
+import org.hiahatf.mass.models.monero.proof.GetReserveProofParameters;
+import org.hiahatf.mass.models.monero.proof.GetReserveProofRequest;
+import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
+import org.hiahatf.mass.models.monero.transfer.TransferParameters;
+import org.hiahatf.mass.models.monero.transfer.TransferRequest;
+import org.hiahatf.mass.models.monero.transfer.TransferResponse;
+import org.hiahatf.mass.models.monero.validate.ValidateAddressParameters;
+import org.hiahatf.mass.models.monero.validate.ValidateAddressRequest;
+import org.hiahatf.mass.models.monero.validate.ValidateAddressResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;

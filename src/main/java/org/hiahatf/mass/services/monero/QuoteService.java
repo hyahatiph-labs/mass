@@ -231,7 +231,7 @@ public class QuoteService {
                         .isValidAddress(v)
                         .amount(request.getAmount())
                         .invoice(i.getPayment_request())
-                        .reserve_proof(proof)
+                        .reserveProof(proof)
                         .rate(rate)
                         .minSwapAmt(minPay)
                         .maxSwapAmt(maxPay)

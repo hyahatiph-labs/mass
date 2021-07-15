@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models.monero;
+package org.hiahatf.mass.models.monero.validate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero validate address request params.
+ * POJO for the validate_address params.
  * See Monero RPC docs for more details.
  */
 @Data
