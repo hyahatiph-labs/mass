@@ -21,7 +21,6 @@ public final class Constants {
     public static final String XMR_RPC_TRANSFER = "transfer";
     public static final String XMR_RPC_VALIDATE_ADDRESS = "validate_address";
     public static final String XMR_RPC_GET_RESERVE_PROOF = "get_reserve_proof";
-    public static final String XMR_RPC_GET_SPEND_PROOF = "get_spend_proof";
     
     // rate service values
     public static final String UPDATE_RATE_MSG = "Updating XMR <-> BTC rate";

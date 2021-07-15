@@ -57,7 +57,7 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "7d063dc2262c1ef6e564ff5e107a1167a2cd9f20f39567bff2084e9489954f0e"
+    "hash": "fbbdbe08b60d66514dfa295f9f192413bb549f217479fabf5ae3887f1ccdc1a2"
 }
 
 ### get balances of xmr wallet
@@ -65,3 +65,17 @@ POST http://localhost:18082/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}
+
+### xmr get_tx_proof
+
+POST http://127.0.0.1:18082/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"get_tx_proof","params":{"txid":"03c12740cea72d8bfd94be86c083ba962470e06b6d32236589763b15c11f6487",
+"address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"}}
+
+### xmr get_transfers
+POST http://127.0.0.1:18082/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"get_transfers","params":{"out":true,"account_index":0}}
