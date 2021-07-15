@@ -1,5 +1,6 @@
 package org.hiahatf.mass.services.rate;
 
+import org.hiahatf.mass.models.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ import reactor.core.publisher.Mono;
 /**
  * Update price data on a recurring basis
  */
-@Service("RateService")
+@Service
 public class RateService {
 
     // update price every 10 min.
@@ -23,7 +24,7 @@ public class RateService {
     
     private String xmrPriceUrl;
 
-    public RateService(@Value("${host.price}") String url) {
+    public RateService(@Value(Constants.RATE_HOST) String url) {
         this.xmrPriceUrl = url;
     }
 
@@ -42,14 +43,14 @@ public class RateService {
      */
     @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = FREQUENCY)
     public void updateMoneroRate() {
-    logger.info("Updating XMR <-> BTC rate");
+    logger.info(Constants.UPDATE_RATE_MSG);
         // Monero rate web client
         WebClient client = WebClient.builder().baseUrl(xmrPriceUrl).build();
         Mono<String> xmrRate = client.get()
         .uri(uriBuilder -> uriBuilder
-            .path("/data/price")
-            .queryParam("fsym", "XMR")
-            .queryParam("tsyms", "BTC")
+            .path(Constants.RATE_PATH)
+            .queryParam(Constants.RATE_FROM, Constants.XMR)
+            .queryParam(Constants.RATE_TO, Constants.BTC)
             .build())
         .retrieve()
         .bodyToMono(String.class);

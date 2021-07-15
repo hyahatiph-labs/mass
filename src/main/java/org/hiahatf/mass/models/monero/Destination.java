@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero transfer destination
+ * POJO for the transfer destination
  */
 @Data
 @Builder

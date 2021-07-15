@@ -6,13 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Monero request
+ * POJO for the Monero quote request
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoneroRequest {
+public class Request {
     // valid monero address
     private String address;
     // amount in monero

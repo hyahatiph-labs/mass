@@ -8,11 +8,14 @@ import java.nio.file.Paths;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
-import org.hiahatf.mass.models.AddHoldInvoiceRequest;
-import org.hiahatf.mass.models.AddHoldInvoiceResponse;
-import org.hiahatf.mass.models.CancelInvoiceRequest;
-import org.hiahatf.mass.models.InvoiceLookupResponse;
-import org.hiahatf.mass.models.SettleInvoiceRequest;
+import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.lightning.AddHoldInvoiceRequest;
+import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
+import org.hiahatf.mass.models.lightning.CancelInvoiceRequest;
+import org.hiahatf.mass.models.lightning.Info;
+import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
+import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 
 import org.apache.commons.codec.binary.Hex;
@@ -30,37 +33,40 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-@Service("LightningRpc")
+/**
+ * Class for performing LND API calls
+ */
+@Service
 public class Lightning {
     
     private String lndHost;
     private String macaroonPath;
-    private static final String MACAROON_HEADER = "Grpc-Metadata-macaroon";
 
     /**
      * Lightning RPC constructor
      * @param host
      * @param macaroonPath
      */
-    public Lightning(@Value("${host.lightning}") String host,
-    @Value("${macaroon-path}") String macaroonPath) {
-        this.lndHost = host;
-        this.macaroonPath = macaroonPath;
+    public Lightning(
+        @Value(Constants.LND_PATH) String host,
+        @Value(Constants.MACAROON_PATH) String macaroonPath) {
+            this.lndHost = host;
+            this.macaroonPath = macaroonPath;
     }
 
     /**
      * Testing LND connectivity
      * @returns Mono<String>
      */
-    public Mono<String> getInfo() throws IOException {
+    public Mono<Info> getInfo() throws IOException {
         // lightning rpc web client
         WebClient client = createClient();
         return client.get()
             .uri(uriBuilder -> uriBuilder
-            .path("/v1/getinfo").build())
-            .header(MACAROON_HEADER, createMacaroonHex())
+            .path(Constants.INFO_PATH).build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
             .retrieve()
-            .bodyToMono(String.class);
+            .bodyToMono(Info.class);
     }
 
     /**
@@ -76,9 +82,9 @@ public class Lightning {
             WebClient client = createClient();
             return client.get()
                 .uri(uriBuilder -> uriBuilder
-                .pathSegment("v1", "invoice", "{hash}")
+                .pathSegment(Constants.V1, Constants.INVOICE, Constants.HASH_PARAM)
                 .build(hash))
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .retrieve()
                 .bodyToMono(InvoiceLookupResponse.class);
     }
@@ -103,8 +109,8 @@ public class Lightning {
             WebClient client = createClient();
             return client.post()
                 .uri(uriBuilder -> uriBuilder
-                .path("/v2/invoices/hodl").build())
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .path(Constants.ADD_INVOICE_PATH).build())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(AddHoldInvoiceResponse.class);
@@ -121,7 +127,7 @@ public class Lightning {
      */
     public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
         throws SSLException, IOException {
-            String path = settle ? "settle" : "cancel";
+            String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest
                 .builder().preimage(quote.getPreimage()).build();
             CancelInvoiceRequest cancelReq = CancelInvoiceRequest
@@ -129,18 +135,36 @@ public class Lightning {
             WebClient client = createClient();
             return client.post()
                 .uri(uriBuilder -> uriBuilder
-                .pathSegment("v2", "invoices", path)
+                .pathSegment(Constants.V2, Constants.INVOICES, path)
                 .build())
-                .header(MACAROON_HEADER, createMacaroonHex())
+                .header(Constants.MACAROON_HEADER, createMacaroonHex())
                 .bodyValue(settle ? settleReq : cancelReq)
                 .retrieve()
                 .toBodilessEntity()
                 .onErrorResume(WebClientResponseException.class, 
                 e -> e.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
-                ? Mono.error(new MassException("Invoice not settled!"))
-                : Mono.error(new MassException("Unknown error occurred")));
+                ? Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR))
+                : Mono.error(new MassException(Constants.UNK_ERROR)));
     }
 
+    /**
+     * Make a request to the LND API for retrieving the local and 
+     * remote balances.
+     * @return Mono<Liquidity>
+     * @throws SSLException
+     * @throws IOException
+     */
+    public Mono<Liquidity> fetchBalance() throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.BALANCE_PATH)
+            .build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(Liquidity.class);
+    }
+    
     /**
      * Create the SSL Context for working with 
      * LND self-signed certificate

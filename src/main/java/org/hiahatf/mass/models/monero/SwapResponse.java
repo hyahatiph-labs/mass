@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.monero;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 public class SwapResponse {
     // payment hash / quoteId
     private String hash;
-    // tx id of the xmr transfer
-    private String txId;
+    // metadata needed to relay tx
+    private String metadata;
 }

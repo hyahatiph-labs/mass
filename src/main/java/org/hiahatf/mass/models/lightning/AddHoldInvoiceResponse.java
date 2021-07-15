@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.lightning;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,13 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * POJO for the Settle Invoice Request.
+ * POJO for the add hold invoice response.
  * See lightning API for more info.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SettleInvoiceRequest {
-    private byte[] preimage;
+public class AddHoldInvoiceResponse {
+    private String payment_request;
 }

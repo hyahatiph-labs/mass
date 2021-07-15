@@ -1,9 +1,9 @@
 package org.hiahatf.mass.controllers;
 
-import org.hiahatf.mass.models.SwapRequest;
-import org.hiahatf.mass.models.SwapResponse;
-import org.hiahatf.mass.services.SwapService;
-
+import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.monero.SwapRequest;
+import org.hiahatf.mass.models.monero.SwapResponse;
+import org.hiahatf.mass.services.monero.SwapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 /**
  * Controller for handling swaps
  */
-@RestController("SwapController")
+@RestController
 @RequestMapping
 public class SwapController extends BaseController {
 
@@ -33,12 +33,12 @@ public class SwapController extends BaseController {
     }
 
     /**
-     * This endpoint reaches utilizes lightining network
+     * This endpoint reaches utilizes lightning network
      * hold invoices to verify in-flight payments and settles
      * with the equivalent amount in Monero.
-     * @return SwapResponse
+     * @return Mono<SwapResponse>
      */
-    @PostMapping("/swap/xmr")
+    @PostMapping(Constants.XMR_SWAP_PATH)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SwapResponse> fetchMoneroQuote(@RequestBody SwapRequest request) {
         return swapService.processMoneroSwap(request);

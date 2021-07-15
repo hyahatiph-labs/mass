@@ -1,11 +1,12 @@
 package org.hiahatf.mass.util;
 
+import org.hiahatf.mass.models.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@Service("MassUtil")
+@Service
 public class MassUtil {
 
     private Logger logger = LoggerFactory.getLogger(MassUtil.class);
@@ -15,20 +16,23 @@ public class MassUtil {
      * Mass utility class constructor
      * @param markup
      */
-    public MassUtil(@Value("${markup}") Double markup) {
+    public MassUtil(@Value(Constants.MARKUP) Double markup) {
         this.markup = markup;
     }
 
     /**
-     * Hepler method for parsing Monero rate
+     * Helper method for parsing Monero rate
      * @param rateString
      * @return Monero rate
      */
     public Double parseMoneroRate(String rateString) {
-        Double parsedRate = Double.valueOf(rateString.split(":")[1].split("}")[0]);
+        Double parsedRate = Double
+            .valueOf(rateString
+            .split(Constants.SEMI_COLON_DELIMITER)[1]
+            .split(Constants.RIGHT_BRACKET_DELIMITER)[0]);
         Double realRate = (parsedRate * markup) + parsedRate;
         // create the real rate by adding the markup to parsed rate
-        logger.info("parsed rate: {} => real rate: {}", parsedRate, realRate);;
+        logger.info(Constants.PARSE_RATE_MSG, parsedRate, realRate);;
         return realRate;
     }
 

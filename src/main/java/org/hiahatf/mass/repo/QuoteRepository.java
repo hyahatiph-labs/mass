@@ -10,7 +10,7 @@ import org.springframework.data.repository.CrudRepository;
  * Interface for performing database operations on the quote table
  */
 @Repository
-public interface QuoteRepository extends CrudRepository<XmrQuoteTable, String> 
+public interface QuoteRepository extends CrudRepository<XmrQuoteTable, String>
 {
     
 }

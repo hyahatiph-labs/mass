@@ -1,9 +1,9 @@
 package org.hiahatf.mass.controllers;
 
-import org.hiahatf.mass.models.monero.MoneroQuote;
-import org.hiahatf.mass.models.monero.MoneroRequest;
-import org.hiahatf.mass.services.QuoteService;
-
+import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.monero.Quote;
+import org.hiahatf.mass.models.monero.Request;
+import org.hiahatf.mass.services.monero.QuoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,8 +39,8 @@ public class QuoteController extends BaseController {
      * with additional details.
      * @return MoneroQuote
      */
-    @GetMapping("/quote/xmr")
-    public Mono<MoneroQuote> fetchMoneroQuote(@RequestBody MoneroRequest request) {
+    @GetMapping(Constants.XMR_QUOTE_PATH)
+    public Mono<Quote> fetchMoneroQuote(@RequestBody Request request) {
         return quoteService.processMoneroQuote(request);
     }
 

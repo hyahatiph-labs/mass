@@ -1,6 +1,7 @@
-# mass
+# MASS
 
-[![CI](https://github.com/hyahatiph-labs/mass/actions/workflows/main.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/main.yml)
+[![Build](https://github.com/hyahatiph-labs/mass/actions/workflows/build.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/build.yml)
+[![Test](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml)
 [![CodeQL](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml)
 
 [POC] [WIP] Java implementation of monero anon swaps server
@@ -28,6 +29,8 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 ## API
 
 samples at `./api.http`
+
+health check at GET `http://localhost:6789/health`
 
 generate a quote at GET `http://localhost:6789/quote/xmr`
 

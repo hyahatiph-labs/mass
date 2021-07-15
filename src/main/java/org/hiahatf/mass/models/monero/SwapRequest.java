@@ -1,4 +1,4 @@
-package org.hiahatf.mass.models;
+package org.hiahatf.mass.models.monero;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
