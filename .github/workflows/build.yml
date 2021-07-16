@@ -26,4 +26,4 @@ jobs:
 
       # Build the .jar
       - name: Build
-        run: mvn clean && mvn install -DskipTests=true
+        run: mvn clean && mvn install
