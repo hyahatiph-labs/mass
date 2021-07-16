@@ -89,4 +89,4 @@ relay the transaction with [relay_tx](https://web.getmonero.org/resources/develo
 
 ## TODOs
 
-XMR -> BTC logic, Tests, etc
+See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
