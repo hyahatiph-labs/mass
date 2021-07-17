@@ -1,5 +1,6 @@
-package org.hiahatf.mass.controllers;
+package org.hiahatf.mass.controllers.monero;
 
+import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
- * Controller for handling swaps
+ * Controller for handling Monero swaps
  */
 @RestController
 @RequestMapping

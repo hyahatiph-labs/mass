@@ -1,5 +1,6 @@
-package org.hiahatf.mass.controllers;
+package org.hiahatf.mass.controllers.monero;
 
+import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
- * Provides quotes that have information
+ * Provides Monero quotes that have information
  * pertaining to fees, amount, etc.
  */
 @RestController

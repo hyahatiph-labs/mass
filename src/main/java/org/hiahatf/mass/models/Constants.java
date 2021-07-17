@@ -12,6 +12,8 @@ public final class Constants {
     public static final String HEALTH_PATH = "/health";
     public static final String XMR_QUOTE_PATH = "/quote/xmr";
     public static final String XMR_SWAP_PATH = "/swap/xmr";
+    public static final String BTC_QUOTE_PATH = "/quote/btc";
+    public static final String BTC_SWAP_PATH = "/swap/btc";
     
     // model values
     public static final String MEMO = "mass";

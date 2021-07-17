@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
- * Class for handling quote logic
+ * Class for handling Monero quote logic
  */
 @Service
 public class QuoteService {

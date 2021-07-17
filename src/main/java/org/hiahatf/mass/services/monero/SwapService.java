@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
- * Class for handling all swap logic
+ * Class for handling all Monero swap logic
  */
 @Service
 public class SwapService {

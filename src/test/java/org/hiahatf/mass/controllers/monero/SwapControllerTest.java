@@ -1,4 +1,4 @@
-package org.hiahatf.mass.controllers;
+package org.hiahatf.mass.controllers.monero;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
