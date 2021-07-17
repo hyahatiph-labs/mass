@@ -201,6 +201,10 @@
 									</limits>
 								</rule>
 							</rules>
+							<excludes>
+								<!-- no need to test entry point -->
+								<exclude>**/MassApplication.class</exclude>
+							</excludes>
 						</configuration>
 					</execution>
 				</executions>
