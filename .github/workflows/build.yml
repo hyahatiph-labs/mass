@@ -24,6 +24,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Build the .jar
+      # Build the .jar without running test suite
       - name: Build
         run: mvn clean && mvn install -DskipTests=true

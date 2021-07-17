@@ -20,7 +20,7 @@ public class Quote {
     // proof of address validity
     private Boolean isValidAddress;
     // reserve proof
-    private String reserveProof;
+    private ReserveProof reserveProof;
     // minimum swap amount in satoshis
     private Long minSwapAmt;
     // maximum swap amount in satoshis

@@ -33,5 +33,10 @@
     "name": "max-pay",
     "type": "java.lang.Long",
     "description": "The maximum amount in satoshis accepted"
+  },
+  {
+    "name": "rp-address",
+    "type": "java.lang.String",
+    "description": "Address to share for reserve proof validation"
   }
 ]}

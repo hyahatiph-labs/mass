@@ -5,6 +5,8 @@ host:
   price: https://min-api.cryptocompare.com
   monero: http://localhost:18082
   lightning: https://localhost:8180
+# reserve proof address
+rp-address: 56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH
 # macaroon path
 macaroon-path: /home/nigellchristian/.lnd2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
