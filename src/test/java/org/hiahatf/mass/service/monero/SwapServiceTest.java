@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * Tests for Monero Swap Service
@@ -83,7 +84,11 @@ public class SwapServiceTest {
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), true)).thenReturn(Mono.just(entity));
         Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
-        assertEquals(metadata, testRes.block().getMetadata());
+        
+        StepVerifier.create(testRes)
+        .expectNextMatches(r -> r.getMetadata()
+          .equals(metadata))
+        .verifyComplete();
     }
 
 }

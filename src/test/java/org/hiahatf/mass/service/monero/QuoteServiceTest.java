@@ -1,6 +1,7 @@
 package org.hiahatf.mass.service.monero;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * Tests for Monero Quote Service
@@ -91,7 +93,11 @@ public class QuoteServiceTest {
             .thenReturn(Mono.just(validateAddressResponse));
         when(lightning.generateInvoice(any(), any())).thenReturn(Mono.just(addHoldInvoiceResponse));
         Mono<Quote> testQuote = quoteService.processMoneroQuote(req);
-        assertEquals(prs, testQuote.block().getReserveProof().getSignature());
+        
+        StepVerifier.create(testQuote)
+        .expectNextMatches(r -> r.getReserveProof().getSignature()
+          .equals(prs))
+        .verifyComplete();
     }
 
     @Test
@@ -104,7 +110,8 @@ public class QuoteServiceTest {
         when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         try {
-            String test = quoteService.processMoneroQuote(req).block().getInvoice();
+            Quote test = quoteService.processMoneroQuote(req).block();
+            assertNotNull(test);
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " +
                 "Payment threshold error. (min: 10000, max: 1000000 satoshis)";
@@ -126,7 +133,8 @@ public class QuoteServiceTest {
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
         try {
-            String test = quoteService.processMoneroQuote(req).block().getInvoice();
+            Quote test = quoteService.processMoneroQuote(req).block();
+            assertNotNull(test);
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " + 
                 "Liquidity validation error";
@@ -152,7 +160,8 @@ public class QuoteServiceTest {
         when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
         try {
-            String test = quoteService.processMoneroQuote(req).block().getInvoice();
+            Quote test = quoteService.processMoneroQuote(req).block();
+            assertNotNull(test);
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " + 
                 "Reserve proof error";

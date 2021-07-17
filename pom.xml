@@ -79,6 +79,24 @@
 			<version>2.23.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.0.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<version>4.0.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+			<version>3.2.3.RELEASE</version>
+		</dependency>
 		<!-- lombok is dope -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -191,7 +209,8 @@
 						<configuration>
 							<rules>
 								<rule>
-									<element>PACKAGE</element>
+									<!-- build restrict the application, not individual packages -->
+									<element>BUNDLE</element>
 									<limits>
 										<limit>
 											<counter>LINE</counter>

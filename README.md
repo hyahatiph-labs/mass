@@ -93,6 +93,8 @@ MASS uses JUnit5 - [junit-jupiter](https://junit.org/junit5/) framework
 
 Run `mvn test` from the root directory
 
+View test coverage with web browser `./target/site/jacoco/index.htm`
+
 ## TODOs
 
 See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
