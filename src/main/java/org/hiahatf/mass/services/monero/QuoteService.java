@@ -18,6 +18,7 @@ import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
+import org.hiahatf.mass.models.monero.ReserveProof;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.repo.QuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
@@ -43,6 +44,7 @@ public class QuoteService {
     private Lightning lightning;
     private MassUtil massUtil;
     private QuoteRepository quoteRepository;
+    private String proofAddress;
     private Long minPay;
     private Long maxPay;
 
@@ -50,7 +52,8 @@ public class QuoteService {
     public QuoteService(RateService rateService, MassUtil massUtil, 
         Monero moneroRpc, Lightning lightning, QuoteRepository quoteRepository,
         @Value(Constants.MIN_PAY) long minPay,
-        @Value(Constants.MAX_PAY) long maxPay) {
+        @Value(Constants.MAX_PAY) long maxPay,
+        @Value(Constants.RP_ADDRESS) String rpAddress){
             this.rateService = rateService;
             this.massUtil = massUtil;
             this.moneroRpc = moneroRpc;
@@ -58,6 +61,7 @@ public class QuoteService {
             this.quoteRepository = quoteRepository;
             this.minPay = minPay;
             this.maxPay = maxPay;
+            this.proofAddress = rpAddress;
     }
 
     /**
@@ -131,8 +135,7 @@ public class QuoteService {
      */
     private Mono<Quote> generateReserveProof(Request request, 
         Double value, Double rate) {
-            return moneroRpc.getReserveProof(request.getAddress(), 
-                request.getAmount()).flatMap(r -> {
+            return moneroRpc.getReserveProof(request.getAmount()).flatMap(r -> {
                     if(r.getResult() == null) {
                         return Mono.error(
                             new MassException(Constants.RESERVE_PROOF_ERROR)
@@ -223,6 +226,9 @@ public class QuoteService {
      */
     private Mono<Quote> generateMoneroQuote(Double value, byte[] hash,
         Request request, Double rate, Boolean v, String proof) {
+            ReserveProof reserveProof = ReserveProof.builder()
+                .proofAddress(proofAddress)
+                .signature(proof).build();
             try {
                 return lightning.generateInvoice(value, hash).flatMap(i -> {
                     Quote quote = Quote.builder()
@@ -231,7 +237,7 @@ public class QuoteService {
                         .isValidAddress(v)
                         .amount(request.getAmount())
                         .invoice(i.getPayment_request())
-                        .reserveProof(proof)
+                        .reserveProof(reserveProof)
                         .rate(rate)
                         .minSwapAmt(minPay)
                         .maxSwapAmt(maxPay)

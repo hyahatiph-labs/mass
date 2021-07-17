@@ -6,9 +6,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.hiahatf.mass.models.lightning.Info;
-import org.hiahatf.mass.models.monero.Quote;
-import org.hiahatf.mass.models.monero.Request;
-import org.hiahatf.mass.services.monero.QuoteService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
