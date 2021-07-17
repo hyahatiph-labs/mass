@@ -1,6 +1,5 @@
 package org.hiahatf.mass.service.monero;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;

@@ -47,17 +47,19 @@ response:
 
 ```json
 {
-  "quoteId": "fbbdbe08b60d66514dfa295f9f192413bb549f217479fabf5ae3887f1ccdc1a2",
+  "quoteId": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
   "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
   "isValidAddress": true,
-  "reserveProof": "ReserveProofV21AhsuJUQ5NQM34GcZLyXsM9FiMFHGWoc52jBZfhbcZ9655hLz7SZjXAcDQLk3QH2P1V31zuUCkeb6Q5CEagUj78TimRphkAAALNZ2Y24mGS5TGXLCYAaZK5ce2Vd2myDvwjYDGx4GruaBK3VkGrKjn5H8VSCDQp2kKyn5acdP7NnVqFLQ6qPmqTCPbFfeB9xzXNjc133bjyG2ybL3UxJ9WmxQJD9e1N8dST9oFijLXVNZRJYy9D9FTUpeQeFa6iYcU9HX9wh6Hgym5USNS7dh9oKZaU8Pehh5ojS7Qk2HMk6dWa38pw6YKuJff9QAS2Ga5hNMHbb1XjjM5MURdHR6N59vHXPkN3xTnmZd2jqgH9f3esX3LnqnKiKe6UVEXVwkCyJxxv2i366TTYSSfxmqEJZcgHhBa7iLN2ucRXbRcBsHEgCiZPftoAWRHX81YH",
+  "reserveProof": {
+    "signature": "ReserveProofV21AhtWZDjV1SG7AcQFSxfSVWZvQB9QG99kgr2havWLjWgewkBnnKYBt3UqQycx7A9sTaNYfiCo8PLGi28kjP7f9SvN16QNUMNaLKH7kuqySYJ4kYtnPT8qPnHK72weEpQXZhmAm3ebXEjZiH9wskFnVEfVjeCBegqcAVNsXjBZHfv95NZBoE4MgKZvfDT2ank1cqLj7VLUyC4pGVR2Y8bNdv8R1gjjQEQFo6r4YFcPKUz59k6yQ1iokWr6ZJwEauMviEk5CNEK8XYUr47TWJTzM5S3whFW5NhDZFeQ1fdsHTHbV332kwcHoDjGf3ZKaeGa5hNMHbb1XjjM5MURdHR6N59vHXPkN3xTnmZd2k1d6Dg8btwutBZujBBzWT5QNswm1V4ewutYTBBcg1cT8XsZh5MtG7cpobgaHGYYxEtGSfpD9R3agCJBpF5EZ9vsm5",
+    "proofAddress": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+  },
   "minSwapAmt": 10000,
   "maxSwapAmt": 10000000,
   "amount": 0.123,
-  "rate": 0.00625089,
-  "invoice": "lnbcrt768850n1pswlqxppp5u6cx33xa2h8xq457kr2m9zxh86e86zgx6ea2jspdf46awx7yg4psdq8d4shxuccqzpgxqzjcsp5cy8x9tqy0uvg4zfff9nfu0ax3372eetr8yu8xy54dj2f4slyhhrq9qyyssqdwzknhy23e843del966hup2jt3gl89l8a5ztun8cln2dxz82sv6rz7eqh78r6te2d667pxck2l23m05v5ql5ug2xyfdkf7xd9adrp2qps9dy98"
+  "rate": 0.00629129,
+  "invoice": "lnbcrt773820n1ps0xdf8pp5v0452dzntfxy47552hma4n0gem9m4jg790xnjpq8uxugwp9f5avqdq8d4shxuccqzpgxqzjcsp5a75z3kfuwvas78t2a8rmm7j04su4e7t2dwh02x3e0dvwpc6w4urs9qyyssqqqryuthw0sgmtpwymmqjue89ltsre8vnh9uzrey9fs46tynqfk4rxnq5jwyjwvq3vksndfklxa578540zhuu9dprjweyezqjhcg9n8qp068g75"
 }
-
 ```
 
 pay the (hold) `invoice` from response
@@ -70,16 +72,36 @@ request:
 
 ```json
 {
-    "hash": "fbbdbe08b60d66514dfa295f9f192413bb549f217479fabf5ae3887f1ccdc1a2" 
+    "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758" 
 }
 ```
 
 response:
 
+lncli
+
+```bash
+user@server:~$ lncli -n regtest payinvoice $PAY_REQ
+Payment hash: 63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
+Description: mass
+Amount (in satoshis): 77382
+Fee limit (in satoshis): 77382
+Destination: 03e420f400087f0640ee6dfd5b0b589908133c8cf36a737e2d0c3c908661477597
+Confirm payment (yes/no): yes
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+| HTLC_STATE | ATTEMPT_TIME | RESOLVE_TIME | RECEIVER_AMT | FEE | TIMELOCK | CHAN_OUT        | ROUTE                |
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+| SUCCEEDED  |        0.041 |       33.868 | 77382        | 0   |      792 | 713583046557696 | 03e420f400087f0640ee |
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+Amount + fee:   77382 + 0 sat
+Payment hash:   63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
+Payment status: SUCCEEDED, preimage: cb4605aa339a21d70e20db617a2853214759999cac90c35e5a65fd2462bc0447
+```
+
 ```json
 
 {
-  "hash": "fbbdbe08b60d66514dfa295f9f192413bb549f217479fabf5ae3887f1ccdc1a2",
+  "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
   "metadata": "02000102000b8e8ee801a5a31b..."
 }
 
@@ -91,7 +113,7 @@ relay the transaction with [relay_tx](https://web.getmonero.org/resources/develo
 
 MASS uses JUnit5 - [junit-jupiter](https://junit.org/junit5/) framework
 
-Run `mvn test` from the root directory
+Run `mvn clean install` from the root directory
 
 View test coverage with web browser `./target/site/jacoco/index.htm`
 
