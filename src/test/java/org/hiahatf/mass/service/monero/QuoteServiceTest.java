@@ -134,4 +134,30 @@ public class QuoteServiceTest {
         } 
     }
 
+    @Test
+    @DisplayName("Monero Swap Reserve Proof Error Test")
+    public void reserveProofErrorTest() throws SSLException, IOException {
+        // build test data
+        Request req = Request.builder().address("54xxx")
+            .amount(0.1).build();
+        Amount amt = Amount.builder().sat("100000").build();
+        Liquidity liquidity = Liquidity.builder()
+            .remote_balance(amt).build();
+        GetReserveProofResponse reserveProof = GetReserveProofResponse
+            .builder().result(null)
+            .build();
+        // mocks
+        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
+        when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
+        when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
+        try {
+            String test = quoteService.processMoneroQuote(req).block().getInvoice();
+        } catch (Exception e) {
+            String expectedError = "org.hiahatf.mass.exception.MassException: " + 
+                "Reserve proof error";
+            assertEquals(expectedError, e.getMessage());
+        }
+    }
+
 }
