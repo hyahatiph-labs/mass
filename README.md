@@ -87,6 +87,12 @@ response:
 
 relay the transaction with [relay_tx](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#relay_tx)
 
+## Tests
+
+MASS uses JUnit5 - [junit-jupiter](https://junit.org/junit5/) framework
+
+Run `mvn test` from the root directory
+
 ## TODOs
 
 See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
