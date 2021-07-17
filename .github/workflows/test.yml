@@ -24,6 +24,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs the test suite [WIP]
+      # Runs the test suite
       - name: Build
-        run: mvn test
+        run: mvn clean install
