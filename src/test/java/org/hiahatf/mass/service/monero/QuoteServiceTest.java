@@ -6,11 +6,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import javax.net.ssl.SSLException;
 
-import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
 import org.hiahatf.mass.models.lightning.Amount;
 import org.hiahatf.mass.models.lightning.Liquidity;
@@ -98,7 +96,7 @@ public class QuoteServiceTest {
 
     @Test
     @DisplayName("Monero Payment Threshold Error Test")
-    public void processQuoteLiquidityErrorTest() throws SSLException, IOException {
+    public void paymentThresholdErrorTest() throws SSLException, IOException {
         // build test data
         Request req = Request.builder().address("54xxx")
             .amount(100.0).build();
@@ -110,6 +108,28 @@ public class QuoteServiceTest {
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " +
                 "Payment threshold error. (min: 10000, max: 1000000 satoshis)";
+            assertEquals(expectedError, e.getMessage());
+        } 
+    }
+
+    @Test
+    @DisplayName("Monero Swap Liquidity Error Test")
+    public void liquidityErrorTest() throws SSLException, IOException {
+        // build test data
+        Request req = Request.builder().address("54xxx")
+            .amount(0.1).build();
+        Amount amt = Amount.builder().sat("10").build();
+        Liquidity liquidity = Liquidity.builder()
+            .remote_balance(amt).build();
+        // mocks
+        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
+        when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
+        try {
+            String test = quoteService.processMoneroQuote(req).block().getInvoice();
+        } catch (Exception e) {
+            String expectedError = "org.hiahatf.mass.exception.MassException: " + 
+                "Liquidity validation error";
             assertEquals(expectedError, e.getMessage());
         } 
     }
