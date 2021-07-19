@@ -30,6 +30,8 @@ public class BtcQuoteTable {
     @Column
     private Double amount;
     @Column
+    private Double rate;
+    @Column
     private String payment_request;
     @Column
     private String refund_address;

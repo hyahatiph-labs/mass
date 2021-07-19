@@ -79,3 +79,14 @@ POST http://127.0.0.1:18082/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"get_transfers","params":{"out":true,"account_index":0}}
+
+### bitcoin quote
+
+### monero quote
+GET http://localhost:6789/quote/btc
+Content-Type: application/json
+
+{
+    "paymentRequest": "lnbcrt1ps0t0appp5mkmgwvedla7kqhuevpqj6r8hjxgjf6s6ft3p3je7e5cgxfhplprqdqqcqzpgxqzjcsp5v0wsmytgfl509qjp5kfsm90g3ms9ykfx50jw5m958wyshgqf28cq9qyyssqsdy5xf3q7ddz932r6dzd28hd7w9rxnehfxcjv6emr36x3l5tz7xxupcdjdn2v39xcrvuvdxktxrg3cks53kuzulv4x7m36k956aczhqqg2mvny",
+    "refundAddress": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
+}

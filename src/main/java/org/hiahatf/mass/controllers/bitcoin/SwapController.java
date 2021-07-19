@@ -17,8 +17,8 @@ import reactor.core.publisher.Mono;
 /**
  * Controller for handling Monero swaps
  */
-@RestController
 @RequestMapping
+@RestController(Constants.BTC_SWAP_CONTROLLER)
 public class SwapController {
     
     private SwapService swapService;

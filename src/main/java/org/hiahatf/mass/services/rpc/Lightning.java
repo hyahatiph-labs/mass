@@ -15,6 +15,7 @@ import org.hiahatf.mass.models.lightning.CancelInvoiceRequest;
 import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.lightning.PaymentRequest;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 
@@ -163,6 +164,18 @@ public class Lightning {
             .header(Constants.MACAROON_HEADER, createMacaroonHex())
             .retrieve()
             .bodyToMono(Liquidity.class);
+    }
+
+    public Mono<PaymentRequest> decodePaymentRequest(String payReq) 
+    throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .pathSegment(Constants.V1, Constants.PAYREQ, payReq)
+            .build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(PaymentRequest.class);
     }
     
     /**

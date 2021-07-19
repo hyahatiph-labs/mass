@@ -20,7 +20,7 @@ import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
-import org.hiahatf.mass.repo.QuoteRepository;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
 /**
  * Class for handling Monero quote logic
  */
-@Service
+@Service(Constants.XMR_QUOTE_SERVICE)
 public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
@@ -43,14 +43,14 @@ public class QuoteService {
     private Monero moneroRpc;
     private Lightning lightning;
     private MassUtil massUtil;
-    private QuoteRepository quoteRepository;
+    private MoneroQuoteRepository quoteRepository;
     private String proofAddress;
     private Long minPay;
     private Long maxPay;
 
     @Autowired
     public QuoteService(RateService rateService, MassUtil massUtil, 
-        Monero moneroRpc, Lightning lightning, QuoteRepository quoteRepository,
+        Monero moneroRpc, Lightning lightning, MoneroQuoteRepository quoteRepository,
         @Value(Constants.MIN_PAY) long minPay,
         @Value(Constants.MAX_PAY) long maxPay,
         @Value(Constants.RP_ADDRESS) String rpAddress){

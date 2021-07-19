@@ -16,8 +16,8 @@ import reactor.core.publisher.Mono;
  * Provides Bitcoin quotes that have information
  * pertaining to fees, amount, etc.
  */
-@RestController
 @RequestMapping
+@RestController(Constants.BTC_QUOTE_CONTROLLER)
 public class QuoteController {
     
     private QuoteService quoteService;

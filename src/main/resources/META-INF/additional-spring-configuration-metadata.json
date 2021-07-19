@@ -38,5 +38,10 @@
     "name": "rp-address",
     "type": "java.lang.String",
     "description": "Address to share for reserve proof validation"
+  },
+  {
+    "name": "send-address",
+    "type": "java.lang.String",
+    "description": "MASS rx address"
   }
 ]}

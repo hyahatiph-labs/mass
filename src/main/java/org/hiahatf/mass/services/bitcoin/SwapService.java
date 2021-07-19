@@ -1,5 +1,6 @@
 package org.hiahatf.mass.services.bitcoin;
 
+import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,7 @@ import reactor.core.publisher.Mono;
 /**
  * Class for handling all Bitcoin swap logic
  */
-@Service
+@Service(Constants.BTC_SWAP_SERVICE)
 public class SwapService {
     
     // TODO: Attempt to relay the tx metadata

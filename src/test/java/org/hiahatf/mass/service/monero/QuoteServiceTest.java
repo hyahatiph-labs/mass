@@ -19,7 +19,7 @@ import org.hiahatf.mass.models.monero.proof.GetProofResult;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResult;
-import org.hiahatf.mass.repo.QuoteRepository;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.monero.QuoteService;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -56,7 +56,7 @@ public class QuoteServiceTest {
     @Mock
     private MassUtil massUtil;
     @Mock
-    private QuoteRepository quoteRepository;
+    private MoneroQuoteRepository quoteRepository;
     private final Long minPay = 10000L;
     private final Long maxPay = 1000000L;
     @InjectMocks

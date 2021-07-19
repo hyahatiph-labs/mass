@@ -13,7 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Quote {
+    private String quoteId;
     private String paymentRequest;
     private String sendAddress;
-    private Double amount;
+    private Double rate;
+    private Long minSwapAmt;
+    private Long maxSwapAmt;
 }

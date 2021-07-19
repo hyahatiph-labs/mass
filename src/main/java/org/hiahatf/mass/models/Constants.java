@@ -40,6 +40,7 @@ public final class Constants {
     public static final String INFO_PATH = "/v1/getinfo";
     public static final String BALANCE_PATH = "/v1/balance/channels";
     public static final String ADD_INVOICE_PATH = "/v2/invoices/hodl";
+    public static final String PAYREQ = "payreq";
     public static final String SETTLE = "settle";
     public static final String CANCEL = "cancel";
     public static final String INVOICE = "invoice";
@@ -62,6 +63,9 @@ public final class Constants {
     public static final String SHA_256 = "SHA-256";
     public static final Long COIN = 100000000L;
     public static final String RP_ADDRESS = "${rp-address}";
+    public static final String SEND_ADDRESS = "${send-address}";
+    public static final int EXPIRY_LIMIT = 600;
+    public static final String INVOICE_LIMIT = "0";
 
     // swap service values
     public static final String MIN_PAY = "${min-pay}";
@@ -78,5 +82,20 @@ public final class Constants {
         "Payment threshold error. (min: {0}, max: {1} satoshis)";
     public static final String HASH_ERROR = "Preimage hashing error: {}";
     public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
+    public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
+    public static final String INVOICE_ERROR = "Please set invoice to amount to 0";
+
+    // beans
+    public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";
+    public static final String BTC_SWAP_CONTROLLER = "BitcoinSwapController";
+    public static final String BTC_QUOTE_SERVICE = "BitcoinQuoteService";
+    public static final String BTC_SWAP_SERVICE = "BitcoinSwapService";
+    public static final String BTC_QUOTE_REPO = "BitcoinQuoteRepository";
+    
+    public static final String XMR_QUOTE_CONTROLLER = "MoneroQuoteController";
+    public static final String XMR_SWAP_CONTROLLER = "MoneroSwapController";
+    public static final String XMR_QUOTE_SERVICE = "MoneroQuoteService";
+    public static final String XMR_SWAP_SERVICE = "MoneroSwapService";
+    public static final String XMR_QUOTE_REPO = "MoneroQuoteRepository";
 
 }

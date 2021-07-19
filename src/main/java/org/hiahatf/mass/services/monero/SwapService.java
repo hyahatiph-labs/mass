@@ -11,7 +11,7 @@ import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
-import org.hiahatf.mass.repo.QuoteRepository;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 
@@ -24,10 +24,10 @@ import reactor.core.publisher.Mono;
 /**
  * Class for handling all Monero swap logic
  */
-@Service
+@Service(Constants.XMR_SWAP_SERVICE)
 public class SwapService {
     
-    private QuoteRepository quoteRepository;
+    private MoneroQuoteRepository quoteRepository;
     private Monero monero;
     private Lightning lightning;
 
@@ -36,7 +36,7 @@ public class SwapService {
      */
     @Autowired
     public SwapService(
-        QuoteRepository quoteRepository, 
+        MoneroQuoteRepository quoteRepository, 
         Lightning lightning, 
         Monero monero) {
             this.quoteRepository = quoteRepository;

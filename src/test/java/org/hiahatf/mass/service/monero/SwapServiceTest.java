@@ -14,7 +14,7 @@ import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
 import org.hiahatf.mass.models.monero.transfer.TransferResult;
-import org.hiahatf.mass.repo.QuoteRepository;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.monero.SwapService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -40,7 +40,7 @@ import reactor.test.StepVerifier;
 public class SwapServiceTest {
 
     @Mock
-    QuoteRepository quoteRepository;
+    MoneroQuoteRepository quoteRepository;
     @Mock
     Lightning lightning;
     @Mock
