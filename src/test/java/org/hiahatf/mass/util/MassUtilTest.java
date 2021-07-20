@@ -2,15 +2,21 @@ package org.hiahatf.mass.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hiahatf.mass.services.rpc.Lightning;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 /**
  * Test class for the utility methods
  */
 public class MassUtilTest {
 
-    private MassUtil util = new MassUtil(0.01);
+    @Mock
+    Lightning lightning;
+
+    private MassUtil util = 
+        new MassUtil(0.01, 10000, 10000000, lightning);
     
     @Test
     @DisplayName("Parse Rate Test")

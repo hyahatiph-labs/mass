@@ -10,7 +10,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.text.MessageFormat;
 
 import javax.net.ssl.SSLException;
 
@@ -80,48 +79,14 @@ public class QuoteService {
              * application.yml. There is no limit on requests. The amount
              * is also validated with Monero reserve proof.
              */
-            return validateInboundLiquidity(value).flatMap(l -> {
-                if(l) {
+            return massUtil.validateInboundLiquidity(value).flatMap(l -> {
+                if(l.booleanValue()) {
                     return generateReserveProof(request, value, rate);
                 }
                 // edge case, this should never happen...
                 return Mono.error(new MassException(Constants.UNK_ERROR));
              });
         });
-    }
-
-    /**
-     * Perform validations on channel balance to ensure
-     * that a payment proposed on the XMR quote MAY
-     * possibly be fulfilled.
-     * @param value - satoshi value of invoice
-     * @return Mono<Boolean>
-     */
-    private Mono<Boolean> validateInboundLiquidity(Double value) {
-        // payment threshold validation
-        long lValue = value.longValue();
-        boolean isValid = lValue <= maxPay && lValue >= minPay;
-        if(!isValid) {
-            String error = MessageFormat.format(
-                Constants.PAYMENT_THRESHOLD_ERROR, 
-                String.valueOf(minPay), String.valueOf(maxPay)
-                );
-            return Mono.error(new MassException(error));
-        }
-        try {
-            return lightning.fetchBalance().flatMap(b -> {
-                // sum of sats in channels remote balance
-                long balance = Long.valueOf(b.getRemote_balance().getSat());
-                if(lValue <= balance) {
-                    return Mono.just(true);
-                }
-                return Mono.error(new MassException(Constants.LIQUIDITY_ERROR));
-            });
-        } catch (SSLException se) {
-            return Mono.error(new MassException(se.getMessage()));
-        } catch (IOException ie) {
-            return Mono.error(new MassException(ie.getMessage()));
-        }
     }
 
     /**

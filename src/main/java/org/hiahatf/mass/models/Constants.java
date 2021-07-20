@@ -65,7 +65,6 @@ public final class Constants {
     public static final String RP_ADDRESS = "${rp-address}";
     public static final String SEND_ADDRESS = "${send-address}";
     public static final int EXPIRY_LIMIT = 600;
-    public static final String INVOICE_LIMIT = "0";
 
     // swap service values
     public static final String MIN_PAY = "${min-pay}";
@@ -83,7 +82,7 @@ public final class Constants {
     public static final String HASH_ERROR = "Preimage hashing error: {}";
     public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
-    public static final String INVOICE_ERROR = "Please set invoice to amount to 0";
+    public static final String DECODE_ERROR = "Failed to decode payment request";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";
