@@ -3,6 +3,7 @@ package org.hiahatf.mass.service.monero;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -11,8 +12,6 @@ import java.io.IOException;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
-import org.hiahatf.mass.models.lightning.Amount;
-import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.proof.GetProofResult;
@@ -70,14 +69,10 @@ public class QuoteServiceTest {
         // build test data
         Request req = Request.builder().address("54xxx")
             .amount(0.1).build();
-        Amount amt = Amount.builder().sat("100000").build();
-        Liquidity liquidity = Liquidity.builder()
-            .remote_balance(amt).build();
         GetProofResult getProofResult = GetProofResult.builder()
             .signature(prs).build();
         GetReserveProofResponse reserveProof = GetReserveProofResponse
-            .builder().result(getProofResult)
-            .build();
+            .builder().result(getProofResult).build();
         ValidateAddressResult validateAddressResult = ValidateAddressResult.builder()
             .valid(true).build();
         ValidateAddressResponse validateAddressResponse = ValidateAddressResponse.builder()
@@ -87,7 +82,7 @@ public class QuoteServiceTest {
         // mocks
         when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
+        when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
         when(moneroRpc.validateAddress(req.getAddress()))
             .thenReturn(Mono.just(validateAddressResponse));
@@ -101,63 +96,18 @@ public class QuoteServiceTest {
     }
 
     @Test
-    @DisplayName("Monero Payment Threshold Error Test")
-    public void paymentThresholdErrorTest() throws SSLException, IOException {
-        // build test data
-        Request req = Request.builder().address("54xxx")
-            .amount(100.0).build();
-        // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
-        when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        try {
-            Quote test = quoteService.processMoneroQuote(req).block();
-            assertNotNull(test);
-        } catch (Exception e) {
-            String expectedError = "org.hiahatf.mass.exception.MassException: " +
-                "Payment threshold error. (min: 10000, max: 1000000 satoshis)";
-            assertEquals(expectedError, e.getMessage());
-        } 
-    }
-
-    @Test
-    @DisplayName("Monero Swap Liquidity Error Test")
-    public void liquidityErrorTest() throws SSLException, IOException {
-        // build test data
-        Request req = Request.builder().address("54xxx")
-            .amount(0.1).build();
-        Amount amt = Amount.builder().sat("10").build();
-        Liquidity liquidity = Liquidity.builder()
-            .remote_balance(amt).build();
-        // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
-        when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
-        try {
-            Quote test = quoteService.processMoneroQuote(req).block();
-            assertNotNull(test);
-        } catch (Exception e) {
-            String expectedError = "org.hiahatf.mass.exception.MassException: " + 
-                "Liquidity validation error";
-            assertEquals(expectedError, e.getMessage());
-        } 
-    }
-
-    @Test
     @DisplayName("Monero Swap Reserve Proof Error Test")
     public void reserveProofErrorTest() throws SSLException, IOException {
         // build test data
         Request req = Request.builder().address("54xxx")
             .amount(0.1).build();
-        Amount amt = Amount.builder().sat("100000").build();
-        Liquidity liquidity = Liquidity.builder()
-            .remote_balance(amt).build();
         GetReserveProofResponse reserveProof = GetReserveProofResponse
             .builder().result(null)
             .build();
         // mocks
         when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
+        when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
         try {
             Quote test = quoteService.processMoneroQuote(req).block();
