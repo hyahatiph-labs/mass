@@ -8,6 +8,7 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
 import org.hiahatf.mass.models.bitcoin.Quote;
 import org.hiahatf.mass.models.bitcoin.Request;
@@ -125,7 +126,8 @@ public class QuoteService {
      */
     private Mono<Quote> finalizeQuote(Double value, Request request, 
     PaymentRequest paymentRequest, Double rate, Double moneroAmt) {
-        return massUtil.validateInboundLiquidity(value).flatMap(l -> {
+        return massUtil.validateLiquidity(value, LiquidityType.OUTBOUND)
+        .flatMap(l -> {
             if(l.booleanValue()) {
                 persistQuote(request, paymentRequest, moneroAmt);
                 Quote quote = Quote.builder()

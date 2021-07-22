@@ -7,6 +7,7 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,12 +58,13 @@ public class MassUtil {
 
         /**
      * Perform validations on channel balance to ensure
-     * that a payment proposed on the XMR quote MAY
+     * that a payment proposed on the quote MAY
      * possibly be fulfilled.
      * @param value - satoshi value of invoice
      * @return Mono<Boolean>
      */
-    public Mono<Boolean> validateInboundLiquidity(Double value) {
+    public Mono<Boolean> validateLiquidity(Double value, 
+    LiquidityType type) {
         // payment threshold validation
         long lValue = value.longValue();
         boolean isValid = lValue <= maxPay && lValue >= minPay;
@@ -76,7 +78,9 @@ public class MassUtil {
         try {
             return lightning.fetchBalance().flatMap(b -> {
                 // sum of sats in channels remote balance
-                long balance = Long.valueOf(b.getRemote_balance().getSat());
+                long balance = type == LiquidityType.INBOUND ? 
+                    Long.valueOf(b.getRemote_balance().getSat()) :
+                    Long.valueOf(b.getLocal_balance().getSat());
                 if(lValue <= balance) {
                     return Mono.just(true);
                 }

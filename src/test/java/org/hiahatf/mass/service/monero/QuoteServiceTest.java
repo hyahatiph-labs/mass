@@ -80,11 +80,14 @@ public class QuoteServiceTest {
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
-        when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
+        when(massUtil.validateLiquidity(anyDouble(), any()))
+            .thenReturn(Mono.just(true));
+        when(moneroRpc.getReserveProof(req.getAmount()))
+            .thenReturn(Mono.just(reserveProof));
         when(moneroRpc.validateAddress(req.getAddress()))
             .thenReturn(Mono.just(validateAddressResponse));
-        when(lightning.generateInvoice(any(), any())).thenReturn(Mono.just(addHoldInvoiceResponse));
+        when(lightning.generateInvoice(any(), any()))
+            .thenReturn(Mono.just(addHoldInvoiceResponse));
         Mono<Quote> testQuote = quoteService.processMoneroQuote(req);
         
         StepVerifier.create(testQuote)
@@ -105,8 +108,10 @@ public class QuoteServiceTest {
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
-        when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
+        when(massUtil.validateLiquidity(anyDouble(), any()))
+            .thenReturn(Mono.just(true));
+        when(moneroRpc.getReserveProof(req.getAmount()))
+            .thenReturn(Mono.just(reserveProof));
         try {
             Quote test = quoteService.processMoneroQuote(req).block();
             assertNotNull(test);

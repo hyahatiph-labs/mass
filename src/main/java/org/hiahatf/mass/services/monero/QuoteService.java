@@ -15,6 +15,7 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
@@ -79,7 +80,8 @@ public class QuoteService {
          * application.yml. There is no limit on requests. The amount
          * is also validated with Monero reserve proof.
          */
-        return massUtil.validateInboundLiquidity(value).flatMap(l -> {
+        return massUtil.validateLiquidity(value, LiquidityType.INBOUND)
+        .flatMap(l -> {
             if(l.booleanValue()) {
                 return generateReserveProof(request, value, parsedRate);
             }

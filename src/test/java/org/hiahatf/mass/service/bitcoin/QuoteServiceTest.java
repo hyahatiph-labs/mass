@@ -1,5 +1,6 @@
 package org.hiahatf.mass.service.bitcoin;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -68,7 +69,8 @@ public class QuoteServiceTest {
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
-        when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
+        when(massUtil.validateLiquidity(anyDouble(), any()))
+            .thenReturn(Mono.just(true));
         when(lightning.decodePaymentRequest(request.getPaymentRequest()))
             .thenReturn(Mono.just(pr));
 
