@@ -180,7 +180,9 @@ public class Lightning {
     
     /**
      * Create the SSL Context for working with 
-     * LND self-signed certificate
+     * LND self-signed certificate.
+     * NOTE: This is not safe for production code! 
+     * TODO: Implement a permanent solution.
      * @return HttpClient
      * @throws SSLException
      */

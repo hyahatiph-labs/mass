@@ -16,6 +16,7 @@ public class Quote {
     private String quoteId;
     private String paymentRequest;
     private String sendAddress;
+    private Double moneroAmt;
     private Double rate;
     private Long minSwapAmt;
     private Long maxSwapAmt;

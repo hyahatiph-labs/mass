@@ -80,7 +80,7 @@ public class QuoteServiceTest {
         AddHoldInvoiceResponse addHoldInvoiceResponse = AddHoldInvoiceResponse.builder()
             .payment_request("lntest123xxx").build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
@@ -105,7 +105,7 @@ public class QuoteServiceTest {
             .builder().result(null)
             .build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateInboundLiquidity(anyDouble())).thenReturn(Mono.just(true));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));

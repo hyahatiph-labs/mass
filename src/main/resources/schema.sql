@@ -8,8 +8,8 @@ CREATE TABLE XMR_QUOTE_TABLE (
 );
 
 CREATE TABLE BTC_QUOTE_TABLE (
-    quote_id VARCHAR(64) PRIMARY KEY
-    payment_request VARCHAR(200) NOT NULL,
+    quote_id VARCHAR(64) PRIMARY KEY,
+    payment_request VARCHAR(300) NOT NULL,
     amount FLOAT(30) NOT NULL,
     refund_address VARCHAR(200) NOT NULL
 ); 

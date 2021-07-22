@@ -1,5 +1,6 @@
 package org.hiahatf.mass.controllers.bitcoin;
 
+import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
@@ -19,7 +20,7 @@ import reactor.core.publisher.Mono;
  */
 @RequestMapping
 @RestController(Constants.BTC_SWAP_CONTROLLER)
-public class SwapController {
+public class SwapController extends BaseController {
     
     private SwapService swapService;
 

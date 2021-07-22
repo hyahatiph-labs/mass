@@ -81,12 +81,10 @@ Content-Type: application/json
 {"jsonrpc":"2.0","id":"0","method":"get_transfers","params":{"out":true,"account_index":0}}
 
 ### bitcoin quote
-
-### monero quote
 GET http://localhost:6789/quote/btc
 Content-Type: application/json
 
 {
-    "paymentRequest": "lnbcrt1ps0t0appp5mkmgwvedla7kqhuevpqj6r8hjxgjf6s6ft3p3je7e5cgxfhplprqdqqcqzpgxqzjcsp5v0wsmytgfl509qjp5kfsm90g3ms9ykfx50jw5m958wyshgqf28cq9qyyssqsdy5xf3q7ddz932r6dzd28hd7w9rxnehfxcjv6emr36x3l5tz7xxupcdjdn2v39xcrvuvdxktxrg3cks53kuzulv4x7m36k956aczhqqg2mvny",
+    "paymentRequest": "lnbcrt1m1ps030ffpp5r877hx0zrezwsn3u35c0x3u9aytgsazs5068ddxj35u2r0rtdhmsdqqcqzpgxqzjcsp5a6dve7yvsvcg2ecfewecea8x8cztyx2m07xzvjgnr9pa06r28q0q9qyyssqc0xc82rtdt0m6n3xv3uvft65dvgh9kugz7d4089kryn28ty039y90pufhuzhmxs0rjhwt7mghscsu8mr7gna7j8lkem262u9y5sazlcpf92z4k",
     "refundAddress": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
 }

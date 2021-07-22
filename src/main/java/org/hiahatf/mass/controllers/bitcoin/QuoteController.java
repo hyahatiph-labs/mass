@@ -1,5 +1,6 @@
 package org.hiahatf.mass.controllers.bitcoin;
 
+import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.bitcoin.Quote;
 import org.hiahatf.mass.models.bitcoin.Request;
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono;
  */
 @RequestMapping
 @RestController(Constants.BTC_QUOTE_CONTROLLER)
-public class QuoteController {
+public class QuoteController extends BaseController {
     
     private QuoteService quoteService;
 
