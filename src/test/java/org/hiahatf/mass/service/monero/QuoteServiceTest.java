@@ -47,8 +47,6 @@ public class QuoteServiceTest {
     @Mock
     private RateService rateService;
     @Mock
-    private MassUtil util;
-    @Mock
     private Monero moneroRpc;
     @Mock
     private Lightning lightning;

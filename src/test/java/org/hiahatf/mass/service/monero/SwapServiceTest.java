@@ -1,5 +1,6 @@
 package org.hiahatf.mass.service.monero;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.util.Optional;
 
 import javax.net.ssl.SSLException;
 
+import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.monero.SwapRequest;
@@ -88,6 +90,48 @@ public class SwapServiceTest {
         .expectNextMatches(r -> r.getMetadata()
           .equals(metadata))
         .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Monero Cancel Swap Test")
+    public void cancelSwapTest() throws SSLException, IOException {
+        String metadata = "expectedMetadata000";
+        SwapRequest swapRequest = SwapRequest.builder()
+            .hash("hash").build();
+        Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        .amount(0.1)
+        .payment_hash(new byte[32])
+        .preimage(new byte[32])
+        .quote_id("qid")
+        .xmr_address("54xxx")
+        .build());
+        InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
+            .builder()
+            .state(InvoiceState.ACCEPTED)
+            .build();
+        TransferResponse transferResponse = TransferResponse.builder()
+            .result(null)
+            .build();
+            
+        // mocks
+        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
+        when(lightning.lookupInvoice(table.get().getQuote_id()))
+            .thenReturn(Mono.just(invoiceLookupResponse));
+        when(monero.transfer(table.get().getXmr_address(), table.get().getAmount()))
+            .thenReturn(Mono.just(transferResponse));
+        when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
+        
+        try {
+            Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
+            assertEquals(metadata, testRes.block().getMetadata());
+        } catch (Exception e) {
+            String expectedError = "org.hiahatf.mass.exception.MassException: " + 
+            Constants.SWAP_CANCELLED_ERROR;
+            String actualError = e.getMessage();
+            assertEquals(expectedError, actualError);
+        }
+        
     }
 
 }
