@@ -26,7 +26,9 @@ server.error.include-stacktrace: never
 # TODO: database upgrade
 spring.datasource:
   url: jdbc:h2:file:./data
-  driverClassName: org.h2.Driver  
+  driverClassName: org.h2.Driver
   username: sa  
-  password: pass  
-spring.jpa.database-platform: org.hibernate.dialect.H2Dialect  
+  password: pass
+spring.jpa:
+  database-platform: org.hibernate.dialect.H2Dialect
+  hibernate.ddl-auto: update
