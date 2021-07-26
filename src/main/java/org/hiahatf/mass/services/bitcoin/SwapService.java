@@ -12,10 +12,10 @@ import reactor.core.publisher.Mono;
  */
 @Service(Constants.BTC_SWAP_SERVICE)
 public class SwapService {
-    
-    // TODO: Attempt to relay the tx metadata
 
     // TODO: Verify Transaction amount and address
+    
+    // TODO: Attempt to relay the tx metadata
 
     // TODO: Attempt to pay invoice
 
@@ -27,5 +27,7 @@ public class SwapService {
         SwapResponse response = SwapResponse.builder().build();
         return Mono.just(response);
     }
+
+    
 
 }

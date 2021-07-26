@@ -9,6 +9,9 @@ import org.hiahatf.mass.models.monero.Destination;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofParameters;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofRequest;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
+import org.hiahatf.mass.models.monero.relay.RelayParameters;
+import org.hiahatf.mass.models.monero.relay.RelayRequest;
+import org.hiahatf.mass.models.monero.relay.RelayResponse;
 import org.hiahatf.mass.models.monero.transfer.TransferParameters;
 import org.hiahatf.mass.models.monero.transfer.TransferRequest;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
@@ -103,8 +106,7 @@ public class Monero {
      * @param value
      * @return Mono<GetReserveProofResponse>
      */
-    public Mono<GetReserveProofResponse> 
-    getReserveProof(Double amount) {
+    public Mono<GetReserveProofResponse> getReserveProof(Double amount) {
         // build request
         Double piconeroAmt = amount * PICONERO;
         GetReserveProofParameters parameters = GetReserveProofParameters
@@ -119,6 +121,31 @@ public class Monero {
             .bodyValue(request)
             .retrieve()
             .bodyToMono(GetReserveProofResponse.class);
+    }
+
+    /**
+     * Make the Monero get_reserve_proof RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param value
+     * @return Mono<GetReserveProofResponse>
+     */
+    public Mono<RelayResponse> relayTx(String metadata) {
+        // build request
+        RelayParameters parameters = RelayParameters
+            .builder().hex(metadata).build();
+        RelayRequest request = RelayRequest
+            .builder().params(parameters).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.JSON_RPC).build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(RelayResponse.class);
     }
 
 }

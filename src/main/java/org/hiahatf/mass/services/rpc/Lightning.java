@@ -57,7 +57,7 @@ public class Lightning {
 
     /**
      * Testing LND connectivity
-     * @returns Mono<String>
+     * @returns Mono<Info>
      */
     public Mono<Info> getInfo() throws IOException {
         // lightning rpc web client
