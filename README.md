@@ -17,7 +17,7 @@ If successfully settled the equivalent amount in Monero is sent
 3. Run bitcoind on [regtest](https://developer.bitcoin.org/examples/testing.html)
 4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
 5. Run Monero on [stagenet](https://monerodocs.org/infrastructure/networks/)
-6. H2 db runs at host/h2-console. Execute the `src/main/resources/schema.sql` first
+6. H2 db runs at host/h2-console.
 7. Currently working on Bitcoin core 0.21, LND 0.12.x, Debian 10, Java 11, Maven 3.6 and Monero 0.17.2
 
 NOTE: currently have an issue with Monero digest authentication rpc calls, so use `--disable-rpc-login`
