@@ -10,6 +10,7 @@
 	</parent>
 	<groupId>org.hiahatf</groupId>
 	<artifactId>mass</artifactId>
+	<!-- release version -->
 	<version>0.1.0-beta</version>
 	<name>mass</name>
 	<description>lightning powered xmr swaps</description>
