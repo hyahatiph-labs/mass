@@ -54,6 +54,7 @@ public class RateService {
             .build())
         .retrieve()
         .bodyToMono(String.class);
+        // normally wouldn't use block, but is needed here to cache price data
         this.moneroRate = xmrRate.retry(1).block();
     }
 
