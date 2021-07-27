@@ -17,7 +17,7 @@ If successfully settled the equivalent amount in Monero is sent
 3. Run bitcoind on [regtest](https://developer.bitcoin.org/examples/testing.html)
 4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
 5. Run Monero on [stagenet](https://monerodocs.org/infrastructure/networks/)
-6. H2 db runs at host/h2-console. Execute the `src/main/resources/schema.sql` first
+6. H2 db runs at host/h2-console.
 7. Currently working on Bitcoin core 0.21, LND 0.12.x, Debian 10, Java 11, Maven 3.6 and Monero 0.17.2
 
 NOTE: currently have an issue with Monero digest authentication rpc calls, so use `--disable-rpc-login`
@@ -38,7 +38,7 @@ request:
 
 ```json
 {
-    "amount": 0.0123, 
+    "amount": 0.123, 
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
 }
 ```
@@ -47,12 +47,18 @@ response:
 
 ```json
 {
-  "quoteId": "e8754cd5189125b46490b30cb958792e88ae34e76b954d32ad70ced27ac21c2a",
+  "quoteId": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
   "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
   "isValidAddress": true,
-  "amount": 0.0123,
-  "rate": 0.006363,
-  "invoice": "lnbcrt78260n1psw3ax6pp5ap65e4gcjyjmgeyskvxtjkre96y2ud88dw256v4dwr8dy7kzrs4qdq8d4shxuccqzpgxqzjcsp5wyywgyzhek48wdpwq3jl04jn203d07s9huwpl7dyducstjh2eqcs9qyyssq6j27kf9vzydqqhqaal2cdryzn7u4xgm3vnltvj4qsd9aqhavpwcre5q4sy0megg005gj0zycs3j3l3nvleqqxklppknjgug30sauq8cpe2sm74"
+  "reserveProof": {
+    "signature": "ReserveProofV21AhtWZDjV1SG7AcQFSxfSVWZvQB9QG99kgr2havWLjWgewkBnnKYBt3UqQycx7A9sTaNYfiCo8PLGi28kjP7f9SvN16QNUMNaLKH7kuqySYJ4kYtnPT8qPnHK72weEpQXZhmAm3ebXEjZiH9wskFnVEfVjeCBegqcAVNsXjBZHfv95NZBoE4MgKZvfDT2ank1cqLj7VLUyC4pGVR2Y8bNdv8R1gjjQEQFo6r4YFcPKUz59k6yQ1iokWr6ZJwEauMviEk5CNEK8XYUr47TWJTzM5S3whFW5NhDZFeQ1fdsHTHbV332kwcHoDjGf3ZKaeGa5hNMHbb1XjjM5MURdHR6N59vHXPkN3xTnmZd2k1d6Dg8btwutBZujBBzWT5QNswm1V4ewutYTBBcg1cT8XsZh5MtG7cpobgaHGYYxEtGSfpD9R3agCJBpF5EZ9vsm5",
+    "proofAddress": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+  },
+  "minSwapAmt": 10000,
+  "maxSwapAmt": 10000000,
+  "amount": 0.123,
+  "rate": 0.00629129,
+  "invoice": "lnbcrt773820n1ps0xdf8pp5v0452dzntfxy47552hma4n0gem9m4jg790xnjpq8uxugwp9f5avqdq8d4shxuccqzpgxqzjcsp5a75z3kfuwvas78t2a8rmm7j04su4e7t2dwh02x3e0dvwpc6w4urs9qyyssqqqryuthw0sgmtpwymmqjue89ltsre8vnh9uzrey9fs46tynqfk4rxnq5jwyjwvq3vksndfklxa578540zhuu9dprjweyezqjhcg9n8qp068g75"
 }
 ```
 
@@ -66,19 +72,54 @@ request:
 
 ```json
 {
-    "hash": "e8754cd5189125b46490b30cb958792e88ae34e76b954d32ad70ced27ac21c2a" 
+    "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758" 
 }
 ```
 
 response:
 
-```json
-{
-  "hash": "e8754cd5189125b46490b30cb958792e88ae34e76b954d32ad70ced27ac21c2a",
-  "txId": "fc30f5dceccc9a5514af8ec6d01e2bd8405282382a973ed8185d8d2ac8a03934"
-}
+lncli
+
+```bash
+user@server:~$ lncli -n regtest payinvoice $PAY_REQ
+Payment hash: 63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
+Description: mass
+Amount (in satoshis): 77382
+Fee limit (in satoshis): 77382
+Destination: 03e420f400087f0640ee6dfd5b0b589908133c8cf36a737e2d0c3c908661477597
+Confirm payment (yes/no): yes
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+| HTLC_STATE | ATTEMPT_TIME | RESOLVE_TIME | RECEIVER_AMT | FEE | TIMELOCK | CHAN_OUT        | ROUTE                |
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+| SUCCEEDED  |        0.041 |       33.868 | 77382        | 0   |      792 | 713583046557696 | 03e420f400087f0640ee |
++------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
+Amount + fee:   77382 + 0 sat
+Payment hash:   63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
+Payment status: SUCCEEDED, preimage: cb4605aa339a21d70e20db617a2853214759999cac90c35e5a65fd2462bc0447
 ```
+
+```json
+
+{
+  "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
+  "metadata": "02000102000b8e8ee801a5a31b..."
+}
+
+```
+
+relay the transaction with [relay_tx](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#relay_tx)
+
+## Tests
+
+MASS uses JUnit5 - [junit-jupiter](https://junit.org/junit5/) framework
+
+Run `mvn clean install` from the root directory
+
+View test coverage with web browser `./target/site/jacoco/index.htm`
+
+![image](https://user-images.githubusercontent.com/13033037/126047819-09fe351a-be62-4bf9-bd5f-cb3580862c6e.png)
+
 
 ## TODOs
 
-Refund / Cancel logic, Tests, etc
+See [milestones](https://github.com/hyahatiph-labs/mass/milestones)

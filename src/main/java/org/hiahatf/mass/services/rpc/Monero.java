@@ -101,11 +101,10 @@ public class Monero {
      * --rpc-disable-login flag.
      * TODO: roll custom digest authentication support
      * @param value
-     * @param address
      * @return Mono<GetReserveProofResponse>
      */
     public Mono<GetReserveProofResponse> 
-    getReserveProof(String address, Double amount) {
+    getReserveProof(Double amount) {
         // build request
         Double piconeroAmt = amount * PICONERO;
         GetReserveProofParameters parameters = GetReserveProofParameters

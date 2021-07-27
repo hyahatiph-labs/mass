@@ -57,9 +57,9 @@ public final class Constants {
     public static final String PARSE_RATE_MSG = "parsed rate: {} => real rate: {}";
 
     // quote service values
-    
     public static final String SHA_256 = "SHA-256";
     public static final Long COIN = 100000000L;
+    public static final String RP_ADDRESS = "${rp-address}";
 
     // swap service values
     public static final String MIN_PAY = "${min-pay}";

@@ -20,7 +20,7 @@ public class RateService {
     private Logger logger = LoggerFactory.getLogger(RateService.class);
     private static final int FREQUENCY = 600000;
     private static final int INITIAL_DELAY = 10000;
-    private Mono<String> moneroRate;
+    private String moneroRate;
     
     private String xmrPriceUrl;
 
@@ -32,7 +32,7 @@ public class RateService {
      * Accessor for the Monero rate
      * @return monero rate
      */
-    public Mono<String> getMoneroRate() {
+    public String getMoneroRate() {
         return this.moneroRate;
     }
 
@@ -54,7 +54,8 @@ public class RateService {
             .build())
         .retrieve()
         .bodyToMono(String.class);
-        this.moneroRate = xmrRate.retry(1);
+        // normally wouldn't use block, but is needed here to cache price data
+        this.moneroRate = xmrRate.retry(1).block();
     }
 
 }
