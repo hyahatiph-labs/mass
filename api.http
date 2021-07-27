@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
     "amount": 0.123,
-    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
+    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
 }
 
 ### Validate Monero address
@@ -57,7 +57,7 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758"
+    "hash": "2161997ea4adcaa2806c0a0e66f30b3ac48ed9f969108742a6b163148f5c7b6c"
 }
 
 ### get balances of xmr wallet

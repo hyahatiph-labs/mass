@@ -8,7 +8,7 @@ host:
 # reserve proof address
 rp-address: 56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH
 # macaroon path
-macaroon-path: /home/nigellchristian/.lnd2/data/chain/bitcoin/regtest/admin.macaroon
+macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
 markup: 0.01
 # payment thresholds in satoshis

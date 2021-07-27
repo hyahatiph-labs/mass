@@ -71,22 +71,21 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     public Mono<Quote> processMoneroQuote(Request request) {
-        return rateService.getMoneroRate().flatMap(r -> {
-            Double rate = massUtil.parseMoneroRate(r);
-            Double value = (rate * request.getAmount()) * Constants.COIN;
-            /*  
-             * The quote amount is validated before a response is sent.
-             * Minimum and maximum payments are configured via the MASS
-             * application.yml. There is no limit on requests. The amount
-             * is also validated with Monero reserve proof.
-             */
-            return validateInboundLiquidity(value).flatMap(l -> {
-                if(l) {
-                    return generateReserveProof(request, value, rate);
-                }
-                // edge case, this should never happen...
-                return Mono.error(new MassException(Constants.UNK_ERROR));
-             });
+        String rate = rateService.getMoneroRate();
+        Double parsedRate = massUtil.parseMoneroRate(rate);
+        Double value = (parsedRate* request.getAmount()) * Constants.COIN;
+        /*  
+         * The quote amount is validated before a response is sent.
+         * Minimum and maximum payments are configured via the MASS
+         * application.yml. There is no limit on requests. The amount
+         * is also validated with Monero reserve proof.
+         */
+        return validateInboundLiquidity(value).flatMap(l -> {
+            if(l) {
+                return generateReserveProof(request, value, parsedRate);
+            }
+            // edge case, this should never happen...
+            return Mono.error(new MassException(Constants.UNK_ERROR));
         });
     }
 

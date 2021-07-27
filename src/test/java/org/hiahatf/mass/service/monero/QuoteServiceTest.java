@@ -85,7 +85,7 @@ public class QuoteServiceTest {
         AddHoldInvoiceResponse addHoldInvoiceResponse = AddHoldInvoiceResponse.builder()
             .payment_request("lntest123xxx").build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
@@ -107,7 +107,7 @@ public class QuoteServiceTest {
         Request req = Request.builder().address("54xxx")
             .amount(100.0).build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         try {
             Quote test = quoteService.processMoneroQuote(req).block();
@@ -129,7 +129,7 @@ public class QuoteServiceTest {
         Liquidity liquidity = Liquidity.builder()
             .remote_balance(amt).build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
         try {
@@ -155,7 +155,7 @@ public class QuoteServiceTest {
             .builder().result(null)
             .build();
         // mocks
-        when(rateService.getMoneroRate()).thenReturn(Mono.just("{BTC: 0.00777}"));
+        when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(lightning.fetchBalance()).thenReturn(Mono.just(liquidity));
         when(moneroRpc.getReserveProof(req.getAmount())).thenReturn(Mono.just(reserveProof));
