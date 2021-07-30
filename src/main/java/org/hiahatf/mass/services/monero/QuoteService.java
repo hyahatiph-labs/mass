@@ -100,20 +100,20 @@ public class QuoteService {
      * @return Mono<Quote>
      */
     private Mono<Quote> generateReserveProof(Request request, 
-        Double value, Double rate) {
-            return moneroRpc.getReserveProof(request.getAmount()).flatMap(r -> {
-                    if(r.getResult() == null) {
-                        return Mono.error(
-                            new MassException(Constants.RESERVE_PROOF_ERROR)
-                            );
-                    }
-                    return validateMoneroAddress(request.getAddress()).flatMap(v -> { 
-                        byte[] preimage = createPreimage();
-                        byte[] hash = createPreimageHash(preimage);
-                        persistQuote(request, preimage, hash);
-                        return generateMoneroQuote(value, hash, request, rate, v, 
-                            r.getResult().getSignature());
-            });
+    Double value, Double rate) {
+        return moneroRpc.getReserveProof(request.getAmount()).flatMap(r -> {
+                if(r.getResult() == null) {
+                    return Mono.error(
+                        new MassException(Constants.RESERVE_PROOF_ERROR)
+                        );
+                }
+                return validateMoneroAddress(request.getAddress()).flatMap(v -> { 
+                    byte[] preimage = createPreimage();
+                    byte[] hash = createPreimageHash(preimage);
+                    persistQuote(request, preimage, hash);
+                    return generateMoneroQuote(value, hash, request, rate, v, 
+                        r.getResult().getSignature());
+                });
         });
     }
 

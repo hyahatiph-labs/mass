@@ -9,15 +9,19 @@ import org.hiahatf.mass.models.monero.Destination;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofParameters;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofRequest;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
-import org.hiahatf.mass.models.monero.relay.RelayParameters;
-import org.hiahatf.mass.models.monero.relay.RelayRequest;
-import org.hiahatf.mass.models.monero.relay.RelayResponse;
 import org.hiahatf.mass.models.monero.transfer.TransferParameters;
 import org.hiahatf.mass.models.monero.transfer.TransferRequest;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressParameters;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressRequest;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResponse;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.monero.wallet.create.CreateWalletParameters;
+import org.hiahatf.mass.models.monero.wallet.create.CreateWalletRequest;
+import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResponse;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateParameters;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateRequest;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -124,19 +128,19 @@ public class Monero {
     }
 
     /**
-     * Make the Monero get_reserve_proof RPC call.
+     * Make the Monero create_wallet RPC call.
      * Due to lack of digest authentication support in 
      * Spring WebFlux, run Monero Wallet RPC with the
      * --rpc-disable-login flag.
      * TODO: roll custom digest authentication support
      * @param value
-     * @return Mono<GetReserveProofResponse>
+     * @return Mono<CreateWalletResponse>
      */
-    public Mono<RelayResponse> relayTx(String metadata) {
+    public Mono<CreateWalletResponse> createWallet(String filename) {
         // build request
-        RelayParameters parameters = RelayParameters
-            .builder().hex(metadata).build();
-        RelayRequest request = RelayRequest
+        CreateWalletParameters parameters = CreateWalletParameters
+            .builder().filename(filename).build();
+        CreateWalletRequest request = CreateWalletRequest
             .builder().params(parameters).build();
         // monero rpc web client
         WebClient client = WebClient.builder().baseUrl(moneroHost).build();
@@ -145,7 +149,33 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(RelayResponse.class);
+            .bodyToMono(CreateWalletResponse.class);
+    }
+
+    /**
+     * Make the Monero open/close_wallet RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param value
+     * @return Mono<WalletStateResponse>
+     */
+    public Mono<WalletStateResponse> controlWallet(WalletState state, 
+    String filename) {
+        // build request
+        WalletStateParameters parameters = WalletStateParameters
+            .builder().filename(filename).build();
+        WalletStateRequest request = WalletStateRequest
+            .builder().params(parameters).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.JSON_RPC).build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(WalletStateResponse.class);
     }
 
 }
