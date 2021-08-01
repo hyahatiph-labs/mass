@@ -17,4 +17,6 @@ public class Request {
     private String address;
     // amount in monero
     private double amount;
+    // clients' prepare multisig info
+    private String multisigInfo;
 }

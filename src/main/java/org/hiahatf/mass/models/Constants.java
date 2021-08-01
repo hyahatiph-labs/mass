@@ -26,7 +26,15 @@ public final class Constants {
     public static final String XMR_RPC_CREATE_WALLET = "create_wallet";
     public static final String XMR_RPC_OPEN_WALLET = "open_wallet";
     public static final String XMR_RPC_CLOSE_WALLET = "close_wallet";
-    public static final String XMR_RPC_SAVE_WALLET = "save_wallet";
+    public static final String XMR_RPC_PREPARE_MSIG = "prepare_multisig";
+    public static final String XMR_RPC_MAKE_MSIG = "make_multisig";
+    public static final String XMR_RPC_FINALIZE_MSIG = "finalize_multisig";
+    public static final String XMR_RPC_IMPORT_MSIG_INFO = "import_multisig_info";
+    public static final String XMR_RPC_EXPORT_MSIG_INFO = "export_multisig_info";
+    public static final String XMR_RPC_SIGN_MSIG = "sign_multisig";
+    public static final String XMR_RPC_SUBMIT_MSIG = "submit_multisig";
+    public static final String XMR_RPC_DESCRIBE_TRANSFER = "describe_transfer";
+    public static final String XMR_RPC_SWEEP_ALL = "sweep_all";
     
     // rate service values
     public static final String UPDATE_RATE_MSG = "Updating XMR <-> BTC rate";
