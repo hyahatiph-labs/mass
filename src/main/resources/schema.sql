@@ -1,4 +1,4 @@
--- Login in to h2 console and run this on first initialization
+-- Login in to h2 console and verify creation on first initialization
 CREATE TABLE XMR_QUOTE_TABLE (
     quote_id VARCHAR(64) PRIMARY KEY,
     amount FLOAT(30) NOT NULL,
@@ -13,3 +13,4 @@ CREATE TABLE BTC_QUOTE_TABLE (
     amount FLOAT(30) NOT NULL,
     refund_address VARCHAR(200) NOT NULL
 ); 
+);  
