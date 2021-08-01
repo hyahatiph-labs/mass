@@ -164,10 +164,15 @@ public class Monero {
     public Mono<WalletStateResponse> controlWallet(WalletState state, 
     String filename) {
         // build request
+        String method = state == WalletState.OPEN ? 
+            Constants.XMR_RPC_OPEN_WALLET :
+            Constants.XMR_RPC_CLOSE_WALLET;
         WalletStateParameters parameters = WalletStateParameters
             .builder().filename(filename).build();
         WalletStateRequest request = WalletStateRequest
-            .builder().params(parameters).build();
+            .builder()
+            .method(method)
+            .params(parameters).build();
         // monero rpc web client
         WebClient client = WebClient.builder().baseUrl(moneroHost).build();
         return client.post()

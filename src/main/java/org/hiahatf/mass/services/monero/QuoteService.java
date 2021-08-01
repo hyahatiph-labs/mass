@@ -111,6 +111,10 @@ public class QuoteService {
                     byte[] preimage = createPreimage();
                     byte[] hash = createPreimageHash(preimage);
                     persistQuote(request, preimage, hash);
+
+                    // TODO: wallet control and mulisig prep
+
+                    // TODO: refactor to add multisig info
                     return generateMoneroQuote(value, hash, request, rate, v, 
                         r.getResult().getSignature());
                 });
@@ -169,6 +173,8 @@ public class QuoteService {
     private void persistQuote(Request request, byte[] preimage, 
     byte[] hash) {
         // store in db to settle the invoice later
+
+        // TODO: add wallet filename
         XmrQuoteTable table = XmrQuoteTable.builder()
             .xmr_address(request.getAddress())
             .amount(request.getAmount())
