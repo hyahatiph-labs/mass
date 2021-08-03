@@ -146,3 +146,33 @@ public class QuoteService {
     }
     
 }
+
+    /**
+     * Create the 32 byte preimage
+     * @return byte[]
+     * TODO: implement
+     * 
+     */
+    // private byte[] createPreimage() {
+    //     SecureRandom random = new SecureRandom();
+    //     byte bytes[] = new byte[32];
+    //     random.nextBytes(bytes);
+    //     return bytes;
+    // }
+
+    /**
+     * Create the 32 byte preimage hash
+     * @param preimage
+     * @return byte[]
+     * TODO: implement
+     */
+    // private byte[] createPreimageHash(byte[] preimage) {
+    //     Security.addProvider(new BouncyCastleProvider());
+    //     MessageDigest digest = null;
+    //     try {
+    //         digest = MessageDigest.getInstance(Constants.SHA_256);
+    //     } catch (NoSuchAlgorithmException e) {
+    //         logger.error(Constants.HASH_ERROR, e.getMessage());
+    //     }     
+    //     return digest.digest(preimage);
+    // }

@@ -95,6 +95,7 @@ public final class Constants {
     public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
     public static final String DECODE_ERROR = "Failed to decode payment request";
+    public static final String WALLET_ERROR = "Wallet control is busy. Please try agin.";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

@@ -4,8 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.List;
 
 import javax.net.ssl.SSLException;
+
+import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
@@ -15,6 +19,7 @@ import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.proof.GetProofResult;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -34,8 +39,9 @@ import reactor.core.publisher.Mono;
 public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
+    private boolean isWalletOpen;
     private RateService rateService;
-    private Monero moneroRpc;
+    private Monero monero;
     private Lightning lightning;
     private MassUtil massUtil;
     private MoneroQuoteRepository quoteRepository;
@@ -45,12 +51,12 @@ public class QuoteService {
 
     @Autowired
     public QuoteService(RateService rateService, MassUtil massUtil, 
-        Monero moneroRpc, Lightning lightning, MoneroQuoteRepository quoteRepository,
+        Monero monero, Lightning lightning, MoneroQuoteRepository quoteRepository,
         @Value(Constants.MIN_PAY) long minPay, @Value(Constants.MAX_PAY) long maxPay,
         @Value(Constants.RP_ADDRESS) String rpAddress){
             this.rateService = rateService;
             this.massUtil = massUtil;
-            this.moneroRpc = moneroRpc;
+            this.monero = monero;
             this.lightning = lightning;
             this.quoteRepository = quoteRepository;
             this.minPay = minPay;
@@ -65,6 +71,11 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     public Mono<Quote> processMoneroQuote(Request request) {
+        isWalletOpen =false;
+        // reject a request that occurs during wallet operations
+        if(isWalletOpen) {
+            return Mono.error(new MassException(Constants.WALLET_ERROR));
+        }
         String rate = rateService.getMoneroRate();
         Double parsedRate = massUtil.parseMoneroRate(rate);
         Double value = (parsedRate * request.getAmount()) * Constants.COIN;
@@ -93,21 +104,19 @@ public class QuoteService {
      * @return Mono<Quote>
      */
     private Mono<Quote> generateReserveProof(Request request, Double value, Double rate) {
-        return moneroRpc.getReserveProof(request.getAmount()).flatMap(r -> {
+        return monero.getReserveProof(request.getAmount()).flatMap(r -> {
             GetProofResult result = r.getResult();
                 if(result == null) {
-                    return Mono.error(
-                        new MassException(Constants.RESERVE_PROOF_ERROR)
-                        );
+                    return Mono.error(new MassException(Constants.RESERVE_PROOF_ERROR));
                 }
                 String hash = request.getPreimageHash();
                 byte[] bHash = hash.getBytes();
                 Double amount = request.getAmount();
                 String address = request.getAddress();
                 return validateMoneroAddress(address).flatMap(v -> { 
-                    persistQuote(address, hash, bHash, amount);
                     // TODO: wallet control and mulisig prep
-                    // TODO: refactor to add multisig info
+                    // TODO: refactor to add multisig info, inject after finalizing swap multisig
+                    persistQuote(address, hash, bHash, amount);
                     return generateMoneroQuote(value, address, amount, hash, bHash, rate, v, 
                         result.getSignature());
                 });
@@ -120,45 +129,79 @@ public class QuoteService {
      * @return Mono<Boolean> - true if valid
      */
     private Mono<Boolean> validateMoneroAddress(String address) {
-        return moneroRpc.validateAddress(address).flatMap(r -> {
-                if(!r.getResult().isValid()) {
-                    return Mono.error(
-                        new MassException(Constants.INVALID_ADDRESS_ERROR));
-                }
-                return Mono.just(true);
+        return monero.validateAddress(address).flatMap(r -> {
+            if(!r.getResult().isValid()) {
+                return Mono.error(new MassException(Constants.INVALID_ADDRESS_ERROR));
+            }
+            return Mono.just(true);
             });
     }
 
-
     /**
-     * Create the 32 byte preimage
-     * @return byte[]
-     * TODO: this needs to go in xmr => btc swap logic
-     * 
+     * This method configures 2/3 multisig using multisig info passed in the request.
+     * 1) Create wallet and open wallet for mass swap.
+     * 2) Make multisig with clients' multisig info.
+     * 3) Prepare multisig to share with mediator and client.
+     * 4) Close swap wallet and perform steps 1,2 and 3 with mediator wallet.
+     * 5) Finalize multisig for mass swap and mediator wallets.
+     * 7) Pass prepare multisig info to final response.
+     * 7) Close wallets and handle wallet control.
+     * @param multisigInfo
+     * @param hash
+     * @return Mono<Quote>
      */
-    // private byte[] createPreimage() {
-    //     SecureRandom random = new SecureRandom();
-    //     byte bytes[] = new byte[32];
-    //     random.nextBytes(bytes);
-    //     return bytes;
-    // }
-
-    /**
-     * Create the 32 byte preimage hash
-     * @param preimage
-     * @return byte[]
-     * TODO: this needs to go in xmr => btc swap logic
-     */
-    // private byte[] createPreimageHash(byte[] preimage) {
-    //     Security.addProvider(new BouncyCastleProvider());
-    //     MessageDigest digest = null;
-    //     try {
-    //         digest = MessageDigest.getInstance(Constants.SHA_256);
-    //     } catch (NoSuchAlgorithmException e) {
-    //         logger.error(Constants.HASH_ERROR, e.getMessage());
-    //     }     
-    //     return digest.digest(preimage);
-    // }
+    private Mono<Quote> configureMultisig(String multisigInfo, String hash) {
+        long unixTime = System.currentTimeMillis() / 1000L;
+        String format = "{0}{1}";
+        String swapFilename = MessageFormat.format(format, hash, unixTime);
+        String mediatorFilename = MessageFormat.format(format, swapFilename, "m");
+        return monero.createWallet(swapFilename).flatMap(sfn -> {
+            return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwo -> {
+                isWalletOpen = true;
+                return monero.prepareMultisig().flatMap(spm -> {
+                    return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwc -> {
+                        isWalletOpen = false;
+                        return monero.createWallet(mediatorFilename).flatMap(mfn -> {
+                            return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
+                                isWalletOpen = true;
+                                List<String> infoList = Lists.newArrayList();
+                                infoList.add(multisigInfo);
+                                infoList.add(spm.getResult().getMultisig_info());
+                                return monero.makeMultisig(infoList).flatMap(mmm -> {
+                                    return monero.finalizeMultisig(infoList).flatMap(mfm -> {
+                                        return monero.prepareMultisig().flatMap(mpm -> {
+                                            return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
+                                                isWalletOpen = false;
+                                                List<String> sInfoList = Lists.newArrayList();
+                                                sInfoList.add(multisigInfo);
+                                                sInfoList.add(mpm.getResult().getMultisig_info());
+                                                return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwof -> {
+                                                    isWalletOpen = true;
+                                                    return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                                                        return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwcf -> {
+                                                            isWalletOpen = false;
+                                                            // TODO: inject persist quote and generate invoice methods
+                                                            // TODO: break this down to 4 methods and move to util
+                                                            // TODO: create container to hold swap_address, preparemultisiginfo x2 and filenames
+                                                            // 1. prepareSwapMultisig
+                                                            // 2. prepareMediatorMultisig
+                                                            // 3. finalizeMediatorMultisig
+                                                            // 4. finalizeSwapMultisig
+                                                            return null;
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    }
 
     /**
      * Persist the MoneroQuote to the database for future processing.
@@ -204,7 +247,8 @@ public class QuoteService {
                         .amount(amount).quoteId(hash).destAddress(address)
                         .isValidAddress(v).invoice(i.getPayment_request())
                         .maxSwapAmt(maxPay).minSwapAmt(minPay)
-                        .prepareMultisigInfo("" /*TODO: generate prepare multisig info*/)
+                        .swapMultisigInfo("" /*TODO: generate prepare multisig info*/)
+                        .mediatorMultisigInfo("" /*TODO: generate prepare multisig info*/)
                         .rate(rate).reserveProof(reserveProof)
                         .build();
                     return Mono.just(quote);

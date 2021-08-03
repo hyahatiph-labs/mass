@@ -122,6 +122,7 @@ public class SwapService {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     // monero transfer succeeded, settle invoice
                     // send tx metadata to be relayed
+                    // TODO: create multisig tx
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())
                         .metadata(r.getResult().getTx_metadata())
@@ -138,5 +139,7 @@ public class SwapService {
             return Mono.error(new MassException(ie.getMessage()));
         }
     }
+
+    // TODO: add method for funding API /swap/initialize
 
 }

@@ -30,10 +30,8 @@ public class MassUtil {
      * @param markup
      */
     public MassUtil(
-        @Value(Constants.MARKUP) Double markup,
-        @Value(Constants.MIN_PAY) long minPay,
-        @Value(Constants.MAX_PAY) long maxPay,
-        Lightning lightning) {
+        @Value(Constants.MARKUP) Double markup,@Value(Constants.MIN_PAY) long minPay,
+        @Value(Constants.MAX_PAY) long maxPay,Lightning lightning) {
         this.markup = markup;
         this.minPay = minPay;
         this.maxPay = maxPay;
@@ -56,15 +54,14 @@ public class MassUtil {
         return realRate;
     }
 
-        /**
+    /**
      * Perform validations on channel balance to ensure
      * that a payment proposed on the quote MAY
      * possibly be fulfilled.
      * @param value - satoshi value of invoice
      * @return Mono<Boolean>
      */
-    public Mono<Boolean> validateLiquidity(Double value, 
-    LiquidityType type) {
+    public Mono<Boolean> validateLiquidity(Double value, LiquidityType type) {
         // payment threshold validation
         long lValue = value.longValue();
         boolean isValid = lValue <= maxPay && lValue >= minPay;
@@ -93,4 +90,6 @@ public class MassUtil {
         }
     }
 
+    // TODO: build multisig main method with 4 helper methods
+    // return the multisig data as mono
 }

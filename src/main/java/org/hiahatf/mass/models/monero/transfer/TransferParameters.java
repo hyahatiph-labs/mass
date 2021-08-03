@@ -23,6 +23,4 @@ public class TransferParameters {
     private final int[] subaddr_indices = {0};
     private final int priority = 0;
     private final int ring_size = 11;
-    private final boolean do_not_relay = true;
-    private final boolean get_tx_metadata = true;
 }
