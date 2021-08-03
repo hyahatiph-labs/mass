@@ -1,15 +1,9 @@
 package org.hiahatf.mass.services.monero;
 
-import org.apache.commons.codec.binary.Hex;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.Security;
 
 import javax.net.ssl.SSLException;
 
@@ -20,6 +14,7 @@ import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.proof.GetProofResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -51,8 +46,7 @@ public class QuoteService {
     @Autowired
     public QuoteService(RateService rateService, MassUtil massUtil, 
         Monero moneroRpc, Lightning lightning, MoneroQuoteRepository quoteRepository,
-        @Value(Constants.MIN_PAY) long minPay,
-        @Value(Constants.MAX_PAY) long maxPay,
+        @Value(Constants.MIN_PAY) long minPay, @Value(Constants.MAX_PAY) long maxPay,
         @Value(Constants.RP_ADDRESS) String rpAddress){
             this.rateService = rateService;
             this.massUtil = massUtil;
@@ -80,43 +74,42 @@ public class QuoteService {
          * application.yml. There is no limit on requests. The amount
          * is also validated with Monero reserve proof.
          */
-        return massUtil.validateLiquidity(value, LiquidityType.INBOUND)
-        .flatMap(l -> {
+        return massUtil.validateLiquidity(value, LiquidityType.INBOUND).flatMap(l -> {
             if(l.booleanValue()) {
                 return generateReserveProof(request, value, parsedRate);
             }
+            logger.error(Constants.UNK_ERROR);
             // edge case, this should never happen...
             return Mono.error(new MassException(Constants.UNK_ERROR));
         });
     }
 
     /**
-     * Call Monero RPC to generate the reserve proof. Also call
-     * some helper methods for generating the preimage and hash.
-     * Finally validate the Monero address, persist the quote to
+     * Call Monero RPC to generate the reserve proof.
+     * Afterwards validate the Monero address, persist the quote to
      * the database and return the quote as requested.
      * @param request
      * @param rawRate
      * @return Mono<Quote>
      */
-    private Mono<Quote> generateReserveProof(Request request, 
-    Double value, Double rate) {
+    private Mono<Quote> generateReserveProof(Request request, Double value, Double rate) {
         return moneroRpc.getReserveProof(request.getAmount()).flatMap(r -> {
-                if(r.getResult() == null) {
+            GetProofResult result = r.getResult();
+                if(result == null) {
                     return Mono.error(
                         new MassException(Constants.RESERVE_PROOF_ERROR)
                         );
                 }
-                return validateMoneroAddress(request.getAddress()).flatMap(v -> { 
-                    byte[] preimage = createPreimage();
-                    byte[] hash = createPreimageHash(preimage);
-                    persistQuote(request, preimage, hash);
-
+                String hash = request.getPreimageHash();
+                byte[] bHash = hash.getBytes();
+                Double amount = request.getAmount();
+                String address = request.getAddress();
+                return validateMoneroAddress(address).flatMap(v -> { 
+                    persistQuote(address, hash, bHash, amount);
                     // TODO: wallet control and mulisig prep
-
                     // TODO: refactor to add multisig info
-                    return generateMoneroQuote(value, hash, request, rate, v, 
-                        r.getResult().getSignature());
+                    return generateMoneroQuote(value, address, amount, hash, bHash, rate, v, 
+                        result.getSignature());
                 });
         });
     }
@@ -140,47 +133,50 @@ public class QuoteService {
     /**
      * Create the 32 byte preimage
      * @return byte[]
+     * TODO: this needs to go in xmr => btc swap logic
+     * 
      */
-    private byte[] createPreimage() {
-        SecureRandom random = new SecureRandom();
-        byte bytes[] = new byte[32];
-        random.nextBytes(bytes);
-        return bytes;
-    }
+    // private byte[] createPreimage() {
+    //     SecureRandom random = new SecureRandom();
+    //     byte bytes[] = new byte[32];
+    //     random.nextBytes(bytes);
+    //     return bytes;
+    // }
 
     /**
      * Create the 32 byte preimage hash
      * @param preimage
      * @return byte[]
+     * TODO: this needs to go in xmr => btc swap logic
      */
-    private byte[] createPreimageHash(byte[] preimage) {
-        Security.addProvider(new BouncyCastleProvider());
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance(Constants.SHA_256);
-        } catch (NoSuchAlgorithmException e) {
-            logger.error(Constants.HASH_ERROR, e.getMessage());
-        }     
-        return digest.digest(preimage);
-    }
+    // private byte[] createPreimageHash(byte[] preimage) {
+    //     Security.addProvider(new BouncyCastleProvider());
+    //     MessageDigest digest = null;
+    //     try {
+    //         digest = MessageDigest.getInstance(Constants.SHA_256);
+    //     } catch (NoSuchAlgorithmException e) {
+    //         logger.error(Constants.HASH_ERROR, e.getMessage());
+    //     }     
+    //     return digest.digest(preimage);
+    // }
 
     /**
      * Persist the MoneroQuote to the database for future processing.
-     * @param request
-     * @param preimage
-     * @param hash
+     * @param address - destination address
+     * @param hash - preimage hash
+     * @param bHash - byte array of preimage hash
+     * @param amount - amount of Monero
      */
-    private void persistQuote(Request request, byte[] preimage, 
-    byte[] hash) {
-        // store in db to settle the invoice later
-
-        // TODO: add wallet filename
+    private void persistQuote(String address, String hash, byte[] bHash, Double amount) {
+        // store in db to settle the invoice later 
+        // TODO: add wallet filenames
         XmrQuoteTable table = XmrQuoteTable.builder()
-            .xmr_address(request.getAddress())
-            .amount(request.getAmount())
-            .preimage(preimage)
-            .payment_hash(hash)
-            .quote_id(Hex.encodeHexString(hash))
+            .amount(amount).dest_address(address)
+            .mediator_filename(""/* TODO: create mediator wallet flow*/)
+            .payment_hash(bHash)
+            .swap_address("" /* TODO: create swap address, finalize multisig*/)
+            .swap_filename("" /* TODO: create swap wallet flow*/)
+            .quote_id(hash)
             .build();
         quoteRepository.save(table);
     }
@@ -189,30 +185,27 @@ public class QuoteService {
      * Helper function for generating the Monero quote
      * Uses the LND addholdinvoice API call.
      * @param value - amount of quote in satoshis
+     * @param address - destination address of the swap
+     * @param amount - amount of swap in monero
      * @param hash - preimage hash
-     * @param request - request from client
+     * @param bHash - byte array of preimage hash
      * @param rate - rate with fee
      * @param v - boolean of address validation
-     * @param quoteId - id to recover quote for future reference
+     * @param proof - result from generating the reserve proof
      * @return Mono<MoneroQuote>
      */
-    private Mono<Quote> generateMoneroQuote(Double value, byte[] hash,
-        Request request, Double rate, Boolean v, String proof) {
+    private Mono<Quote> generateMoneroQuote(Double value, String address, Double amount, 
+    String hash, byte[] bHash, Double rate, Boolean v, String proof) {
             ReserveProof reserveProof = ReserveProof.builder()
-                .proofAddress(proofAddress)
-                .signature(proof).build();
+                .proofAddress(proofAddress).signature(proof).build();
             try {
-                return lightning.generateInvoice(value, hash).flatMap(i -> {
+                return lightning.generateInvoice(value, bHash).flatMap(i -> {
                     Quote quote = Quote.builder()
-                        .quoteId(Hex.encodeHexString(hash))
-                        .address(request.getAddress())
-                        .isValidAddress(v)
-                        .amount(request.getAmount())
-                        .invoice(i.getPayment_request())
-                        .reserveProof(reserveProof)
-                        .rate(rate)
-                        .minSwapAmt(minPay)
-                        .maxSwapAmt(maxPay)
+                        .amount(amount).quoteId(hash).destAddress(address)
+                        .isValidAddress(v).invoice(i.getPayment_request())
+                        .maxSwapAmt(maxPay).minSwapAmt(minPay)
+                        .prepareMultisigInfo("" /*TODO: generate prepare multisig info*/)
+                        .rate(rate).reserveProof(reserveProof)
                         .build();
                     return Mono.just(quote);
                 });

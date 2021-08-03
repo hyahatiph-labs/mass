@@ -17,7 +17,7 @@ public final class Constants {
     
     // model values
     public static final String MEMO = "mass";
-    public static final String EXPIRY = "600";
+    public static final String EXPIRY = "1800";
     public static final String XMR_RPC_VER = "2.0";
     public static final String XMR_RPC_ID = "0";
     public static final String XMR_RPC_TRANSFER = "transfer";

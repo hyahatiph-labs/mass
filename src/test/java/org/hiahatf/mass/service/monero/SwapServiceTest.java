@@ -61,9 +61,8 @@ public class SwapServiceTest {
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
-        .preimage(new byte[32])
         .quote_id("qid")
-        .xmr_address("54xxx")
+        .dest_address("54xxx")
         .build());
         InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
             .builder()
@@ -80,7 +79,7 @@ public class SwapServiceTest {
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
-        when(monero.transfer(table.get().getXmr_address(), table.get().getAmount()))
+        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
             .thenReturn(Mono.just(transferResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), true)).thenReturn(Mono.just(entity));
@@ -101,9 +100,8 @@ public class SwapServiceTest {
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
-        .preimage(new byte[32])
         .quote_id("qid")
-        .xmr_address("54xxx")
+        .dest_address("54xxx")
         .build());
         InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
             .builder()
@@ -117,7 +115,7 @@ public class SwapServiceTest {
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
-        when(monero.transfer(table.get().getXmr_address(), table.get().getAmount()))
+        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
             .thenReturn(Mono.just(transferResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));

@@ -76,7 +76,7 @@ public class SwapService {
      * @return
      */
     private Mono<SwapResponse> transferMonero(XmrQuoteTable quote) {
-        return monero.transfer(quote.getXmr_address(), 
+        return monero.transfer(quote.getDest_address(), 
         quote.getAmount()).flatMap(r -> {
             // null check, since rpc since 200 on null result
             if(r.getResult() == null) {

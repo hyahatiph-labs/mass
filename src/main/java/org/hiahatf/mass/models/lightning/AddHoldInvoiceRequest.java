@@ -22,6 +22,6 @@ public class AddHoldInvoiceRequest {
     private byte[] hash;
     // invoice amount in satoshis
     private String value;
-    // invoices expire after 10 min.
+    // invoices expire after 30 min.
     private final String expiry = Constants.EXPIRY;
 }

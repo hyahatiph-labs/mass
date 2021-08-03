@@ -130,7 +130,7 @@ public class Lightning {
         throws SSLException, IOException {
             String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest
-                .builder().preimage(quote.getPreimage()).build();
+                .builder().preimage(quote.getPayment_hash()).build();
             CancelInvoiceRequest cancelReq = CancelInvoiceRequest
                 .builder().payment_hash(quote.getPayment_hash()).build();
             WebClient client = createClient();

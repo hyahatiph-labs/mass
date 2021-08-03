@@ -32,10 +32,10 @@ public class QuoteControllerTest {
     public void fetchMoneroQuoteTest() {
         String address = "54xxx";
         Request request = Request.builder().address(address).build();
-        Quote quote = Quote.builder().address(address).build();
+        Quote quote = Quote.builder().destAddress(address).build();
         when(quoteService.processMoneroQuote(request)).thenReturn(Mono.just(quote));
         Mono<Quote> testQuote = controller.fetchMoneroQuote(request);
-        assertEquals(quote.getAddress(), testQuote.block().getAddress());
+        assertEquals(quote.getDestAddress(), testQuote.block().getDestAddress());
     }
     
 }

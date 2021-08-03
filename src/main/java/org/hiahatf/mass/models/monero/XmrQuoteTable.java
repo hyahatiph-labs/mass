@@ -3,7 +3,9 @@ package org.hiahatf.mass.models.monero;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table; 
+import javax.persistence.Table;
+
+import org.hiahatf.mass.models.FundingState;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,15 +27,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class XmrQuoteTable {
 
-    @Id
+    @Id // preimage hash from client
     private String quote_id;
-    @Column
+    @Column // amount of monero requested
     private Double amount;
-    @Column
-    private byte[] preimage;
-    @Column
+    @Column // final stop for the swap
+    private String dest_address;
+    @Column // funding transaction id
+    private String funding_txid;
+    @Column // funding state, default to pending
+    private FundingState funding_state = FundingState.PENDING;
+    @Column // mediators' filename for wallet control
+    private String mediator_filename;
+    @Column // store the preimage hash as byte array
     private byte[] payment_hash;
-    @Column
-    private String xmr_address;
-
+    @Column // filename used for wallet control
+    private String swap_filename;
+    @Column // multisig address generated for participants
+    private String swap_address;
+    
 }

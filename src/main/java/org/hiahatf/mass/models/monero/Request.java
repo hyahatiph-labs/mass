@@ -19,4 +19,6 @@ public class Request {
     private double amount;
     // clients' prepare multisig info
     private String multisigInfo;
+    // clients' preimage hash
+    private String preimageHash;
 }
