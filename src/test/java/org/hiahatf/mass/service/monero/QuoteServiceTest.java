@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
+import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.proof.GetProofResult;
@@ -65,8 +66,8 @@ public class QuoteServiceTest {
     public void processQuoteTest() throws SSLException, IOException {
         String prs = "proofresultsigxxx";
         // build test data
-        Request req = Request.builder().address("54xxx")
-            .amount(0.1).build();
+        Request req = Request.builder().address("54xxx").preimageHash("hash")
+            .amount(0.1).multisigInfo("multisigInfo").build();
         GetProofResult getProofResult = GetProofResult.builder()
             .signature(prs).build();
         GetReserveProofResponse reserveProof = GetReserveProofResponse
@@ -77,11 +78,16 @@ public class QuoteServiceTest {
             .result(validateAddressResult).build();
         AddHoldInvoiceResponse addHoldInvoiceResponse = AddHoldInvoiceResponse.builder()
             .payment_request("lntest123xxx").build();
+        MultisigData data = MultisigData.builder().clientMultisigInfo(req.getMultisigInfo())
+            .swapAddress("54testaddress").swapFilename("sfn").mediatorMultisigInfo("mmsi")
+            .mediatorFilename("mfn").build();
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))
             .thenReturn(Mono.just(true));
+        when(massUtil.configureMultisig(req.getMultisigInfo(), req.getPreimageHash()))
+            .thenReturn(Mono.just(data));
         when(moneroRpc.getReserveProof(req.getAmount()))
             .thenReturn(Mono.just(reserveProof));
         when(moneroRpc.validateAddress(req.getAddress()))

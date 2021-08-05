@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.monero.multisig;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +17,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SignResult {
     private String tx_data_hex;
-    private String tx_hash_list;
+    private List<String> tx_hash_list;
 }
