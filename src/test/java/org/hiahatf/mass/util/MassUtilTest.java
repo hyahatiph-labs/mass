@@ -11,6 +11,7 @@ import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.lightning.Amount;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.services.rpc.Lightning;
+import org.hiahatf.mass.services.rpc.Monero;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +34,12 @@ public class MassUtilTest {
     @Mock
     Lightning lightning;
 
+    @Mock
+    Monero monero;
+
     @InjectMocks
     private MassUtil util = 
-        new MassUtil(0.01, 10000, 10000000, lightning);
+        new MassUtil(0.01, 10000, 10000000, lightning, monero);
     
     @Test
     @DisplayName("Parse Rate Test")

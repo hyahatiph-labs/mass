@@ -37,7 +37,11 @@ public class SwapController extends BaseController {
      * This endpoint reaches utilizes lightning network
      * hold invoices to verify in-flight payments and settles
      * with the equivalent amount in Monero.
+     * 
      * // TODO: change to /swap/initialize, and create /swap/finalize API
+     *      // funding API should also do import info (from clien & mediator) for sending
+     *      // and return the txid
+     * 
      * @return Mono<SwapResponse>
      */
     @PostMapping(Constants.XMR_SWAP_PATH) 
