@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.commons.codec.binary.Hex;
 import org.hiahatf.mass.models.lightning.AddHoldInvoiceResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.Quote;
@@ -19,6 +20,9 @@ import org.hiahatf.mass.models.monero.proof.GetProofResult;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResult;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.monero.QuoteService;
 import org.hiahatf.mass.services.rate.RateService;
@@ -59,14 +63,15 @@ public class QuoteServiceTest {
     private final Long maxPay = 1000000L;
     @InjectMocks
     private QuoteService quoteService = new QuoteService(rateService, massUtil,
-    moneroRpc, lightning, quoteRepository, minPay, maxPay, "54rpvxxx");
+    moneroRpc, lightning, quoteRepository, minPay, maxPay, "54rpvxxx", "test");
 
     @Test
     @DisplayName("Monero Quote Service Test")
     public void processQuoteTest() throws SSLException, IOException {
         String prs = "proofresultsigxxx";
         // build test data
-        Request req = Request.builder().address("54xxx").preimageHash("hash")
+        byte[] ph = new byte[32];
+        Request req = Request.builder().address("54xxx").preimageHash(ph)
             .amount(0.1).multisigInfo("multisigInfo").build();
         GetProofResult getProofResult = GetProofResult.builder()
             .signature(prs).build();
@@ -79,14 +84,22 @@ public class QuoteServiceTest {
         AddHoldInvoiceResponse addHoldInvoiceResponse = AddHoldInvoiceResponse.builder()
             .payment_request("lntest123xxx").build();
         MultisigData data = MultisigData.builder().clientMultisigInfo(req.getMultisigInfo())
-            .swapAddress("54testaddress").swapFilename("sfn").mediatorMultisigInfo("mmsi")
+            .swapFilename("sfn").mediatorMakeMultisigInfo("mmsi")
             .mediatorFilename("mfn").build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))
             .thenReturn(Mono.just(true));
-        when(massUtil.configureMultisig(req.getMultisigInfo(), req.getPreimageHash()))
+        when(moneroRpc.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(moneroRpc.controlWallet(WalletState.CLOSE, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(massUtil.configureMultisig(req.getMultisigInfo(), 
+            Hex.encodeHexString(req.getPreimageHash())))
             .thenReturn(Mono.just(data));
         when(moneroRpc.getReserveProof(req.getAmount()))
             .thenReturn(Mono.just(reserveProof));
@@ -111,11 +124,16 @@ public class QuoteServiceTest {
         GetReserveProofResponse reserveProof = GetReserveProofResponse
             .builder().result(null)
             .build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
         // mocks
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))
             .thenReturn(Mono.just(true));
+        when(moneroRpc.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
         when(moneroRpc.getReserveProof(req.getAmount()))
             .thenReturn(Mono.just(reserveProof));
         try {

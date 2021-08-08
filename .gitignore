@@ -34,3 +34,4 @@ build/
 
 # h2 db
 data.mv.db
+data.trace.db

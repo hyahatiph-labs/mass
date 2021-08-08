@@ -20,5 +20,5 @@ public class Request {
     // clients' prepare multisig info
     private String multisigInfo;
     // clients' preimage hash
-    private String preimageHash;
+    private byte[] preimageHash;
 }

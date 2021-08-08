@@ -24,10 +24,12 @@ public class Quote {
     private Long maxSwapAmt;
     // minimum swap amount in satoshis
     private Long minSwapAmt;
-    // prepare multisig information for main swap
-    private String swapMultisigInfo;
-    // prepare multisig information for fallback
-    private String mediatorMultisigInfo;
+    // prepare multisig information outputs client needs this to do make_multisig
+    private String swapMakeMultisigInfo;
+    private String mediatorMakeMultisigInfo;
+    // make multisig information outputs client needs this to do finalize_multisig
+    private String swapFinalizeMultisigInfo;
+    private String mediatorFinalizeMultisigInfo;
     // quote id is the same as lnd payment hash  
     private String quoteId;
     // this the mass rate including markup?

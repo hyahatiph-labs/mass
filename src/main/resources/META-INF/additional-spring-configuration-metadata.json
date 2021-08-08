@@ -43,5 +43,10 @@
     "name": "send-address",
     "type": "java.lang.String",
     "description": "MASS rx address"
+  },
+  {
+    "name": "mass-wallet-filename",
+    "type": "java.lang.String",
+    "description": "MASS application wallet filename for tx / rx."
   }
 ]}

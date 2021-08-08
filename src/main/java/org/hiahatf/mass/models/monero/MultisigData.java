@@ -16,8 +16,9 @@ import lombok.NoArgsConstructor;
 public class MultisigData {
     private String clientMultisigInfo;
     private String mediatorFilename;
-    private String mediatorMultisigInfo;
-    private String swapAddress;
+    private String mediatorFinalizeMultisigInfo;
+    private String mediatorMakeMultisigInfo;
     private String swapFilename;
-    private String swapMultisigInfo;
+    private String swapFinalizeMultisigInfo;
+    private String swapMakeMultisigInfo;
 }

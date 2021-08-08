@@ -11,7 +11,7 @@ Content-Type: application/json
     "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
     "amount": 0.123,
     "multisigInfo": "MultisigV1QUMnWLpohJt1va3RiRZJ5sMGzRuMCRxLu2L2oLdXEU5jSudoWf2L1UTJ89NUTqFqiRLriB2toCzquARxagDXaBZsKEGVSu9suSobN2jR68fgp4c5doHbKsWExZHQ4UkqcBJhd24VxTA4mR2Yw2eDGpeQ1kR8EW6aMdtozYeNkhKmBt94",
-    "preimageHash": "4f9c2759b18e8cc02fcf28eb406835ea8d36d2c1557bdac7af8bb4adfd9449ed"
+    "preimageHash": [243,185,129,195,108,254,53,134,25,81,152,104,82,229,64,148,196,153,214,101,24,229,168,182,203,213,227,158,135,68,42,58]
 }
 
 ### Validate Monero address
@@ -34,11 +34,7 @@ POST https://localhost:8180/v2/invoices/hodl
 Grpc-Metadata-macaroon: 
 
 {
-    "hash": [224, 199, 253,  44, 149,  34, 254,
-  240, 249, 243, 120, 108, 140, 190,
-   74,  38, 149, 157,  65, 141, 117,
-  176,  47, 166, 199,  59, 185,  30,
-  217, 113, 161, 236],
+    "hash": [224, 199, 253,  44, 149, 34, 254, 240, 249, 243, 120, 108, 140, 190, 74,  38, 149, 157,  65,141, 117, 176,  47, 166, 199,  59, 185,  30, 217, 113, 161, 236],
     "value": "10000",
     "expiry": "600"
 }
@@ -63,10 +59,10 @@ Content-Type: application/json
 }
 
 ### get balances of xmr wallet
-POST http://localhost:18082/json_rpc 
+POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}
+{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,0]}}
 
 ### xmr get_tx_proof
 
@@ -96,7 +92,7 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"mytestwallet","language":"English"}}
+{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"mass","language":"English"}}
 
 ### open wallet
 POST http://localhost:18083/json_rpc 
@@ -110,3 +106,9 @@ POST http://localhost:18083/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"mass"}}
+
+### transfer
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"transfer","params":{"destinations":[{"amount":3000000000000,"address":"5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C"}],"account_index":0,"subaddr_indices":[0],"priority":0,"ring_size":11}}

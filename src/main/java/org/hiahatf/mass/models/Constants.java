@@ -77,10 +77,10 @@ public final class Constants {
     public static final String RP_ADDRESS = "${rp-address}";
     public static final String SEND_ADDRESS = "${send-address}";
     public static final int EXPIRY_LIMIT = 600;
-
-    // swap service values
     public static final String MIN_PAY = "${min-pay}";
     public static final String MAX_PAY = "${max-pay}";
+    public static final String MASS_WALLET_FILENAME = "${mass-wallet-filename}";
+
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";

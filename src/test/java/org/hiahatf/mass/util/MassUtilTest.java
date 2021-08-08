@@ -1,15 +1,30 @@
 package org.hiahatf.mass.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.net.ssl.SSLException;
+
+import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.lightning.Amount;
 import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.monero.MultisigData;
+import org.hiahatf.mass.models.monero.multisig.MakeResponse;
+import org.hiahatf.mass.models.monero.multisig.MakeResult;
+import org.hiahatf.mass.models.monero.multisig.PrepareResponse;
+import org.hiahatf.mass.models.monero.multisig.PrepareResult;
+import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResponse;
+import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResult;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.junit.jupiter.api.DisplayName;
@@ -68,5 +83,37 @@ public class MassUtilTest {
         .verifyComplete();
     }
 
-    // TODO: configureMultisigTest
+    @Test
+    @DisplayName("Configure Multisig Test")
+    public void configureMultisigTest() {
+        String testInfo = "testInfo";
+        String testHash = "testHash";
+        String testMultisigInfo = "multisigInfo";
+        List<String> infoList = Lists.newArrayList();
+        infoList.add(testMultisigInfo);
+        // mocks
+        CreateWalletResult createWalletResult = CreateWalletResult.builder().build();
+        CreateWalletResponse createWalletResponse = CreateWalletResponse.builder()
+            .result(createWalletResult).build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+        .result(walletStateResult).build();
+        PrepareResult prepareResult = PrepareResult.builder()
+            .multisig_info(testMultisigInfo).build();
+        PrepareResponse prepareResponse = PrepareResponse.builder().result(prepareResult).build();
+        MakeResult makeResult = MakeResult.builder().multisig_info(testMultisigInfo).build();
+        MakeResponse makeResponse = MakeResponse.builder().result(makeResult).build();
+        when(monero.createWallet(anyString())).thenReturn(Mono.just(createWalletResponse));
+        when(monero.controlWallet(any(), anyString())).thenReturn(Mono.just(walletStateResponse));
+        when(monero.prepareMultisig()).thenReturn(Mono.just(prepareResponse));
+        when(monero.makeMultisig(anyList())).thenReturn(Mono.just(makeResponse));
+
+        Mono<MultisigData> testData = util.configureMultisig(testInfo, testHash);
+
+        StepVerifier.create(testData)
+        .expectNextMatches(d -> d.getClientMultisigInfo()
+          .equals(testInfo))
+        .verifyComplete();
+    }
+
 }

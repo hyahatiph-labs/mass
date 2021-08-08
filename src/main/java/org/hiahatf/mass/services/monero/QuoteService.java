@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.commons.codec.binary.Hex;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.LiquidityType;
@@ -13,6 +14,7 @@ import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.proof.GetProofResult;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -33,21 +35,24 @@ import reactor.core.publisher.Mono;
 public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
-    private boolean isProcessingMultisig;
+    private MoneroQuoteRepository quoteRepository;
+    private String massWalletFilename;
     private RateService rateService;
-    private Monero monero;
+    private boolean isWalletOpen;
+    private String proofAddress;
     private Lightning lightning;
     private MassUtil massUtil;
-    private MoneroQuoteRepository quoteRepository;
-    private String proofAddress;
+    private Monero monero;
     private Long minPay;
     private Long maxPay;
+    
 
     @Autowired
     public QuoteService(RateService rateService, MassUtil massUtil, 
         Monero monero, Lightning lightning, MoneroQuoteRepository quoteRepository,
         @Value(Constants.MIN_PAY) long minPay, @Value(Constants.MAX_PAY) long maxPay,
-        @Value(Constants.RP_ADDRESS) String rpAddress){
+        @Value(Constants.RP_ADDRESS) String rpAddress, 
+        @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename){
             this.rateService = rateService;
             this.massUtil = massUtil;
             this.monero = monero;
@@ -56,6 +61,7 @@ public class QuoteService {
             this.minPay = minPay;
             this.maxPay = maxPay;
             this.proofAddress = rpAddress;
+            this.massWalletFilename = massWalletFilename;
     }
 
     /**
@@ -66,7 +72,7 @@ public class QuoteService {
      */
     public Mono<Quote> processMoneroQuote(Request request) {
         // reject a request that occurs during wallet operations
-        if(isProcessingMultisig) {
+        if(isWalletOpen) {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
         String rate = rateService.getMoneroRate();
@@ -80,7 +86,10 @@ public class QuoteService {
          */
         return massUtil.validateLiquidity(value, LiquidityType.INBOUND).flatMap(l -> {
             if(l.booleanValue()) {
-                return generateReserveProof(request, value, parsedRate);
+                return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
+                    isWalletOpen = true;
+                    return generateReserveProof(request, value, parsedRate);
+                });
             }
             logger.error(Constants.UNK_ERROR);
             // edge case, this should never happen...
@@ -97,12 +106,10 @@ public class QuoteService {
      * @return Mono<Quote>
      */
     private Mono<Quote> generateReserveProof(Request request, Double value, Double rate) {
-        // TODO: create config property for opening application wallet
-        // TODO: debug multisig
-        // TODO: create wallet control for reserve proof
         return monero.getReserveProof(request.getAmount()).flatMap(r -> {
             GetProofResult result = r.getResult();
             if(result == null) {
+                isWalletOpen = false;
                 return Mono.error(new MassException(Constants.RESERVE_PROOF_ERROR));
             }
             return validateMoneroAddress(request, value, rate, r.getResult().getSignature());
@@ -116,19 +123,20 @@ public class QuoteService {
      */
     private Mono<Quote> validateMoneroAddress(Request request, Double value, Double rate,
     String s) {
-        String hash = request.getPreimageHash();
-        byte[] bHash = hash.getBytes();
+        String hash = Hex.encodeHexString(request.getPreimageHash());
+        byte[] bHash = request.getPreimageHash();
         Double amount = request.getAmount();
         String address = request.getAddress();
         return monero.validateAddress(address).flatMap(r -> {
             if(!r.getResult().isValid()) {
                 return Mono.error(new MassException(Constants.INVALID_ADDRESS_ERROR));
             }
-            isProcessingMultisig = true;
             logger.info("Entering Multisig Setup");
-            return massUtil.configureMultisig(request.getMultisigInfo(), hash).flatMap(m -> {
-                persistQuote(address, hash, bHash, amount, m);
-                return generateMoneroQuote(value, address, amount, hash, bHash, rate, s, m);
+            return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwo -> {
+                return massUtil.configureMultisig(request.getMultisigInfo(), hash).flatMap(m -> {
+                    persistQuote(address, hash, bHash, amount, m);
+                    return generateMoneroQuote(value, address, amount, hash, bHash, rate, s, m);
+                });
             });
         });
     }
@@ -146,8 +154,9 @@ public class QuoteService {
         XmrQuoteTable table = XmrQuoteTable.builder()
             .amount(amount).dest_address(address)
             .mediator_filename(data.getMediatorFilename())
+            .mediator_finalize_msig(data.getMediatorFinalizeMultisigInfo())
+            .swap_finalize_msig(data.getSwapFinalizeMultisigInfo())
             .payment_hash(bHash)
-            .swap_address(data.getSwapAddress())
             .swap_filename(data.getSwapFilename())
             .quote_id(hash)
             .build();
@@ -169,16 +178,18 @@ public class QuoteService {
      */
     private Mono<Quote> generateMoneroQuote(Double value, String address, Double amount, 
     String hash, byte[] bHash, Double rate, String proof, MultisigData data) {
-        isProcessingMultisig = false;
+        isWalletOpen = false;
         ReserveProof reserveProof = ReserveProof.builder()
             .proofAddress(proofAddress).signature(proof).build();
         try {
             return lightning.generateInvoice(value, bHash).flatMap(i -> {
                 Quote quote = Quote.builder()
                     .amount(amount).quoteId(hash).destAddress(address)
-                    .maxSwapAmt(maxPay).minSwapAmt(minPay)
-                    .swapMultisigInfo(data.getSwapMultisigInfo())
-                    .mediatorMultisigInfo(data.getMediatorMultisigInfo())
+                    .maxSwapAmt(maxPay).minSwapAmt(minPay).invoice(i.getPayment_request())
+                    .swapMakeMultisigInfo(data.getSwapMakeMultisigInfo())
+                    .mediatorMakeMultisigInfo(data.getMediatorMakeMultisigInfo())
+                    .swapFinalizeMultisigInfo(data.getSwapFinalizeMultisigInfo())
+                    .mediatorFinalizeMultisigInfo(data.getSwapFinalizeMultisigInfo())
                     .rate(rate).reserveProof(reserveProof)
                     .build();
                 return Mono.just(quote);

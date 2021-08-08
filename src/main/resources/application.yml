@@ -8,6 +8,7 @@ host:
 # reserve proof address
 rp-address: 54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn
 send-address: 54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn
+mass-wallet-filename: mass
 # macaroon path
 macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
