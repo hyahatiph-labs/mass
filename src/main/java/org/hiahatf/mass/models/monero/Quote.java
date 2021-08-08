@@ -20,8 +20,6 @@ public class Quote {
     private String destAddress;
     // lightning network invoice to pay
     private String invoice;
-    // proof of address validity
-    private Boolean isValidAddress;
     // maximum swap amount in satoshis
     private Long maxSwapAmt;
     // minimum swap amount in satoshis

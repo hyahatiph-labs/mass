@@ -68,4 +68,5 @@ public class MassUtilTest {
         .verifyComplete();
     }
 
+    // TODO: configureMultisigTest
 }

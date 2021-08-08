@@ -8,8 +8,10 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
+    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
     "amount": 0.123,
-    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+    "multisigInfo": "MultisigV1QUMnWLpohJt1va3RiRZJ5sMGzRuMCRxLu2L2oLdXEU5jSudoWf2L1UTJ89NUTqFqiRLriB2toCzquARxagDXaBZsKEGVSu9suSobN2jR68fgp4c5doHbKsWExZHQ4UkqcBJhd24VxTA4mR2Yw2eDGpeQ1kR8EW6aMdtozYeNkhKmBt94",
+    "preimageHash": "4f9c2759b18e8cc02fcf28eb406835ea8d36d2c1557bdac7af8bb4adfd9449ed"
 }
 
 ### Validate Monero address

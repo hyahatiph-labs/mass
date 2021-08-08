@@ -97,37 +97,39 @@ public class QuoteService {
      * @return Mono<Quote>
      */
     private Mono<Quote> generateReserveProof(Request request, Double value, Double rate) {
+        // TODO: create config property for opening application wallet
+        // TODO: debug multisig
+        // TODO: create wallet control for reserve proof
         return monero.getReserveProof(request.getAmount()).flatMap(r -> {
             GetProofResult result = r.getResult();
             if(result == null) {
                 return Mono.error(new MassException(Constants.RESERVE_PROOF_ERROR));
             }
-            String hash = request.getPreimageHash();
-            byte[] bHash = hash.getBytes();
-            Double amount = request.getAmount();
-            String address = request.getAddress();
-            return validateMoneroAddress(address).flatMap(v -> { 
-                isProcessingMultisig = true;
-                return massUtil.configureMultisig(request.getMultisigInfo(), hash).flatMap(m -> {
-                    persistQuote(address, hash, bHash, amount, m);
-                    return generateMoneroQuote(value, address, amount, hash, bHash, rate, v, 
-                        result.getSignature(), m);
-                });
-            });
+            return validateMoneroAddress(request, value, rate, r.getResult().getSignature());
         });
     }
 
     /**
      * Validate the Monero address that will receive the swap
      * @param address
-     * @return Mono<Boolean> - true if valid
+     * @return Mono<Quote>
      */
-    private Mono<Boolean> validateMoneroAddress(String address) {
+    private Mono<Quote> validateMoneroAddress(Request request, Double value, Double rate,
+    String s) {
+        String hash = request.getPreimageHash();
+        byte[] bHash = hash.getBytes();
+        Double amount = request.getAmount();
+        String address = request.getAddress();
         return monero.validateAddress(address).flatMap(r -> {
             if(!r.getResult().isValid()) {
                 return Mono.error(new MassException(Constants.INVALID_ADDRESS_ERROR));
             }
-            return Mono.just(true);
+            isProcessingMultisig = true;
+            logger.info("Entering Multisig Setup");
+            return massUtil.configureMultisig(request.getMultisigInfo(), hash).flatMap(m -> {
+                persistQuote(address, hash, bHash, amount, m);
+                return generateMoneroQuote(value, address, amount, hash, bHash, rate, s, m);
+            });
         });
     }
 
@@ -166,7 +168,7 @@ public class QuoteService {
      * @return Mono<MoneroQuote>
      */
     private Mono<Quote> generateMoneroQuote(Double value, String address, Double amount, 
-    String hash, byte[] bHash, Double rate, Boolean v, String proof, MultisigData data) {
+    String hash, byte[] bHash, Double rate, String proof, MultisigData data) {
         isProcessingMultisig = false;
         ReserveProof reserveProof = ReserveProof.builder()
             .proofAddress(proofAddress).signature(proof).build();
@@ -174,7 +176,6 @@ public class QuoteService {
             return lightning.generateInvoice(value, bHash).flatMap(i -> {
                 Quote quote = Quote.builder()
                     .amount(amount).quoteId(hash).destAddress(address)
-                    .isValidAddress(v).invoice(i.getPayment_request())
                     .maxSwapAmt(maxPay).minSwapAmt(minPay)
                     .swapMultisigInfo(data.getSwapMultisigInfo())
                     .mediatorMultisigInfo(data.getMediatorMultisigInfo())

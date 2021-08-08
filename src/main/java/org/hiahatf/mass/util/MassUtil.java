@@ -116,6 +116,7 @@ public class MassUtil {
         String format = "{0}{1}";
         String swapFilename = MessageFormat.format(format, hash, unixTime);
         String mediatorFilename = MessageFormat.format(format, swapFilename, "m");
+        logger.info("Swap filename: {}", swapFilename);
         MultisigData data = MultisigData.builder()
             .swapFilename(swapFilename)
             .mediatorFilename(mediatorFilename)
@@ -132,9 +133,13 @@ public class MassUtil {
     private Mono<MultisigData> prepareSwapMultisig(MultisigData data) {
         String swapFilename = data.getSwapFilename();
         return monero.createWallet(swapFilename).flatMap(sfn -> {
+            logger.info("Creating swap wallet");
             return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwo -> {
+                logger.info("Opening swap wallet");
                 return monero.prepareMultisig().flatMap(spm -> {
+                    logger.info("Preparing swap wallet");
                     return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwc -> {
+                        logger.info("Closing swap wallet");
                         data.setSwapMultisigInfo(spm.getResult().getMultisig_info());
                         return prepareMediatorMultisig(data);
                     });
@@ -149,14 +154,22 @@ public class MassUtil {
      * @return Mono<MultisigData>
      */
     private Mono<MultisigData> prepareMediatorMultisig(MultisigData data) {
-        return monero.controlWallet(WalletState.OPEN, data.getMediatorFilename()).flatMap(mcwo -> {
-            List<String> infoList = Lists.newArrayList();
-            infoList.add(data.getClientMultisigInfo());
-            infoList.add(data.getSwapMultisigInfo());
-            return monero.prepareMultisig().flatMap(mpm -> {
-                return monero.makeMultisig(infoList).flatMap(mmm -> {
-                    data.setMediatorMultisigInfo(mpm.getResult().getMultisig_info());
-                    return finalizeMediatorMultisig(data, infoList);
+        logger.info("Creating mediator wallet");
+        return monero.createWallet(data.getMediatorFilename()).flatMap(sfn -> {
+            logger.info("Opening mediator wallet");
+            return monero.controlWallet(WalletState.OPEN, 
+                data.getMediatorFilename()).flatMap(mcwo -> {
+                List<String> infoList = Lists.newArrayList();
+                infoList.add(data.getClientMultisigInfo());
+                infoList.add(data.getSwapMultisigInfo());
+                logger.info("Preparing mediator wallet");
+                return monero.prepareMultisig().flatMap(mpm -> {
+                    logger.info("Making mediator multisig");
+                    return monero.makeMultisig(infoList).flatMap(mmm -> {
+                        logger.info("Finalizing mediator multisig");
+                        data.setMediatorMultisigInfo(mpm.getResult().getMultisig_info());
+                        return finalizeMediatorMultisig(data, infoList);
+                    });
                 });
             });
         });
@@ -168,7 +181,8 @@ public class MassUtil {
      * @return Mono<MultisigData>
      */
     private Mono<MultisigData> finalizeMediatorMultisig(MultisigData data, List<String> info) {
-        return monero.finalizeMultisig(info).flatMap(mfm -> {                           
+        return monero.finalizeMultisig(info).flatMap(mfm -> {   
+            logger.info("Closing mediator wallet");                        
             return monero.controlWallet(WalletState.CLOSE, 
                 data.getMediatorFilename()).flatMap(mcwc -> {
                     return finalizeSwapMultisig(data);
@@ -186,11 +200,17 @@ public class MassUtil {
         List<String> sInfoList = Lists.newArrayList();
         sInfoList.add(data.getClientMultisigInfo());
         sInfoList.add(data.getMediatorMultisigInfo());
+        logger.info("Opening swap wallet");
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwof -> {
-            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
-                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwcf -> {
-                    data.setSwapAddress(sfm.getResult().getAddress());
-                    return Mono.just(data);
+            logger.info("Making swap multisig");
+            return monero.makeMultisig(sInfoList).flatMap(mmm -> {
+                logger.info("Finalizing swap multisig");
+                return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                    logger.info("Closing swap wallet");
+                    return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwcf -> {
+                        data.setSwapAddress(sfm.getResult().getAddress());
+                        return Mono.just(data);
+                    });
                 });
             });
         });
