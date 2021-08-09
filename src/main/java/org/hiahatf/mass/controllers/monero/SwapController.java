@@ -2,6 +2,8 @@ package org.hiahatf.mass.controllers.monero;
 
 import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.services.monero.SwapService;
@@ -36,17 +38,18 @@ public class SwapController extends BaseController {
     /**
      * This endpoint reaches utilizes lightning network
      * hold invoices to verify in-flight payments and settles
-     * with the equivalent amount in Monero.
-     * 
-     * // TODO: change to /swap/initialize, and create /swap/finalize API
-     *      // funding API should also do import info (from clien & mediator) for sending
-     *      // and return the txid
-     * 
+     * with the equivalent amount in Monero. 
      * @return Mono<SwapResponse>
      */
-    @PostMapping(Constants.XMR_SWAP_PATH) 
+    @PostMapping(Constants.XMR_SWAP_INIT_PATH) 
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SwapResponse> fetchMoneroSwap(@RequestBody SwapRequest request) {
+    public Mono<FundResponse> initiateMoneroSwap(@RequestBody FundRequest request) {
+        return swapService.fundMoneroSwap(request);
+    }
+
+    @PostMapping(Constants.XMR_SWAP_FINAL_PATH) 
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<SwapResponse> finalizeMoneroSwap(@RequestBody SwapRequest request) {
         return swapService.processMoneroSwap(request);
     }
 

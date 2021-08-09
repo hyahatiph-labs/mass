@@ -39,7 +39,7 @@ public class SwapController extends BaseController {
      * with the equivalent amount in Monero.
      * @return Mono<SwapResponse>
      */
-    @PostMapping(Constants.BTC_SWAP_PATH)
+    @PostMapping(Constants.BTC_SWAP_FINAL_PATH)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SwapResponse> fetchBitcoinSwap(@RequestBody SwapRequest request) {
         return swapService.processBitcoinSwap(request);

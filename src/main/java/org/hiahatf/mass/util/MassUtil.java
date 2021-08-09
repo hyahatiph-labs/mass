@@ -11,7 +11,10 @@ import com.google.common.collect.Lists;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.LiquidityType;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
+import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -210,5 +213,140 @@ public class MassUtil {
         });
     }
 
-    // TODO: finalize multisig when funding consensus wallet
+    /**
+     * Grab the output from clients' make_multisig and use to finalize multisig
+     * for the primary swap wallet. Also extract mediator's multisig info from
+     * the database.
+     * @param request
+     * @param table
+     * @return Mono<String> - the address of the finalized multisig wallet
+     */
+    public Mono<String> finalizeSwapMultisig(FundRequest request, XmrQuoteTable table) {
+        logger.info("Finalizing swap wallet");
+        String swapFilename = table.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
+            List<String> sInfoList = Lists.newArrayList();
+            sInfoList.add(table.getMediator_finalize_msig());
+            sInfoList.add(request.getMakeMultisigInfo());
+            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
+                    return finalizeMediatorMultisig(request, table);
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for finalizing mediator multisig wallet.
+     * Similar to finalizeSwapMultisig.
+     * @param request
+     * @param table
+     * @return Mono<String> - the address of the finalized multisig wallet
+     */
+    private Mono<String> finalizeMediatorMultisig(FundRequest request, XmrQuoteTable table) {
+        logger.info("Finalizing mediator wallet");
+        String mediatorFilename = table.getMediator_filename();
+        return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
+            List<String> sInfoList = Lists.newArrayList();
+            sInfoList.add(table.getSwap_finalize_msig());
+            sInfoList.add(request.getMakeMultisigInfo());
+            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                String address = sfm.getResult().getAddress();
+                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
+                    return Mono.just(address);
+                });
+            });
+        });
+    }
+
+    /**
+     * Extra step for adding the multisig info which facilitates spending from the
+     * consensus wallet. WebFlux chained as: export_multisig (Swap wallet) =>
+     * export_multisig (Mediator wallet) => import_multisig (Swap wallet) =>
+     * import_multisig (Mediator wallet).
+     * @param request
+     * @param table
+     * @return Mono<FundResponse>
+     */
+    public Mono<FundResponse> exportSwapInfo(FundRequest request, XmrQuoteTable table) {
+        logger.info("Exporting swap info");
+        String swapFilename = table.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
+            return monero.exportMultisigInfo().flatMap(sem -> {
+                FundResponse fundResponse = FundResponse.builder()
+                    .importSwapMultisigInfo(sem.getResult().getInfo()).build();
+                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
+                    return exportMediatorInfo(request, table, fundResponse);
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for exporting mediator multisig wallet info.
+     * This is a necessary process for being able to spend from the 
+     * consensus wallet.
+     * @param request
+     * @param table
+     * @return Mono<String> - the address of the finalized multisig wallet
+     */
+    private Mono<FundResponse> exportMediatorInfo(FundRequest request, XmrQuoteTable table, 
+    FundResponse fundResponse) {
+        logger.info("Exporting mediator info");
+        String mediatorFilename = table.getMediator_filename();
+        return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
+            return monero.exportMultisigInfo().flatMap(mem -> {
+                fundResponse.setImportMediatorMultisigInfo(mem.getResult().getInfo());
+                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
+                    return importSwapInfo(request, table, fundResponse);
+                });
+            });
+        });
+    }
+    
+        /**
+     * Extra step for adding the client multisig info which facilitates spending from the
+     * consensus wallet.
+     * @param request
+     * @param table
+     * @return Mono<FundResponse>
+     */
+    private Mono<FundResponse> importSwapInfo(FundRequest request, XmrQuoteTable table, 
+    FundResponse fundResponse) {
+        String swapFilename = table.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
+            List<String> sInfoList = Lists.newArrayList();
+            sInfoList.add(fundResponse.getImportMediatorMultisigInfo());
+            sInfoList.add(request.getExportMultisigInfo());
+            return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
+                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
+                    return importMediatorInfo(request, table, fundResponse);
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for importing client info to mediator multisig wallet.
+     * This is a necessary process for being able to spend from the 
+     * consensus wallet.
+     * @param request
+     * @param table
+     * @return Mono<String> - the address of the finalized multisig wallet
+     */
+    private Mono<FundResponse> importMediatorInfo(FundRequest request, XmrQuoteTable table, 
+    FundResponse fundResponse) {
+        String mediatorFilename = table.getMediator_filename();
+        return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
+            List<String> mInfoList = Lists.newArrayList();
+            mInfoList.add(fundResponse.getImportSwapMultisigInfo());
+            mInfoList.add(request.getExportMultisigInfo());
+            return monero.importMultisigInfo(mInfoList).flatMap(mem -> {
+                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
+                    return Mono.just(fundResponse);
+                });
+            });
+        });
+    }
+
 }

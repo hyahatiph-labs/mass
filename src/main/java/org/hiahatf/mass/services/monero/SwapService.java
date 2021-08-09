@@ -6,16 +6,21 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.lightning.InvoiceState;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
-
+import org.hiahatf.mass.util.MassUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,32 +33,78 @@ import reactor.core.publisher.Mono;
 public class SwapService {
     
     private MoneroQuoteRepository quoteRepository;
-    private Monero monero;
+    private String massWalletFilename;
+    private boolean isWalletOpen;
     private Lightning lightning;
+    private MassUtil massUtil;
+    private Monero monero;
 
     /**
      * Swap service dependency injection
      */
     @Autowired
     public SwapService(
-        MoneroQuoteRepository quoteRepository, 
-        Lightning lightning, 
-        Monero monero) {
+        MoneroQuoteRepository quoteRepository, Lightning lightning, Monero monero,
+        MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
             this.quoteRepository = quoteRepository;
+            this.massWalletFilename = massWalletFilename;
             this.lightning = lightning;
+            this.massUtil = massUtil;
             this.monero = monero;
+    }
+
+     // TODO: change to /swap/initialize, and create /swap/finalize API
+          // scheduler will unlock funding transaction after 20 min
+          // /swap/finalize will return only fundingstate and funding unlock time if not unlocked
+          // if funding  is unlocked then /swap/finalize will release multisig_txset
+
+
+    public Mono<FundResponse> fundMoneroSwap(FundRequest request) {
+        // reject a request that occurs during wallet operations
+        if(isWalletOpen) {
+            return Mono.error(new MassException(Constants.WALLET_ERROR));
+        }
+        XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
+        isWalletOpen = true;
+        return massUtil.finalizeSwapMultisig(request, table).flatMap(a -> {
+            table.setSwap_address(a);
+            return massUtil.exportSwapInfo(request, table).flatMap(e -> {
+                return sendToConsensusWallet(table, e);
+            });
+        });
+    }
+
+    /**
+     * Helper method for wallet control during funding of the consensus wallet.
+     * @param table
+     * @param fundResponse
+     * @return Mono<FundResponse>
+     */
+    private Mono<FundResponse> sendToConsensusWallet(XmrQuoteTable table, FundResponse fundResponse) {
+        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
+            return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
+                return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                    String txid = t.getResult().getTx_hash();
+                    // update db
+                    table.setFunding_txid(txid);
+                    table.setFunding_state(FundingState.IN_PROCESS);
+                    quoteRepository.save(table);
+                    fundResponse.setTxid(txid);
+                    return Mono.just(fundResponse);
+                });
+            });
+        });
     }
 
     /**
      * Logic for processing the swap
      * 1. Verify that the lightning invoice is ACCEPTED
-     * 2. Initiate the Monero Swap
+     * 2. Finalize the Monero Swap
      * 3. Remove the quote from db if success
      * @param SwapRequest
      * @return SwapResponse
      */
     public Mono<SwapResponse> processMoneroSwap(SwapRequest request) {
-        // fetch quote, if not fulfilled
         XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
         // verify inflight payment, state should be ACCEPTED
         try {
@@ -76,6 +127,7 @@ public class SwapService {
      * @return
      */
     private Mono<SwapResponse> transferMonero(XmrQuoteTable quote) {
+        // TODO: sweep consensus wallet
         return monero.transfer(quote.getDest_address(), 
         quote.getAmount()).flatMap(r -> {
             // null check, since rpc since 200 on null result
@@ -115,14 +167,11 @@ public class SwapService {
      * @param quote
      * @return Mono<SwapResponse>
      */
-    private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, 
-    TransferResponse r) {
+    private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, TransferResponse r) {
         try {
             return lightning.handleInvoice(quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     // monero transfer succeeded, settle invoice
-                    // send tx metadata to be relayed
-                    // TODO: create multisig tx
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())
                         .metadata(r.getResult().getTx_metadata())
@@ -140,6 +189,8 @@ public class SwapService {
         }
     }
 
-    // TODO: add method for funding API /swap/initialize
+    // TODO: Unlock the swap wallet
+
+    // TODO: add mediator logic
 
 }

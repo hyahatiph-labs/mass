@@ -34,7 +34,7 @@ public class SwapControllerTest {
         SwapRequest request = SwapRequest.builder().hash(hash).build();
         SwapResponse swap = SwapResponse.builder().hash(hash).build();
         when(swapService.processMoneroSwap(request)).thenReturn(Mono.just(swap));
-        Mono<SwapResponse> testSwap = controller.fetchMoneroSwap(request);
+        Mono<SwapResponse> testSwap = controller.finalizeMoneroSwap(request);
         assertEquals(swap.getHash(), testSwap.block().getHash());
     }
     
