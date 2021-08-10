@@ -42,6 +42,8 @@ public class XmrQuoteTable {
     private String mediator_filename;
     @Column // mediators' info for finalizing the consensus wallet
     private String mediator_finalize_msig;
+    @Column // needed for mediator to intervene, sign and submit
+    private String multisig_txset;
     @Column // store the preimage hash as byte array
     private byte[] payment_hash;
     @Column // multisig address generated for participants

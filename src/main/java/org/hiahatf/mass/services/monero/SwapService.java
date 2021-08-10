@@ -1,6 +1,9 @@
 package org.hiahatf.mass.services.monero;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -13,12 +16,14 @@ import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
-import org.hiahatf.mass.models.monero.transfer.TransferResponse;
+import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -32,7 +37,10 @@ import reactor.core.publisher.Mono;
 @Service(Constants.XMR_SWAP_SERVICE)
 public class SwapService {
     
+    private Logger logger = LoggerFactory.getLogger(SwapService.class);
     private MoneroQuoteRepository quoteRepository;
+    private ScheduledExecutorService executorService = 
+        Executors.newSingleThreadScheduledExecutor();
     private String massWalletFilename;
     private boolean isWalletOpen;
     private Lightning lightning;
@@ -53,12 +61,11 @@ public class SwapService {
             this.monero = monero;
     }
 
-     // TODO: change to /swap/initialize, and create /swap/finalize API
-          // scheduler will unlock funding transaction after 20 min
-          // /swap/finalize will return only fundingstate and funding unlock time if not unlocked
-          // if funding  is unlocked then /swap/finalize will release multisig_txset
-
-
+    /**
+     * Attempt to fund the consensus wallet.
+     * @param request
+     * @return
+     */
     public Mono<FundResponse> fundMoneroSwap(FundRequest request) {
         // reject a request that occurs during wallet operations
         if(isWalletOpen) {
@@ -83,13 +90,28 @@ public class SwapService {
     private Mono<FundResponse> sendToConsensusWallet(XmrQuoteTable table, FundResponse fundResponse) {
         return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
             return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
+                if(t.getResult() == null) {
+                    // this shouldn't happen because ReserveProof was executed during quote
+                    // TODO: needs more testing???
+                    return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
+                }
                 return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
                     String txid = t.getResult().getTx_hash();
+                    String quoteId = table.getQuote_id();
                     // update db
                     table.setFunding_txid(txid);
                     table.setFunding_state(FundingState.IN_PROCESS);
                     quoteRepository.save(table);
                     fundResponse.setTxid(txid);
+                    long unlockTime = (System.currentTimeMillis() / 1000L) + 
+                        Constants.FUNDING_LOCK_TIME;
+                    logger.info("Funding unlock executor scheduled for {}", unlockTime);
+                    executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
+                        Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
+                    // TODO: add mediator logic
+                    // will need to call separate method with webflux and log
+                    // sweep all response back to mass wallet (^_^)s
+                    fundResponse.setUnlockTime(unlockTime);
                     return Mono.just(fundResponse);
                 });
             });
@@ -124,17 +146,21 @@ public class SwapService {
     /**
      * Perform Monero transfer and settle or cancel the invoice
      * @param quote
-     * @return
+     * @return Mono<SwapResponse>
      */
     private Mono<SwapResponse> transferMonero(XmrQuoteTable quote) {
-        // TODO: sweep consensus wallet
-        return monero.transfer(quote.getDest_address(), 
-        quote.getAmount()).flatMap(r -> {
+        if(quote.getFunding_state() != FundingState.COMPLETE) {
+            return Mono.error(new MassException(Constants.FUNDING_ERROR));
+        }
+        executorService.shutdown();
+        // TODO: need to add wallet control here
+        return monero.sweepAll(quote.getDest_address()).flatMap(r -> {
             // null check, since rpc since 200 on null result
             if(r.getResult() == null) {
                 // monero transfer failed, cancel invoice
                 return cancelMoneroSwap(quote);
             }
+            
             return settleMoneroSwap(quote, r);
         });
     }
@@ -167,14 +193,15 @@ public class SwapService {
      * @param quote
      * @return Mono<SwapResponse>
      */
-    private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, TransferResponse r) {
+    private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, 
+    SweepAllResponse sweepAllResponse) {
         try {
             return lightning.handleInvoice(quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     // monero transfer succeeded, settle invoice
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())
-                        .metadata(r.getResult().getTx_metadata())
+                        .multisigTxSet(sweepAllResponse.getResult().getMultisig_txset())
                         .build();
                     // remove quote from db
                     quoteRepository.deleteById(quote.getQuote_id());
@@ -188,9 +215,5 @@ public class SwapService {
             return Mono.error(new MassException(ie.getMessage()));
         }
     }
-
-    // TODO: Unlock the swap wallet
-
-    // TODO: add mediator logic
 
 }

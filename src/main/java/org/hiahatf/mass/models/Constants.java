@@ -5,8 +5,6 @@ package org.hiahatf.mass.models;
  * string literals and application.yml values.
  */
 public final class Constants {
-    
-    // properties
 
     // controller values
     public static final String HEALTH_PATH = "/health";
@@ -83,6 +81,9 @@ public final class Constants {
     public static final String MAX_PAY = "${max-pay}";
     public static final String MASS_WALLET_FILENAME = "${mass-wallet-filename}";
 
+    // swap service values
+    public static final long FUNDING_LOCK_TIME = 1200L;
+    public static final long MEDIATOR_INTERVENE_TIME = 1800L;
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
@@ -98,6 +99,7 @@ public final class Constants {
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
     public static final String DECODE_ERROR = "Failed to decode payment request";
     public static final String WALLET_ERROR = "Wallet control is busy. Please try agin.";
+    public static final String FUNDING_ERROR = "Consensus wallet funding error.";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

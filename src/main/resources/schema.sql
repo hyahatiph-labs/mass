@@ -7,6 +7,7 @@ CREATE TABLE XMR_QUOTE_TABLE (
     funding_state VARCHAR(20),
     mediator_filename VARCHAR(100) NOT NULL,
     mediator_finalize_msig VARCHAR(200) NOT NULL,
+    multisig_txset VARCHAR(200) NOT NULL;
     swap_finalize_msig VARCHAR(200) NOT NULL,
     payment_hash VARCHAR(64) NOT NULL,
     swap_filename VARCHAR(100) NOT NULL,

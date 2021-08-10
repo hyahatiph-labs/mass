@@ -9,13 +9,15 @@ import java.util.Optional;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
-import org.hiahatf.mass.models.monero.transfer.TransferResponse;
-import org.hiahatf.mass.models.monero.transfer.TransferResult;
+import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
+import org.hiahatf.mass.models.monero.multisig.SweepAllResult;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.monero.SwapService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -55,7 +57,7 @@ public class SwapServiceTest {
     @Test
     @DisplayName("Monero Swap Service Test")
     public void processMoneroSwapTest() throws SSLException, IOException {
-        String metadata = "expectedMetadata000";
+        String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").build();
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
@@ -63,15 +65,16 @@ public class SwapServiceTest {
         .payment_hash(new byte[32])
         .quote_id("qid")
         .dest_address("54xxx")
+        .funding_state(FundingState.COMPLETE)
         .build());
         InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
             .builder()
             .state(InvoiceState.ACCEPTED)
             .build();
-        TransferResult result = TransferResult.builder()
-            .tx_metadata(metadata)
+        SweepAllResult result = SweepAllResult.builder()
+            .multisig_txset(txset)
             .build();
-        TransferResponse transferResponse = TransferResponse.builder()
+        SweepAllResponse sweepAllResponse = SweepAllResponse.builder()
             .result(result)
             .build();
             
@@ -79,15 +82,15 @@ public class SwapServiceTest {
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
-        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
-            .thenReturn(Mono.just(transferResponse));
+        when(monero.sweepAll(table.get().getDest_address()))
+            .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), true)).thenReturn(Mono.just(entity));
         Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
         
         StepVerifier.create(testRes)
-        .expectNextMatches(r -> r.getMetadata()
-          .equals(metadata))
+        .expectNextMatches(r -> r.getMultisigTxSet()
+          .equals(txset))
         .verifyComplete();
     }
 
@@ -102,12 +105,13 @@ public class SwapServiceTest {
         .payment_hash(new byte[32])
         .quote_id("qid")
         .dest_address("54xxx")
+        .funding_state(FundingState.COMPLETE)
         .build());
         InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
             .builder()
             .state(InvoiceState.ACCEPTED)
             .build();
-        TransferResponse transferResponse = TransferResponse.builder()
+        SweepAllResponse sweepAllResponse= SweepAllResponse.builder()
             .result(null)
             .build();
             
@@ -115,14 +119,14 @@ public class SwapServiceTest {
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
-        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
-            .thenReturn(Mono.just(transferResponse));
+        when(monero.sweepAll(table.get().getDest_address()))
+            .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
         
         try {
             Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
-            assertEquals(metadata, testRes.block().getMetadata());
+            assertEquals(metadata, testRes.block().getMultisigTxSet());
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " + 
             Constants.SWAP_CANCELLED_ERROR;
