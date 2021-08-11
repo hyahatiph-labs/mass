@@ -100,6 +100,7 @@ public final class Constants {
     public static final String DECODE_ERROR = "Failed to decode payment request";
     public static final String WALLET_ERROR = "Wallet control is busy. Please try agin.";
     public static final String FUNDING_ERROR = "Consensus wallet funding error.";
+    public static final String MEDIATOR_ERROR = "Mediator intervention error.";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

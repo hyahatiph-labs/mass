@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.net.ssl.SSLException;
 
@@ -18,10 +19,13 @@ import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
+import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.monero.SwapService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
+import org.hiahatf.mass.util.MassUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +48,10 @@ import reactor.test.StepVerifier;
 public class SwapServiceTest {
 
     @Mock
+    ScheduledExecutorService scheduledExecutorService;
+    @Mock
+    MassUtil massUtil;
+    @Mock
     MoneroQuoteRepository quoteRepository;
     @Mock
     Lightning lightning;
@@ -52,7 +60,8 @@ public class SwapServiceTest {
     @Mock
     ResponseEntity<Void> entity;
     @InjectMocks
-    SwapService swapService;
+    SwapService swapService = new SwapService(quoteRepository, lightning, monero, massUtil,
+        "test", "54testrpaddress");
     
     @Test
     @DisplayName("Monero Swap Service Test")
@@ -77,11 +86,17 @@ public class SwapServiceTest {
         SweepAllResponse sweepAllResponse = SweepAllResponse.builder()
             .result(result)
             .build();
-            
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
+        when(monero.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -114,11 +129,15 @@ public class SwapServiceTest {
         SweepAllResponse sweepAllResponse= SweepAllResponse.builder()
             .result(null)
             .build();
-            
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();  
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(lightning.lookupInvoice(table.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
+        when(monero.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);

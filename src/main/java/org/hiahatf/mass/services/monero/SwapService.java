@@ -45,6 +45,7 @@ public class SwapService {
     private boolean isWalletOpen;
     private Lightning lightning;
     private MassUtil massUtil;
+    private String rpAddress;
     private Monero monero;
 
     /**
@@ -53,10 +54,12 @@ public class SwapService {
     @Autowired
     public SwapService(
         MoneroQuoteRepository quoteRepository, Lightning lightning, Monero monero,
-        MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
+        MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
+        @Value(Constants.RP_ADDRESS) String rpAddress) {
             this.quoteRepository = quoteRepository;
             this.massWalletFilename = massWalletFilename;
             this.lightning = lightning;
+            this.rpAddress = rpAddress;
             this.massUtil = massUtil;
             this.monero = monero;
     }
@@ -91,14 +94,11 @@ public class SwapService {
         return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
             return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
                 if(t.getResult() == null) {
-                    // this shouldn't happen because ReserveProof was executed during quote
-                    // TODO: needs more testing???
                     return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
                 }
                 return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
                     String txid = t.getResult().getTx_hash();
                     String quoteId = table.getQuote_id();
-                    // update db
                     table.setFunding_txid(txid);
                     table.setFunding_state(FundingState.IN_PROCESS);
                     quoteRepository.save(table);
@@ -108,9 +108,9 @@ public class SwapService {
                     logger.info("Funding unlock executor scheduled for {}", unlockTime);
                     executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
                         Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
-                    // TODO: add mediator logic
-                    // will need to call separate method with webflux and log
-                    // sweep all response back to mass wallet (^_^)s
+                    executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
+                        massWalletFilename, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, 
+                        TimeUnit.SECONDS);
                     fundResponse.setUnlockTime(unlockTime);
                     return Mono.just(fundResponse);
                 });
@@ -153,15 +153,19 @@ public class SwapService {
             return Mono.error(new MassException(Constants.FUNDING_ERROR));
         }
         executorService.shutdown();
-        // TODO: need to add wallet control here
-        return monero.sweepAll(quote.getDest_address()).flatMap(r -> {
-            // null check, since rpc since 200 on null result
-            if(r.getResult() == null) {
-                // monero transfer failed, cancel invoice
-                return cancelMoneroSwap(quote);
-            }
-            
-            return settleMoneroSwap(quote, r);
+        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
+            return monero.sweepAll(quote.getDest_address()).flatMap(r -> {
+                // null check, since rpc since 200 on null result
+                if(r.getResult() == null) {
+                    isWalletOpen = false;
+                    // monero transfer failed, cancel invoice
+                    return cancelMoneroSwap(quote);
+                }
+                return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                    isWalletOpen = false;
+                    return settleMoneroSwap(quote, r);
+                });
+            });
         });
     }
 
