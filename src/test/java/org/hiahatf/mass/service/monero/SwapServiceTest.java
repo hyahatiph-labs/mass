@@ -1,6 +1,7 @@
 package org.hiahatf.mass.service.monero;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -13,11 +14,15 @@ import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResult;
+import org.hiahatf.mass.models.monero.transfer.TransferResponse;
+import org.hiahatf.mass.models.monero.transfer.TransferResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
@@ -151,8 +156,55 @@ public class SwapServiceTest {
             Constants.SWAP_CANCELLED_ERROR;
             String actualError = e.getMessage();
             assertEquals(expectedError, actualError);
-        }
+        }     
+    }
+
+    @Test
+    @DisplayName("Fund Monero Swap Test")
+    public void fundMoneroSwapTest() {
+        String expectedAddress = "54mulitsigaddress";
+        String expectedTxId = "txtest123";
+        FundRequest fundRequest = FundRequest.builder()
+            .exportMultisigInfo("MultisigInvoV123testexport")
+            .makeMultisigInfo("MultisigInvoV123testmake")
+            .hash("hash").build();
+        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+            .amount(0.123).dest_address(expectedAddress)
+            .funding_state(FundingState.IN_PROCESS)
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address("54swapx").swap_filename("sfn")
+            .swap_finalize_msig("sfmisg").build());
+        FundResponse fundResponse = FundResponse.builder()
+            .importMediatorMultisigInfo("importMediatorMultisigInfo")
+            .importMediatorMultisigInfo("importMediatorMultisigInfo")
+            .build();
+        TransferResult transferResult = TransferResult.builder()
+            .tx_hash(expectedTxId).amount(123L)
+            .fee(1L).build();
+        TransferResponse transferResponse = TransferResponse.builder()
+            .result(transferResult).build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build(); 
+        // mocks
+        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(massUtil.finalizeSwapMultisig(fundRequest, table.get())).thenReturn(Mono.just(expectedAddress));
+        when(massUtil.exportSwapInfo(fundRequest, table.get())).thenReturn(Mono.just(fundResponse));
+        when(monero.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
+            .thenReturn(Mono.just(transferResponse));
         
+        Mono<FundResponse> testResponse = swapService.fundMoneroSwap(fundRequest);
+        
+        StepVerifier.create(testResponse)
+        .expectNextMatches(r -> r.getTxid()
+          .equals(expectedTxId))
+        .verifyComplete();
     }
 
 }

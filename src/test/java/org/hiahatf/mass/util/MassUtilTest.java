@@ -13,14 +13,25 @@ import javax.net.ssl.SSLException;
 
 import com.google.common.collect.Lists;
 
+import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.lightning.Amount;
 import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
+import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
+import org.hiahatf.mass.models.monero.multisig.ExportInfoResult;
+import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
+import org.hiahatf.mass.models.monero.multisig.FinalizeResult;
+import org.hiahatf.mass.models.monero.multisig.ImportInfoResponse;
+import org.hiahatf.mass.models.monero.multisig.ImportInfoResult;
 import org.hiahatf.mass.models.monero.multisig.MakeResponse;
 import org.hiahatf.mass.models.monero.multisig.MakeResult;
 import org.hiahatf.mass.models.monero.multisig.PrepareResponse;
 import org.hiahatf.mass.models.monero.multisig.PrepareResult;
+import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResponse;
 import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResult;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
@@ -113,6 +124,95 @@ public class MassUtilTest {
         StepVerifier.create(testData)
         .expectNextMatches(d -> d.getClientMultisigInfo()
           .equals(testInfo))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Finalize Multisig Test")
+    public void finalizeMultisigTest() {
+        String expectedAddress = "54msigaddress";
+        XmrQuoteTable table = XmrQuoteTable.builder()
+            .amount(0.123).dest_address("54destx")
+            .funding_state(FundingState.IN_PROCESS)
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address("54swapx").swap_filename("sfn")
+            .swap_finalize_msig("sfmisg").build();
+        FundRequest fundRequest = FundRequest.builder()
+            .exportMultisigInfo("MultisigInvoV123testexport")
+            .makeMultisigInfo("MultisigInvoV123testmake")
+            .hash("hash").build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
+        FinalizeResult finalizeResult = FinalizeResult.builder()
+            .address(expectedAddress).build();
+        FinalizeResponse finalizeResponse = FinalizeResponse.builder()
+            .result(finalizeResult).build();
+        // mocks
+        when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.OPEN, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when (monero.finalizeMultisig(anyList())).thenReturn(Mono.just(finalizeResponse));
+
+        Mono<String> testAddress = util.finalizeSwapMultisig(fundRequest, table);
+
+        StepVerifier.create(testAddress)
+        .expectNextMatches(a -> a
+          .equals(expectedAddress))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Export / Import Multisig Test")
+    public void exportImportMultisigTest() {
+        String importInfo = "MultisigIinfo";
+        XmrQuoteTable table = XmrQuoteTable.builder()
+            .amount(0.123).dest_address("54destx")
+            .funding_state(FundingState.IN_PROCESS)
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address("54swapx").swap_filename("sfn")
+            .swap_finalize_msig("sfmisg").build();
+        FundRequest fundRequest = FundRequest.builder()
+            .exportMultisigInfo("MultisigInvoV123testexport")
+            .makeMultisigInfo("MultisigInvoV123testmake")
+            .hash("hash").build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
+        ExportInfoResult exportInfoResult = ExportInfoResult.builder()
+            .info(importInfo).build();
+        ExportInfoResponse exportInfoResponse = ExportInfoResponse.builder()
+            .result(exportInfoResult).build();
+        ImportInfoResult importInfoResult = ImportInfoResult.builder()
+            .n_outputs(1).build();
+        ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
+            .result(importInfoResult).build();
+        // mocks
+        when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.OPEN, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.exportMultisigInfo()).thenReturn(Mono.just(exportInfoResponse));
+        when(monero.importMultisigInfo(anyList())).thenReturn(Mono.just(importInfoResponse));
+
+        Mono<FundResponse> testData = util.exportSwapInfo(fundRequest, table);
+
+        StepVerifier.create(testData)
+        .expectNextMatches(d -> d.getImportSwapMultisigInfo()
+          .equals(importInfo))
         .verifyComplete();
     }
 
