@@ -68,6 +68,7 @@ public class Mediator implements Runnable {
                 monero.submitMultisig(txset).subscribe(s -> {
                     logger.info("Mediation tx: {}", s.getResult().getTx_hash_list().get(0));
                     monero.controlWallet(WalletState.CLOSE, massWalletFilename).subscribe(c -> {
+                        quoteRepository.deleteById(quoteId);
                         logger.info("MASS mediator intervention complete");
                     });
                 });

@@ -36,10 +36,11 @@ public class SwapController extends BaseController {
     }
 
     /**
-     * This endpoint reaches utilizes lightning network
-     * hold invoices to verify in-flight payments and settles
-     * with the equivalent amount in Monero. 
-     * @return Mono<SwapResponse>
+     * The /swap/initialize endpoint is used to import and export
+     * multisig info. Mediator and consensus wallet unlocking are also
+     * triggered.
+     * @param request
+     * @return Mono<FundResponse>
      */
     @PostMapping(Constants.XMR_SWAP_INIT_PATH) 
     @ResponseStatus(HttpStatus.CREATED)
@@ -47,6 +48,12 @@ public class SwapController extends BaseController {
         return swapService.fundMoneroSwap(request);
     }
 
+    /**
+     * This endpoint reaches utilizes lightning network
+     * hold invoices to verify in-flight payments and settles
+     * with the equivalent amount in Monero. 
+     * @return Mono<SwapResponse>
+     */
     @PostMapping(Constants.XMR_SWAP_FINAL_PATH) 
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SwapResponse> finalizeMoneroSwap(@RequestBody SwapRequest request) {
