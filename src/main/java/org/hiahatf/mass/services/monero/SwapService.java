@@ -76,12 +76,10 @@ public class SwapService {
         }
         XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
         isWalletOpen = true;
-        return massUtil.finalizeSwapMultisig(request, table).flatMap(a -> {
-            table.setSwap_address(a);
+        table.setSwap_address(request.getSwapAddress());
             return massUtil.exportSwapInfo(request, table).flatMap(e -> {
                 return sendToConsensusWallet(table, e);
             });
-        });
     }
 
     /**

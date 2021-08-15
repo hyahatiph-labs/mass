@@ -39,13 +39,9 @@ public class QuoteService {
 
     @Autowired
     public QuoteService(
-        Lightning lightning, 
-        BitcoinQuoteRepository bitcoinQuoteRepository,
-        @Value(Constants.SEND_ADDRESS) String sendAddress,
-        @Value(Constants.MIN_PAY) Long minPay,
-        @Value(Constants.MAX_PAY) Long maxPay,
-        MassUtil massUtil,
-        RateService rateService) {
+        Lightning lightning, BitcoinQuoteRepository bitcoinQuoteRepository,
+        @Value(Constants.SEND_ADDRESS) String sendAddress, @Value(Constants.MIN_PAY) Long minPay,
+        @Value(Constants.MAX_PAY) Long maxPay, MassUtil massUtil,RateService rateService) {
         this.lightning = lightning;
         this.bitcoinQuoteRepository = bitcoinQuoteRepository;
         this.sendAddress = sendAddress;
@@ -64,6 +60,12 @@ public class QuoteService {
     public Mono<Quote> processBitcoinQuote(Request request) {
         String rate = rateService.getMoneroRate();
         Double parsedRate = massUtil.parseMoneroRate(rate);
+
+        // TODO: multisig configuration
+
+        // TODO: /swap/initialize & /swap/finalize refactor
+
+
         return decodePayReq(request, parsedRate);
     }
 
@@ -75,8 +77,7 @@ public class QuoteService {
      */
     private Mono<Quote> decodePayReq(Request request, Double rate) {
         try {
-            return lightning.decodePaymentRequest(request.getPaymentRequest())
-            .flatMap(p -> {
+            return lightning.decodePaymentRequest(request.getPaymentRequest()).flatMap(p -> {
                 Double value = Double.valueOf(p.getNum_satoshis());
                 // validate expiry is not set for a longer than limit
                 if(Integer.valueOf(p.getExpiry()) > Constants.EXPIRY_LIMIT) {
@@ -126,8 +127,7 @@ public class QuoteService {
      */
     private Mono<Quote> finalizeQuote(Double value, Request request, 
     PaymentRequest paymentRequest, Double rate, Double moneroAmt) {
-        return massUtil.validateLiquidity(value, LiquidityType.OUTBOUND)
-        .flatMap(l -> {
+        return massUtil.validateLiquidity(value, LiquidityType.OUTBOUND).flatMap(l -> {
             if(l.booleanValue()) {
                 persistQuote(request, paymentRequest, moneroAmt);
                 Quote quote = Quote.builder()

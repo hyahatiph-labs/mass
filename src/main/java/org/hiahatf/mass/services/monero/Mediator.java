@@ -37,6 +37,8 @@ public class Mediator implements Runnable {
         this.monero = monero;
     }
 
+    // TODO: debug mediator
+    
     public void run() {
         XmrQuoteTable table = quoteRepository.findById(quoteId).get();
         monero.controlWallet(WalletState.OPEN, table.getMediator_filename()).subscribe(o -> {

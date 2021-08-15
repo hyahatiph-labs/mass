@@ -128,48 +128,6 @@ public class MassUtilTest {
     }
 
     @Test
-    @DisplayName("Finalize Multisig Test")
-    public void finalizeMultisigTest() {
-        String expectedAddress = "54msigaddress";
-        XmrQuoteTable table = XmrQuoteTable.builder()
-            .amount(0.123).dest_address("54destx")
-            .funding_state(FundingState.IN_PROCESS)
-            .funding_txid("0xfundtxid")
-            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
-            .quote_id("lnbcrtquoteid")
-            .swap_address("54swapx").swap_filename("sfn")
-            .swap_finalize_msig("sfmisg").build();
-        FundRequest fundRequest = FundRequest.builder()
-            .exportMultisigInfo("MultisigInvoV123testexport")
-            .makeMultisigInfo("MultisigInvoV123testmake")
-            .hash("hash").build();
-        WalletStateResult walletStateResult = WalletStateResult.builder().build();
-        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
-            .result(walletStateResult).build();
-        FinalizeResult finalizeResult = FinalizeResult.builder()
-            .address(expectedAddress).build();
-        FinalizeResponse finalizeResponse = FinalizeResponse.builder()
-            .result(finalizeResult).build();
-        // mocks
-        when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
-            .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))
-            .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.OPEN, table.getMediator_filename()))
-            .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
-            .thenReturn(Mono.just(walletStateResponse));
-        when (monero.finalizeMultisig(anyList())).thenReturn(Mono.just(finalizeResponse));
-
-        Mono<String> testAddress = util.finalizeSwapMultisig(fundRequest, table);
-
-        StepVerifier.create(testAddress)
-        .expectNextMatches(a -> a
-          .equals(expectedAddress))
-        .verifyComplete();
-    }
-
-    @Test
     @DisplayName("Export / Import Multisig Test")
     public void exportImportMultisigTest() {
         String importInfo = "MultisigIinfo";
@@ -183,7 +141,6 @@ public class MassUtilTest {
             .swap_finalize_msig("sfmisg").build();
         FundRequest fundRequest = FundRequest.builder()
             .exportMultisigInfo("MultisigInvoV123testexport")
-            .makeMultisigInfo("MultisigInvoV123testmake")
             .hash("hash").build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()

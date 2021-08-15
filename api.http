@@ -11,7 +11,7 @@ Content-Type: application/json
     "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
     "amount": 0.123,
     "multisigInfo": "MultisigV1QUMnWLpohJt1va3RiRZJ5sMGzRuMCRxLu2L2oLdXEU5jSudoWf2L1UTJ89NUTqFqiRLriB2toCzquARxagDXaBZsKEGVSu9suSobN2jR68fgp4c5doHbKsWExZHQ4UkqcBJhd24VxTA4mR2Yw2eDGpeQ1kR8EW6aMdtozYeNkhKmBt94",
-    "preimageHash": [243,185,129,195,108,254,53,134,25,81,152,104,82,229,64,148,196,153,214,101,24,229,168,182,203,213,227,158,135,68,42,58]
+    "preimageHash": [9,89,171,169,187,120,6,135,239,136,79,42,77,80,218,62,155,44,141,244,220,100,203,213,201,181,85,16,29,242,129,80]
 }
 
 ### Validate Monero address
@@ -112,3 +112,21 @@ POST http://localhost:18083/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"transfer","params":{"destinations":[{"amount":3000000000000,"address":"5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C"}],"account_index":0,"subaddr_indices":[0],"priority":0,"ring_size":11}}
+
+### is multisig
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"get_address"}
+
+### /swap/initialize
+
+POST http://localhost:6789/swap/initialize/xmr
+Content-Type: application/json
+
+{
+    "hash": "0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df28150",
+    "makeMultisigInfo": "MultisigxV1FMswKZDfXtq3kTzGePZpmoGfQXAUiTC3RSU7NewQKrbYU92SauVA1CGGu3HS7FC57WSkCeZn3dxhyMPAgBdnGgLBb2BiV1AvQkB2dM4TidHE7xReY5JPjBt3sDFBLGNj86nMagmSFgx7A9BgtAFq1KLCKU3B3Z21TjkQUjXD1BKbQCzUWcAnybmyviMfD8VuTRUiuW1FCGy43wQER4uMHQXafwbv",
+    "exportMultisigInfo": "4d6f6e65726f206d756c7469736967206578706f727401b70058439c272cf7fb041b1190ce7e2bb408605a535c5d0ca2891db421e9b3c2d67c29b72fece158776b889db4c0d6cb26300e4fa16f6125d71046c7d98422173454cc9f35b194e32f61b771da70399d5163f9da5d54b54579ec4f8f4f647dec6fc11958217d58242542c3f696a63839f357f76aadd6862ffef9858dfe9df916e07c92dcac735a5a00a5c701231733e522a83dd66b20c8ddc749ad2d3cd70e6626fc2c9d6455c07302",
+    "swapAddress" : "58j2ZN3eWJii3eTREshibxYRRW6dfDhi58WUwDUMoWWb4qetaSxzkWD8CF24bdk77DMJ9sYJvxDb3WphMTtxLNDFUtqRF2t"
+}

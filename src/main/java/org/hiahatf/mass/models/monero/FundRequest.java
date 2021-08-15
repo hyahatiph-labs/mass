@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FundRequest {
     private String hash;
-    private String makeMultisigInfo;
+    private String swapAddress;
     private String exportMultisigInfo;
 }

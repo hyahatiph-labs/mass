@@ -214,52 +214,6 @@ public class MassUtil {
     }
 
     /**
-     * Grab the output from clients' make_multisig and use to finalize multisig
-     * for the primary swap wallet. Also extract mediator's multisig info from
-     * the database.
-     * @param request
-     * @param table
-     * @return Mono<String> - the address of the finalized multisig wallet
-     */
-    public Mono<String> finalizeSwapMultisig(FundRequest request, XmrQuoteTable table) {
-        logger.info("Finalizing swap wallet");
-        String swapFilename = table.getSwap_filename();
-        return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
-            List<String> sInfoList = Lists.newArrayList();
-            sInfoList.add(table.getMediator_finalize_msig());
-            sInfoList.add(request.getMakeMultisigInfo());
-            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
-                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
-                    return finalizeMediatorMultisig(request, table);
-                });
-            });
-        });
-    }
-
-    /**
-     * Helper method for finalizing mediator multisig wallet.
-     * Similar to finalizeSwapMultisig.
-     * @param request
-     * @param table
-     * @return Mono<String> - the address of the finalized multisig wallet
-     */
-    private Mono<String> finalizeMediatorMultisig(FundRequest request, XmrQuoteTable table) {
-        logger.info("Finalizing mediator wallet");
-        String mediatorFilename = table.getMediator_filename();
-        return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
-            List<String> sInfoList = Lists.newArrayList();
-            sInfoList.add(table.getSwap_finalize_msig());
-            sInfoList.add(request.getMakeMultisigInfo());
-            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
-                String address = sfm.getResult().getAddress();
-                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
-                    return Mono.just(address);
-                });
-            });
-        });
-    }
-
-    /**
      * Extra step for adding the multisig info which facilitates spending from the
      * consensus wallet. WebFlux chained as: export_multisig (Swap wallet) =>
      * export_multisig (Mediator wallet) => import_multisig (Swap wallet) =>

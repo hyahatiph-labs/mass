@@ -426,4 +426,6 @@ public class Monero {
             .bodyToMono(SweepAllResponse.class);
     }
 
+    // TODO: implement is_multisig and get_address 
+
 }

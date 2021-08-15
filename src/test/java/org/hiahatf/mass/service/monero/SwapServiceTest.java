@@ -166,7 +166,7 @@ public class SwapServiceTest {
         String expectedTxId = "txtest123";
         FundRequest fundRequest = FundRequest.builder()
             .exportMultisigInfo("MultisigInvoV123testexport")
-            .makeMultisigInfo("MultisigInvoV123testmake")
+            .swapAddress("54swapaddressfromclient")
             .hash("hash").build();
         Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
             .amount(0.123).dest_address(expectedAddress)
@@ -174,7 +174,7 @@ public class SwapServiceTest {
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
             .quote_id("lnbcrtquoteid")
-            .swap_address("54swapx").swap_filename("sfn")
+            .swap_address(fundRequest.getSwapAddress()).swap_filename("sfn")
             .swap_finalize_msig("sfmisg").build());
         FundResponse fundResponse = FundResponse.builder()
             .importMediatorMultisigInfo("importMediatorMultisigInfo")
@@ -190,13 +190,12 @@ public class SwapServiceTest {
             .result(walletStateResult).build(); 
         // mocks
         when(quoteRepository.findById(anyString())).thenReturn(table);
-        when(massUtil.finalizeSwapMultisig(fundRequest, table.get())).thenReturn(Mono.just(expectedAddress));
         when(massUtil.exportSwapInfo(fundRequest, table.get())).thenReturn(Mono.just(fundResponse));
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.transfer(table.get().getDest_address(), table.get().getAmount()))
+        when(monero.transfer(table.get().getSwap_address(), table.get().getAmount()))
             .thenReturn(Mono.just(transferResponse));
         
         Mono<FundResponse> testResponse = swapService.fundMoneroSwap(fundRequest);

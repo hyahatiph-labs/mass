@@ -134,6 +134,7 @@ public class QuoteService {
             logger.info("Entering Multisig Setup");
             return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwo -> {
                 return massUtil.configureMultisig(request.getMultisigInfo(), hash).flatMap(m -> {
+                    logger.info("Multisig setup complete");
                     persistQuote(address, hash, bHash, amount, m);
                     return generateMoneroQuote(value, address, amount, hash, bHash, rate, s, m);
                 });
