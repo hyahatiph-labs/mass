@@ -23,6 +23,10 @@ import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResult;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
 import org.hiahatf.mass.models.monero.transfer.TransferResult;
+import org.hiahatf.mass.models.monero.validate.GetAddressResponse;
+import org.hiahatf.mass.models.monero.validate.GetAddressResult;
+import org.hiahatf.mass.models.monero.validate.IsMultisigResponse;
+import org.hiahatf.mass.models.monero.validate.IsMultisigResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
@@ -166,15 +170,14 @@ public class SwapServiceTest {
         String expectedTxId = "txtest123";
         FundRequest fundRequest = FundRequest.builder()
             .exportMultisigInfo("MultisigInvoV123testexport")
-            .swapAddress("54swapaddressfromclient")
             .hash("hash").build();
         Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
             .amount(0.123).dest_address(expectedAddress)
-            .funding_state(FundingState.IN_PROCESS)
+            .funding_state(FundingState.PENDING)
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
             .quote_id("lnbcrtquoteid")
-            .swap_address(fundRequest.getSwapAddress()).swap_filename("sfn")
+            .swap_address(expectedAddress)
             .swap_finalize_msig("sfmisg").build());
         FundResponse fundResponse = FundResponse.builder()
             .importMediatorMultisigInfo("importMediatorMultisigInfo")
@@ -187,7 +190,17 @@ public class SwapServiceTest {
             .result(transferResult).build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
-            .result(walletStateResult).build(); 
+            .result(walletStateResult).build();
+        IsMultisigResult isMultisigResult = IsMultisigResult.builder()
+            .multisig(true).ready(true)
+            .threshold(Constants.MULTISIG_THRESHOLD).total(Constants.MULTISIG_TOTAL)
+            .build();
+        IsMultisigResponse isMultisigResponse = IsMultisigResponse.builder()
+            .result(isMultisigResult).build();
+        GetAddressResult getAddressResult = GetAddressResult.builder()
+            .address(expectedAddress).build();
+        GetAddressResponse getAddressResponse = GetAddressResponse.builder()
+            .result(getAddressResult).build();
         // mocks
         when(quoteRepository.findById(anyString())).thenReturn(table);
         when(massUtil.exportSwapInfo(fundRequest, table.get())).thenReturn(Mono.just(fundResponse));
@@ -195,6 +208,8 @@ public class SwapServiceTest {
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
             .thenReturn(Mono.just(walletStateResponse));
+        when(monero.isMultisig()).thenReturn(Mono.just(isMultisigResponse));
+        when(monero.getAddress()).thenReturn(Mono.just(getAddressResponse));
         when(monero.transfer(table.get().getSwap_address(), table.get().getAmount()))
             .thenReturn(Mono.just(transferResponse));
         

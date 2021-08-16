@@ -35,6 +35,8 @@ public final class Constants {
     public static final String XMR_RPC_SUBMIT_MSIG = "submit_multisig";
     public static final String XMR_RPC_DESCRIBE_TRANSFER = "describe_transfer";
     public static final String XMR_RPC_SWEEP_ALL = "sweep_all";
+    public static final String XMR_RPC_GET_ADDRESS = "get_address";
+    public static final String XMR_RPC_IS_MULTISIG = "is_multisig";
     
     // rate service values
     public static final String UPDATE_RATE_MSG = "Updating XMR <-> BTC rate";
@@ -84,6 +86,8 @@ public final class Constants {
     // swap service values
     public static final long FUNDING_LOCK_TIME = 1200L;
     public static final long MEDIATOR_INTERVENE_TIME = 1800L;
+    public static final int MULTISIG_THRESHOLD = 2;
+    public static final int MULTISIG_TOTAL = 3;
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
@@ -97,10 +101,11 @@ public final class Constants {
     public static final String HASH_ERROR = "Preimage hashing error: {}";
     public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
-    public static final String DECODE_ERROR = "Failed to decode payment request";
-    public static final String WALLET_ERROR = "Wallet control is busy. Please try agin.";
-    public static final String FUNDING_ERROR = "Consensus wallet funding error.";
-    public static final String MEDIATOR_ERROR = "Mediator intervention error.";
+    public static final String DECODE_ERROR = "Failed to decode payment request.";
+    public static final String WALLET_ERROR = "Wallet control is busy, please try agin.";
+    public static final String FUNDING_ERROR = "Consensus wallet funding error";
+    public static final String MEDIATOR_ERROR = "Mediator intervention error";
+    public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

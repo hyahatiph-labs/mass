@@ -17,6 +17,7 @@ import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
+import org.hiahatf.mass.models.monero.validate.IsMultisigResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -42,7 +43,7 @@ public class SwapService {
     private ScheduledExecutorService executorService = 
         Executors.newSingleThreadScheduledExecutor();
     private String massWalletFilename;
-    private boolean isWalletOpen;
+    public static boolean isWalletOpen;
     private Lightning lightning;
     private MassUtil massUtil;
     private String rpAddress;
@@ -75,43 +76,69 @@ public class SwapService {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
         XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
+        if(table.getFunding_state() != FundingState.PENDING) {
+            return Mono.error(new MassException(Constants.FUNDING_ERROR));
+        }
         isWalletOpen = true;
-        table.setSwap_address(request.getSwapAddress());
+        return verifyMultisigSetup().flatMap(a -> {
+            table.setSwap_address(a);
             return massUtil.exportSwapInfo(request, table).flatMap(e -> {
                 return sendToConsensusWallet(table, e);
             });
+        });
     }
 
     /**
-     * Helper method for wallet control during funding of the consensus wallet.
+     * The client is responsible for finalization of the consensus wallet.
+     * This method verifies that the wallet is ready for funding with the proper
+     * signing threshold.
+     * @return Mono<String> - consensus wallet address
+     */
+    private Mono<String> verifyMultisigSetup() {
+        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
+            return monero.isMultisig().flatMap(is -> {
+                IsMultisigResult result = is.getResult();
+                boolean valid = result.isMultisig() && result.isReady()
+                    && result.getThreshold() == Constants.MULTISIG_THRESHOLD
+                    && result.getTotal() == Constants.MULTISIG_TOTAL;
+                if(!valid) {
+                    return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
+                }
+                return monero.getAddress().flatMap(a -> {
+                    return Mono.just(a.getResult().getAddress());
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for funding of the consensus wallet.
      * @param table
      * @param fundResponse
      * @return Mono<FundResponse>
      */
     private Mono<FundResponse> sendToConsensusWallet(XmrQuoteTable table, FundResponse fundResponse) {
-        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
-            return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
-                if(t.getResult() == null) {
-                    return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
-                }
-                return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
-                    String txid = t.getResult().getTx_hash();
-                    String quoteId = table.getQuote_id();
-                    table.setFunding_txid(txid);
-                    table.setFunding_state(FundingState.IN_PROCESS);
-                    quoteRepository.save(table);
-                    fundResponse.setTxid(txid);
-                    long unlockTime = (System.currentTimeMillis() / 1000L) + 
-                        Constants.FUNDING_LOCK_TIME;
-                    logger.info("Funding unlock executor scheduled for {}", unlockTime);
-                    executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
-                        Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
-                    executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                        massWalletFilename, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, 
-                        TimeUnit.SECONDS);
-                    fundResponse.setUnlockTime(unlockTime);
-                    return Mono.just(fundResponse);
-                });
+        return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
+            if(t.getResult() == null) {
+                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
+            }
+            return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                String txid = t.getResult().getTx_hash();
+                String quoteId = table.getQuote_id();
+                table.setFunding_txid(txid);
+                table.setFunding_state(FundingState.IN_PROCESS);
+                quoteRepository.save(table);
+                fundResponse.setTxid(txid);
+                long unlockTime = (System.currentTimeMillis() / 1000L) + 
+                    Constants.FUNDING_LOCK_TIME;
+                logger.info("Funding unlock executor scheduled for {}", unlockTime);
+                executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
+                    Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
+                executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
+                    massWalletFilename, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, 
+                    TimeUnit.SECONDS);
+                fundResponse.setUnlockTime(unlockTime);
+                return Mono.just(fundResponse);
             });
         });
     }
