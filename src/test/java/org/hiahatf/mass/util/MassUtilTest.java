@@ -20,6 +20,7 @@ import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResult;
@@ -150,6 +151,41 @@ public class MassUtilTest {
             .info(importInfo).build();
         ExportInfoResponse exportInfoResponse = ExportInfoResponse.builder()
             .result(exportInfoResult).build();
+        // mocks
+        when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.OPEN, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.exportMultisigInfo()).thenReturn(Mono.just(exportInfoResponse));
+
+        Mono<FundResponse> testData = util.exportSwapInfo(fundRequest, table);
+
+        StepVerifier.create(testData)
+        .expectNextMatches(d -> d.getImportSwapMultisigInfo()
+          .equals(importInfo))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Import Multisig Test")
+    public void importMultisigTest() {
+        XmrQuoteTable table = XmrQuoteTable.builder()
+            .amount(0.123).dest_address("54destx")
+            .funding_state(FundingState.IN_PROCESS)
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address("54swapx").swap_filename("sfn")
+            .swap_finalize_msig("sfmisg").build();
+        SwapRequest swapRequest = SwapRequest.builder()
+        .exportMultisigInfo("exportMultisigInfo").hash("hash").build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
         ImportInfoResult importInfoResult = ImportInfoResult.builder()
             .n_outputs(1).build();
         ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
@@ -163,14 +199,12 @@ public class MassUtilTest {
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.exportMultisigInfo()).thenReturn(Mono.just(exportInfoResponse));
         when(monero.importMultisigInfo(anyList())).thenReturn(Mono.just(importInfoResponse));
 
-        Mono<FundResponse> testData = util.exportSwapInfo(fundRequest, table);
+        Mono<ImportInfoResponse> testData = util.importSwapInfo(swapRequest, table);
 
         StepVerifier.create(testData)
-        .expectNextMatches(d -> d.getImportSwapMultisigInfo()
-          .equals(importInfo))
+        .expectNextMatches(d -> d.getResult().getN_outputs() > 0 )
         .verifyComplete();
     }
 

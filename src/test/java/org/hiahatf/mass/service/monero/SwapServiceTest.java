@@ -1,6 +1,5 @@
 package org.hiahatf.mass.service.monero;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -85,10 +84,6 @@ public class SwapServiceTest {
         .dest_address("54xxx")
         .funding_state(FundingState.COMPLETE)
         .build());
-        InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
-            .builder()
-            .state(InvoiceState.ACCEPTED)
-            .build();
         SweepAllResult result = SweepAllResult.builder()
             .multisig_txset(txset)
             .build();
@@ -100,8 +95,6 @@ public class SwapServiceTest {
             .result(walletStateResult).build();
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
-        when(lightning.lookupInvoice(table.get().getQuote_id()))
-            .thenReturn(Mono.just(invoiceLookupResponse));
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
@@ -121,7 +114,6 @@ public class SwapServiceTest {
     @Test
     @DisplayName("Monero Cancel Swap Test")
     public void cancelSwapTest() throws SSLException, IOException {
-        String metadata = "expectedMetadata000";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").build();
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
@@ -131,20 +123,14 @@ public class SwapServiceTest {
         .dest_address("54xxx")
         .funding_state(FundingState.COMPLETE)
         .build());
-        InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
-            .builder()
-            .state(InvoiceState.ACCEPTED)
-            .build();
         SweepAllResponse sweepAllResponse= SweepAllResponse.builder()
             .result(null)
             .build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
-            .result(walletStateResult).build();  
+            .result(walletStateResult).build();
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
-        when(lightning.lookupInvoice(table.get().getQuote_id()))
-            .thenReturn(Mono.just(invoiceLookupResponse));
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.sweepAll(table.get().getDest_address()))
@@ -152,20 +138,18 @@ public class SwapServiceTest {
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
         
-        try {
-            Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
-            assertEquals(metadata, testRes.block().getMultisigTxSet());
-        } catch (Exception e) {
-            String expectedError = "org.hiahatf.mass.exception.MassException: " + 
-            Constants.SWAP_CANCELLED_ERROR;
-            String actualError = e.getMessage();
-            assertEquals(expectedError, actualError);
-        }     
+        Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
+        
+        StepVerifier.create(testRes)
+        .expectNextMatches(r -> r
+          .equals(SwapResponse.builder().build()))
+        .verifyComplete();
     }
+    
 
     @Test
     @DisplayName("Fund Monero Swap Test")
-    public void fundMoneroSwapTest() {
+    public void fundMoneroSwapTest() throws SSLException, IOException {
         String expectedAddress = "54mulitsigaddress";
         String expectedTxId = "txtest123";
         FundRequest fundRequest = FundRequest.builder()
@@ -200,6 +184,10 @@ public class SwapServiceTest {
             .address(expectedAddress).build();
         GetAddressResponse getAddressResponse = GetAddressResponse.builder()
             .result(getAddressResult).build();
+        InvoiceLookupResponse invoiceLookupResponse = InvoiceLookupResponse
+            .builder()
+            .state(InvoiceState.ACCEPTED)
+            .build();
         // mocks
         when(quoteRepository.findById(anyString())).thenReturn(table);
         when(massUtil.exportSwapInfo(fundRequest, table.get())).thenReturn(Mono.just(fundResponse));
@@ -207,6 +195,8 @@ public class SwapServiceTest {
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
             .thenReturn(Mono.just(walletStateResponse));
+        when(lightning.lookupInvoice(table.get().getQuote_id()))
+            .thenReturn(Mono.just(invoiceLookupResponse));
         when(monero.isMultisig()).thenReturn(Mono.just(isMultisigResponse));
         when(monero.getAddress()).thenReturn(Mono.just(getAddressResponse));
         when(monero.transfer(table.get().getSwap_address(), table.get().getAmount()))
