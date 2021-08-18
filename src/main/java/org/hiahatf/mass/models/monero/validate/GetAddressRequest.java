@@ -18,6 +18,6 @@ import lombok.NoArgsConstructor;
 public class GetAddressRequest {
     private final String jsonrpc = Constants.XMR_RPC_VER;
     private final String id = Constants.XMR_RPC_ID;
-    private final String method = Constants.XMR_RPC_VALIDATE_ADDRESS;
+    private final String method = Constants.XMR_RPC_GET_ADDRESS;
     private GetAddressParameters params;
 }

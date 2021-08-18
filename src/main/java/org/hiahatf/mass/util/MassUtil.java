@@ -11,11 +11,14 @@ import com.google.common.collect.Lists;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.LiquidityType;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.multisig.ImportInfoResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.slf4j.Logger;
@@ -29,6 +32,7 @@ import reactor.core.publisher.Mono;
 public class MassUtil {
 
     private Logger logger = LoggerFactory.getLogger(MassUtil.class);
+    private MoneroQuoteRepository moneroQuoteRepository;
     private Double markup;
     private Lightning lightning;
     private Monero monero;
@@ -41,12 +45,14 @@ public class MassUtil {
      */
     public MassUtil(
         @Value(Constants.MARKUP) Double markup,@Value(Constants.MIN_PAY) long minPay,
-        @Value(Constants.MAX_PAY) long maxPay,Lightning lightning, Monero monero) {
+        @Value(Constants.MAX_PAY) long maxPay,Lightning lightning, Monero monero,
+        MoneroQuoteRepository moneroQuoteRepository) {
         this.markup = markup;
         this.minPay = minPay;
         this.maxPay = maxPay;
         this.lightning = lightning;
         this.monero = monero;
+        this.moneroQuoteRepository = moneroQuoteRepository;
     }
 
     /**
@@ -216,8 +222,7 @@ public class MassUtil {
     /**
      * Extra step for adding the multisig info which facilitates spending from the
      * consensus wallet. WebFlux chained as: export_multisig (Swap wallet) =>
-     * export_multisig (Mediator wallet) => import_multisig (Swap wallet) =>
-     * import_multisig (Mediator wallet).
+     * export_multisig (Mediator wallet).
      * @param request
      * @param table
      * @return Mono<FundResponse>
@@ -227,6 +232,7 @@ public class MassUtil {
         String swapFilename = table.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             return monero.exportMultisigInfo().flatMap(sem -> {
+                table.setSwap_export_msig_info(sem.getResult().getInfo());
                 FundResponse fundResponse = FundResponse.builder()
                     .importSwapMultisigInfo(sem.getResult().getInfo()).build();
                 return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
@@ -250,9 +256,11 @@ public class MassUtil {
         String mediatorFilename = table.getMediator_filename();
         return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
             return monero.exportMultisigInfo().flatMap(mem -> {
+                table.setMediator_export_msig_info(mem.getResult().getInfo());
+                moneroQuoteRepository.save(table);
                 fundResponse.setImportMediatorMultisigInfo(mem.getResult().getInfo());
                 return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
-                    return importSwapInfo(request, table, fundResponse);
+                    return Mono.just(fundResponse);
                 });
             });
         });
@@ -265,16 +273,15 @@ public class MassUtil {
      * @param table
      * @return Mono<FundResponse>
      */
-    private Mono<FundResponse> importSwapInfo(FundRequest request, XmrQuoteTable table, 
-    FundResponse fundResponse) {
+    public Mono<ImportInfoResponse> importSwapInfo(SwapRequest request, XmrQuoteTable table) {
         String swapFilename = table.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             List<String> sInfoList = Lists.newArrayList();
-            sInfoList.add(fundResponse.getImportMediatorMultisigInfo());
+            sInfoList.add(table.getMediator_export_msig_info());
             sInfoList.add(request.getExportMultisigInfo());
             return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
                 return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
-                    return importMediatorInfo(request, table, fundResponse);
+                    return importMediatorInfo(request, table);
                 });
             });
         });
@@ -288,17 +295,14 @@ public class MassUtil {
      * @param table
      * @return Mono<String> - the address of the finalized multisig wallet
      */
-    private Mono<FundResponse> importMediatorInfo(FundRequest request, XmrQuoteTable table, 
-    FundResponse fundResponse) {
+    private Mono<ImportInfoResponse> importMediatorInfo(SwapRequest request, XmrQuoteTable table) {
         String mediatorFilename = table.getMediator_filename();
         return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
             List<String> mInfoList = Lists.newArrayList();
-            mInfoList.add(fundResponse.getImportSwapMultisigInfo());
+            mInfoList.add(table.getSwap_export_msig_info());
             mInfoList.add(request.getExportMultisigInfo());
-            return monero.importMultisigInfo(mInfoList).flatMap(mem -> {
-                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
-                    return Mono.just(fundResponse);
-                });
+            return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
+                return monero.importMultisigInfo(mInfoList);
             });
         });
     }

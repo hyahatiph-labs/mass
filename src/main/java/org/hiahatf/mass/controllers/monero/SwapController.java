@@ -36,7 +36,7 @@ public class SwapController extends BaseController {
     }
 
     /**
-     * The /swap/initialize endpoint is used to import and export
+     * The /swap/initialize endpoint is used to export
      * multisig info. Mediator and consensus wallet unlocking are also
      * triggered.
      * @param request
@@ -49,6 +49,21 @@ public class SwapController extends BaseController {
     }
 
     /**
+     * The /swap/cancel/xmr endpoint is used to import
+     * multisig info. If there is a 10 min timelock window of opportunity
+     * that the client can choose to back out of the swap. Beyond the 
+     * consensus wallet finality HTLC funds are consumed and client will
+     * forfeit the funds
+     * @param request
+     * @return Mono<FundResponse>
+     */
+    @PostMapping(Constants.XMR_CANCEL_PATH) 
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Mono<SwapResponse> cancelMoneroSwap(@RequestBody SwapRequest request) {
+        return swapService.processCancel(request);
+    }
+
+    /**
      * This endpoint reaches utilizes lightning network
      * hold invoices to verify in-flight payments and settles
      * with the equivalent amount in Monero. 
@@ -57,7 +72,7 @@ public class SwapController extends BaseController {
     @PostMapping(Constants.XMR_SWAP_FINAL_PATH) 
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SwapResponse> finalizeMoneroSwap(@RequestBody SwapRequest request) {
-        return swapService.processMoneroSwap(request);
+        return swapService.transferMonero(request);
     }
 
 }

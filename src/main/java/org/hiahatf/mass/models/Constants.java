@@ -11,6 +11,7 @@ public final class Constants {
     public static final String XMR_QUOTE_PATH = "/quote/xmr";
     public static final String XMR_SWAP_FINAL_PATH = "/swap/xmr";
     public static final String XMR_SWAP_INIT_PATH = "/swap/initialize/xmr";
+    public static final String XMR_CANCEL_PATH = "/swap/cancel/xmr";
     public static final String BTC_QUOTE_PATH = "/quote/btc";
     public static final String BTC_SWAP_FINAL_PATH = "/swap/btc";
     public static final String BTC_SWAP_INIT_PATH = "/swap/finalize/btc";

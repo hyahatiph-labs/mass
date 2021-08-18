@@ -23,8 +23,6 @@ import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResult;
-import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
-import org.hiahatf.mass.models.monero.multisig.FinalizeResult;
 import org.hiahatf.mass.models.monero.multisig.ImportInfoResponse;
 import org.hiahatf.mass.models.monero.multisig.ImportInfoResult;
 import org.hiahatf.mass.models.monero.multisig.MakeResponse;
@@ -36,6 +34,7 @@ import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResponse;
 import org.hiahatf.mass.models.monero.wallet.create.CreateWalletResult;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.junit.jupiter.api.DisplayName;
@@ -63,9 +62,12 @@ public class MassUtilTest {
     @Mock
     Monero monero;
 
+    @Mock
+    MoneroQuoteRepository moneroQuoteRepository;
+
     @InjectMocks
     private MassUtil util = 
-        new MassUtil(0.01, 10000, 10000000, lightning, monero);
+        new MassUtil(0.01, 10000, 10000000, lightning, monero, moneroQuoteRepository);
     
     @Test
     @DisplayName("Parse Rate Test")
@@ -128,8 +130,8 @@ public class MassUtilTest {
     }
 
     @Test
-    @DisplayName("Export / Import Multisig Test")
-    public void exportImportMultisigTest() {
+    @DisplayName("Export Multisig Test")
+    public void exportMultisigTest() {
         String importInfo = "MultisigIinfo";
         XmrQuoteTable table = XmrQuoteTable.builder()
             .amount(0.123).dest_address("54destx")
@@ -140,7 +142,6 @@ public class MassUtilTest {
             .swap_address("54swapx").swap_filename("sfn")
             .swap_finalize_msig("sfmisg").build();
         FundRequest fundRequest = FundRequest.builder()
-            .exportMultisigInfo("MultisigInvoV123testexport")
             .hash("hash").build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()

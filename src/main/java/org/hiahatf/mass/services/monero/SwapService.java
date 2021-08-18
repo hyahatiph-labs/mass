@@ -80,21 +80,6 @@ public class SwapService {
             return Mono.error(new MassException(Constants.FUNDING_ERROR));
         }
         isWalletOpen = true;
-        return verifyMultisigSetup().flatMap(a -> {
-            table.setSwap_address(a);
-            return massUtil.exportSwapInfo(request, table).flatMap(e -> {
-                return sendToConsensusWallet(table, e);
-            });
-        });
-    }
-
-    /**
-     * The client is responsible for finalization of the consensus wallet.
-     * This method verifies that the wallet is ready for funding with the proper
-     * signing threshold.
-     * @return Mono<String> - consensus wallet address
-     */
-    private Mono<String> verifyMultisigSetup() {
         return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
             return monero.isMultisig().flatMap(is -> {
                 IsMultisigResult result = is.getResult();
@@ -105,40 +90,9 @@ public class SwapService {
                     return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                 }
                 return monero.getAddress().flatMap(a -> {
-                    return Mono.just(a.getResult().getAddress());
+                    table.setSwap_address(a.getResult().getAddress());
+                    return processMoneroSwap(request, table);
                 });
-            });
-        });
-    }
-
-    /**
-     * Helper method for funding of the consensus wallet.
-     * @param table
-     * @param fundResponse
-     * @return Mono<FundResponse>
-     */
-    private Mono<FundResponse> sendToConsensusWallet(XmrQuoteTable table, FundResponse fundResponse) {
-        return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
-            if(t.getResult() == null) {
-                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
-            }
-            return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
-                String txid = t.getResult().getTx_hash();
-                String quoteId = table.getQuote_id();
-                table.setFunding_txid(txid);
-                table.setFunding_state(FundingState.IN_PROCESS);
-                quoteRepository.save(table);
-                fundResponse.setTxid(txid);
-                long unlockTime = (System.currentTimeMillis() / 1000L) + 
-                    Constants.FUNDING_LOCK_TIME;
-                logger.info("Funding unlock executor scheduled for {}", unlockTime);
-                executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
-                    Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
-                executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                    massWalletFilename, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, 
-                    TimeUnit.SECONDS);
-                fundResponse.setUnlockTime(unlockTime);
-                return Mono.just(fundResponse);
             });
         });
     }
@@ -146,18 +100,17 @@ public class SwapService {
     /**
      * Logic for processing the swap
      * 1. Verify that the lightning invoice is ACCEPTED
-     * 2. Finalize the Monero Swap
-     * 3. Remove the quote from db if success
+     * 2. Start the funding transaction
+     * 3. Call mediator if client tries to back out
      * @param SwapRequest
      * @return SwapResponse
      */
-    public Mono<SwapResponse> processMoneroSwap(SwapRequest request) {
-        XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
+    public Mono<FundResponse> processMoneroSwap(FundRequest request, XmrQuoteTable table) {
         // verify inflight payment, state should be ACCEPTED
         try {
-            return lightning.lookupInvoice(quote.getQuote_id()).flatMap(l -> {
+            return lightning.lookupInvoice(table.getQuote_id()).flatMap(l -> {
                 if(l.getState() == InvoiceState.ACCEPTED) {
-                    return transferMonero(quote);
+                    return sendToConsensusWallet(request, table);
                 }
                 return Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR));
             });
@@ -168,12 +121,89 @@ public class SwapService {
         }
     }
 
+
+    /**
+     * Helper method for funding of the consensus wallet.
+     * @param table
+     * @param fundResponse
+     * @return Mono<FundResponse>
+     */
+    private Mono<FundResponse> sendToConsensusWallet(FundRequest request, XmrQuoteTable table) {
+        return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
+            if(t.getResult() == null) {
+                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
+            }
+            return massUtil.exportSwapInfo(request, table).flatMap(fundResponse -> {
+                return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                    String txid = t.getResult().getTx_hash();
+                    String quoteId = table.getQuote_id();
+                    table.setFunding_txid(txid);
+                    table.setFunding_state(FundingState.IN_PROCESS);
+                    quoteRepository.save(table);
+                    fundResponse.setTxid(txid);
+                    long unlockTime = (System.currentTimeMillis() / 1000L) + 
+                        Constants.FUNDING_LOCK_TIME;
+                    logger.info("Funding unlock executor scheduled for {}", unlockTime);
+                    executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
+                        Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
+                    executorService.schedule(new Mediator(quoteRepository, quoteId, lightning), 
+                        Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
+                    fundResponse.setUnlockTime(unlockTime);
+                    return Mono.just(fundResponse);
+                });
+            });
+        });
+    }
+
+    public Mono<SwapResponse> processCancel(SwapRequest swapRequest) {
+        isWalletOpen = true;
+        XmrQuoteTable quote = quoteRepository.findById(swapRequest.getHash()).get();
+        String mfn = quote.getMediator_filename();
+        return massUtil.importSwapInfo(swapRequest, quote).flatMap(i -> {
+            if(i.getResult().getN_outputs() <= 0) {
+                return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
+            }
+            return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
+                return monero.sweepAll(rpAddress).flatMap(r -> {
+                    // null check, since rpc since 200 on null result
+                    if(r.getResult() == null) {
+                        logger.error(Constants.MEDIATOR_ERROR);
+                    }
+                    return monero.controlWallet(WalletState.CLOSE, mfn).flatMap(c -> {
+                        logger.info("Mediator sweep complete");
+                        return signAndSubmitCancel(r.getResult().getMultisig_txset(), quote);
+                    });
+                });
+            });
+        });
+    }
+
+    private Mono<SwapResponse> signAndSubmitCancel(String txset, XmrQuoteTable quote) {
+        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(o -> {
+            return monero.signMultisig(txset).flatMap(r -> {
+                // null check, since rpc since 200 on null result
+                if(r.getResult() == null) {
+                    logger.error(Constants.MULTISIG_CONFIG_ERROR);
+                }
+                return monero.submitMultisig(txset).flatMap(s -> {
+                    logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
+                    return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(c -> {
+                        isWalletOpen = false;
+                        logger.info("Cancel complete");
+                        return cancelMoneroSwap(quote);
+                    });
+                });
+            });
+        });
+    }
+
     /**
      * Perform Monero transfer and settle or cancel the invoice
      * @param quote
      * @return Mono<SwapResponse>
      */
-    private Mono<SwapResponse> transferMonero(XmrQuoteTable quote) {
+    public Mono<SwapResponse> transferMonero(SwapRequest request) {
+        XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
         if(quote.getFunding_state() != FundingState.COMPLETE) {
             return Mono.error(new MassException(Constants.FUNDING_ERROR));
         }
@@ -203,10 +233,9 @@ public class SwapService {
         try {
             return lightning.handleInvoice(quote, false).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
-                    return 
-                    Mono.error(
-                        new MassException(Constants.SWAP_CANCELLED_ERROR)
-                        );
+                    quoteRepository.deleteById(quote.getQuote_id());
+                    SwapResponse response = SwapResponse.builder().build();
+                    return Mono.just(response);
                 }
                 return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
             });

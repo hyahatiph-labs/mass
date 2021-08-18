@@ -110,7 +110,7 @@ public class SwapServiceTest {
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(table.get(), true)).thenReturn(Mono.just(entity));
-        Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
+        Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
         StepVerifier.create(testRes)
         .expectNextMatches(r -> r.getMultisigTxSet()
@@ -153,7 +153,7 @@ public class SwapServiceTest {
         when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
         
         try {
-            Mono<SwapResponse> testRes = swapService.processMoneroSwap(swapRequest);
+            Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
             assertEquals(metadata, testRes.block().getMultisigTxSet());
         } catch (Exception e) {
             String expectedError = "org.hiahatf.mass.exception.MassException: " + 
@@ -169,7 +169,6 @@ public class SwapServiceTest {
         String expectedAddress = "54mulitsigaddress";
         String expectedTxId = "txtest123";
         FundRequest fundRequest = FundRequest.builder()
-            .exportMultisigInfo("MultisigInvoV123testexport")
             .hash("hash").build();
         Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
             .amount(0.123).dest_address(expectedAddress)

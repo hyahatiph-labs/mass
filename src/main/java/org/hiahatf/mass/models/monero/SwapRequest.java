@@ -15,4 +15,6 @@ import lombok.NoArgsConstructor;
 public class SwapRequest {
     // payment hash / quoteId
     private String hash;
+    // export multisig info from client
+    private String exportMultisigInfo;
 }
