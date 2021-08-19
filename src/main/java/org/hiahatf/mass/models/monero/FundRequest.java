@@ -13,5 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FundRequest {
+    // aka quoteId
     private String hash;
+    // make_multisig_info from client
+    private String makeMultisigInfo;
 }

@@ -67,6 +67,7 @@ public final class Constants {
     // monero service values
     public static final String JSON_RPC = "json_rpc";
     public static final String XMR_RPC_PATH = "${host.monero}";
+    public static final long MULTISIG_WAIT = 60L;
     
     // util values
     public static final String MARKUP = "${markup}";

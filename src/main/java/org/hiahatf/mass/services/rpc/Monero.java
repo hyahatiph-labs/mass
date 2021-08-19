@@ -1,5 +1,6 @@
 package org.hiahatf.mass.services.rpc;
 
+import java.time.Duration;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -37,11 +38,6 @@ import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
 import org.hiahatf.mass.models.monero.transfer.TransferParameters;
 import org.hiahatf.mass.models.monero.transfer.TransferRequest;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
-import org.hiahatf.mass.models.monero.validate.GetAddressParameters;
-import org.hiahatf.mass.models.monero.validate.GetAddressRequest;
-import org.hiahatf.mass.models.monero.validate.GetAddressResponse;
-import org.hiahatf.mass.models.monero.validate.IsMultisigRequest;
-import org.hiahatf.mass.models.monero.validate.IsMultisigResponse;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressParameters;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressRequest;
 import org.hiahatf.mass.models.monero.validate.ValidateAddressResponse;
@@ -179,7 +175,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(CreateWalletResponse.class);
+            .bodyToMono(CreateWalletResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -211,7 +208,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(WalletStateResponse.class);
+            .bodyToMono(WalletStateResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -232,7 +230,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(PrepareResponse.class);
+            .bodyToMono(PrepareResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -257,7 +256,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(MakeResponse.class);
+            .bodyToMono(MakeResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -282,7 +282,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(FinalizeResponse.class);
+            .bodyToMono(FinalizeResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
     
     /**
@@ -307,7 +308,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(ImportInfoResponse.class);
+            .bodyToMono(ImportInfoResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -328,7 +330,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(ExportInfoResponse.class);
+            .bodyToMono(ExportInfoResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -353,7 +356,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SignResponse.class);
+            .bodyToMono(SignResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -378,7 +382,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SubmitResponse.class);
+            .bodyToMono(SubmitResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -403,7 +408,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(DescribeResponse.class);
+            .bodyToMono(DescribeResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
 
     /**
@@ -428,52 +434,8 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SweepAllResponse.class);
+            .bodyToMono(SweepAllResponse.class)
+            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
     }
     
-    /**
-     * Make the Monero get_address RPC call.
-     * Due to lack of digest authentication support in 
-     * Spring WebFlux, run Monero Wallet RPC with the
-     * --rpc-disable-login flag.
-     * TODO: roll custom digest authentication support
-     * @param address
-     * @return Mono<SweepAllResponse>
-     */
-    public Mono<GetAddressResponse> getAddress() {
-        // build request
-        GetAddressParameters parameters = GetAddressParameters.builder().build();
-        GetAddressRequest request = GetAddressRequest.builder().params(parameters).build();
-        // monero rpc web client
-        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
-        return client.post()
-            .uri(uriBuilder -> uriBuilder
-            .path(Constants.JSON_RPC).build())
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(GetAddressResponse.class);
-    }
-
-    /**
-     * Make the Monero is_multisig RPC call.
-     * Due to lack of digest authentication support in 
-     * Spring WebFlux, run Monero Wallet RPC with the
-     * --rpc-disable-login flag.
-     * TODO: roll custom digest authentication support
-     * @param address
-     * @return Mono<SweepAllResponse>
-     */
-    public Mono<IsMultisigResponse> isMultisig() {
-        // build request
-        IsMultisigRequest request = IsMultisigRequest.builder().build();
-        // monero rpc web client
-        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
-        return client.post()
-            .uri(uriBuilder -> uriBuilder
-            .path(Constants.JSON_RPC).build())
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(IsMultisigResponse.class);
-    }
-
 }

@@ -8,10 +8,10 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
-    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
+    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "MultisigV1QUMnWLpohJt1va3RiRZJ5sMGzRuMCRxLu2L2oLdXEU5jSudoWf2L1UTJ89NUTqFqiRLriB2toCzquARxagDXaBZsKEGVSu9suSobN2jR68fgp4c5doHbKsWExZHQ4UkqcBJhd24VxTA4mR2Yw2eDGpeQ1kR8EW6aMdtozYeNkhKmBt94",
-    "preimageHash": [9,89,171,169,187,120,6,135,239,136,79,42,77,80,218,62,155,44,141,244,220,100,203,213,201,181,85,16,29,242,129,80]
+    "multisigInfo": "MultisigV13yZoXWNpjKECV59ycwSSzkCN85y8ujEyCS1MLwXyFfdUXZv9S17hUgCjQA16sJ7ANj1fNVEg28xPXTatQ5TMXK6ujGyATc987eDFPaE8Un3qdPRvJ6mTXH8zSJ41LKyDQLP88aH56jCWJcwN4FKpkkDPWSjJwQL7KEXv1eoDEYphSqUd",
+    "preimageHash": [140,122,85,238,50,129,35,241,90,197,224,55,33,201,152,75,111,172,215,144,126,33,157,149,226,97,7,198,218,186,12,91]
 }
 
 ### Validate Monero address
@@ -64,6 +64,13 @@ Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,0]}}
 
+### is_multisig check for xmr wallet
+
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"is_multisig"}
+
 ### xmr get_tx_proof
 
 POST http://127.0.0.1:18082/json_rpc 
@@ -98,14 +105,14 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df281501628987671"}}
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"c12be96b10e6b04920003a0c5c049d80e4bb7379f12f016b8e2d6d1219166a5d1629313901"}}
 
 
 ### close wallet
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df281501628987671m"}}
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"c12be96b10e6b04920003a0c5c049d80e4bb7379f12f016b8e2d6d1219166a5d1629313901"}}
 
 ### export multisig info
 POST http://localhost:18083/json_rpc 
@@ -169,7 +176,6 @@ POST http://localhost:6789/swap/initialize/xmr
 Content-Type: application/json
 
 {
-    "hash": "",
-    "makeMultisigInfo": "",
-    "exportMultisigInfo": ""
+    "hash": "8c7a55ee328123f15ac5e03721c9984b6facd7907e219d95e26107c6daba0c5b",
+    "makeMultisigInfo": "MultisigxV1QvQHWBWbZbkhk8gWuYwEHcfAvWcNprkCPLWJRS1ngbvdLwsbX9aHmDCiCJfiM2Rxb56zQD3dcXo7FUW6JLsdxgLmauJex3Z9FrDV5v3KNjkmxCcPeAnPZYHaXLe1muPmX9cUbokLQiRcX7aHqPa6QYGieC8bM9CDrh8TB74qaXuSbDkz8JUn1ntbJwdTzhrbnv1oXwhyZynFUHjqcN8YBiP8UAvL"
 }

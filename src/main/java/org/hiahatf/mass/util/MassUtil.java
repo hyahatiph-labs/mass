@@ -16,6 +16,7 @@ import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
 import org.hiahatf.mass.models.monero.multisig.ImportInfoResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
@@ -214,6 +215,51 @@ public class MassUtil {
                 logger.info("Closing swap wallet");
                 return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwcm -> {
                     return Mono.just(data);
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for finalizing mediator swap wallet multisig
+     * @param data
+     * @return Mono<FinalizeResponse>
+     */
+    public Mono<FinalizeResponse> finalizeMediatorMultisig(FundRequest request) {
+        XmrQuoteTable table = moneroQuoteRepository.findById(request.getHash()).get();
+        String mfn = table.getMediator_filename();
+        List<String> mInfoList = Lists.newArrayList();
+        mInfoList.add(request.getMakeMultisigInfo());
+        mInfoList.add(table.getSwap_finalize_msig());
+        logger.info("Opening mediator wallet");
+        return monero.controlWallet(WalletState.OPEN, mfn).flatMap(mcwo -> {
+            logger.info("Finalizing mediator multisig");
+            return monero.finalizeMultisig(mInfoList).flatMap(sfm -> {
+                logger.info("Closing mediator wallet");
+                return monero.controlWallet(WalletState.CLOSE, mfn).flatMap(mcwc -> {
+                    return finalizeSwapMultisig(request, table);
+                });
+            });
+        });
+    }
+
+    /**
+     * Helper method for finalizing main swap wallet multisig
+     * @param data
+     * @return Mono<FinalizeResponse>
+     */
+    private Mono<FinalizeResponse> finalizeSwapMultisig(FundRequest request, XmrQuoteTable table) {
+        String sfn = table.getSwap_filename();
+        List<String> sInfoList = Lists.newArrayList();
+        sInfoList.add(request.getMakeMultisigInfo());
+        sInfoList.add(table.getMediator_finalize_msig());
+        logger.info("Opening swap wallet");
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(scwo -> {
+            logger.info("Finalizing swap multisig");
+            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                logger.info("Closing swap wallet");
+                return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(scwc -> {
+                    return Mono.just(sfm);
                 });
             });
         });

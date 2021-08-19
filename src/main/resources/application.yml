@@ -6,8 +6,8 @@ host:
   monero: http://localhost:18083
   lightning: https://localhost:8180
 # reserve proof address
-rp-address: 54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn
-send-address: 54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn
+rp-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
+send-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
 mass-wallet-filename: mass
 # macaroon path
 macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
