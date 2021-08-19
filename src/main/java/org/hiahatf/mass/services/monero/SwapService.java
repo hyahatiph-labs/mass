@@ -108,6 +108,9 @@ public class SwapService {
         }
     }
 
+    // TODO: manually sweep latest multisig wallet
+
+    // TODO: test these changes for export info multisig failure due to SQL column length
 
     /**
      * Helper method for funding of the consensus wallet.

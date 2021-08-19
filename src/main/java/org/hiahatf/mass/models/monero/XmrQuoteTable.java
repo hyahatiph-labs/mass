@@ -38,7 +38,7 @@ public class XmrQuoteTable {
     @Column // funding state, default to pending
     @Builder.Default
     private FundingState funding_state = FundingState.PENDING;
-    @Column // mediator export multisig info
+    @Column(length = Integer.MAX_VALUE) // mediator export multisig info
     private String mediator_export_msig_info;
     @Column // mediators' filename for wallet control
     private String mediator_filename;
@@ -48,7 +48,7 @@ public class XmrQuoteTable {
     private byte[] payment_hash;
     @Column // multisig address generated for participants
     private String swap_address;
-    @Column // swap multisig info
+    @Column(length = Integer.MAX_VALUE) // swap multisig info
     private String swap_export_msig_info;
     @Column // filename used for wallet control
     private String swap_filename;

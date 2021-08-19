@@ -10,8 +10,8 @@ Content-Type: application/json
 {
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "MultisigV13yZoXWNpjKECV59ycwSSzkCN85y8ujEyCS1MLwXyFfdUXZv9S17hUgCjQA16sJ7ANj1fNVEg28xPXTatQ5TMXK6ujGyATc987eDFPaE8Un3qdPRvJ6mTXH8zSJ41LKyDQLP88aH56jCWJcwN4FKpkkDPWSjJwQL7KEXv1eoDEYphSqUd",
-    "preimageHash": [140,122,85,238,50,129,35,241,90,197,224,55,33,201,152,75,111,172,215,144,126,33,157,149,226,97,7,198,218,186,12,91]
+    "multisigInfo": "",
+    "preimageHash": []
 }
 
 ### Validate Monero address
@@ -176,6 +176,6 @@ POST http://localhost:6789/swap/initialize/xmr
 Content-Type: application/json
 
 {
-    "hash": "8c7a55ee328123f15ac5e03721c9984b6facd7907e219d95e26107c6daba0c5b",
-    "makeMultisigInfo": "MultisigxV1QvQHWBWbZbkhk8gWuYwEHcfAvWcNprkCPLWJRS1ngbvdLwsbX9aHmDCiCJfiM2Rxb56zQD3dcXo7FUW6JLsdxgLmauJex3Z9FrDV5v3KNjkmxCcPeAnPZYHaXLe1muPmX9cUbokLQiRcX7aHqPa6QYGieC8bM9CDrh8TB74qaXuSbDkz8JUn1ntbJwdTzhrbnv1oXwhyZynFUHjqcN8YBiP8UAvL"
+    "hash": "",
+    "makeMultisigInfo": ""
 }
