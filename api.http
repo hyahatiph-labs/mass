@@ -105,14 +105,14 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"c12be96b10e6b04920003a0c5c049d80e4bb7379f12f016b8e2d6d1219166a5d1629313901"}}
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"mass"}}
 
 
 ### close wallet
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"c12be96b10e6b04920003a0c5c049d80e4bb7379f12f016b8e2d6d1219166a5d1629313901"}}
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"8c7a55ee328123f15ac5e03721c9984b6facd7907e219d95e26107c6daba0c5b1629332261"}}
 
 ### export multisig info
 POST http://localhost:18083/json_rpc 
@@ -155,7 +155,7 @@ Content-Type: application/json
 {
 "jsonrpc":"2.0","id":"0","method":"sweep_all",
     "params":{      
-        "address":"54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn","account_index":0,"priority":0,"ring_size":11
+        "address":"5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C","account_index":0,"priority":0,"ring_size":11
     }
 }
 
@@ -165,7 +165,7 @@ Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"import_multisig_info", 
     "params": {
-        "info": ["",""]
+        "info": [""]
     }
 }
 

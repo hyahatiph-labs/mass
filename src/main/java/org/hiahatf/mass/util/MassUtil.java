@@ -324,7 +324,11 @@ public class MassUtil {
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             List<String> sInfoList = Lists.newArrayList();
             sInfoList.add(table.getMediator_export_msig_info());
-            sInfoList.add(request.getExportMultisigInfo());
+            // mediator check
+            String clientExportInfo = request.getExportMultisigInfo();
+            if(clientExportInfo != null) {
+                sInfoList.add(request.getExportMultisigInfo());
+            }
             return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
                 return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
                     return importMediatorInfo(request, table);
@@ -346,6 +350,11 @@ public class MassUtil {
         return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
             List<String> mInfoList = Lists.newArrayList();
             mInfoList.add(table.getSwap_export_msig_info());
+            String clientExportInfo = request.getExportMultisigInfo();
+            // mediator check
+            if(clientExportInfo != null) {
+                mInfoList.add(request.getExportMultisigInfo());
+            }
             mInfoList.add(request.getExportMultisigInfo());
             return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
                 return monero.importMultisigInfo(mInfoList);

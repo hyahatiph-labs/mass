@@ -4,10 +4,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.net.ssl.SSLException;
+
+import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
@@ -19,6 +22,12 @@ import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
 import org.hiahatf.mass.models.monero.multisig.FinalizeResult;
+import org.hiahatf.mass.models.monero.multisig.ImportInfoResponse;
+import org.hiahatf.mass.models.monero.multisig.ImportInfoResult;
+import org.hiahatf.mass.models.monero.multisig.SignResponse;
+import org.hiahatf.mass.models.monero.multisig.SignResult;
+import org.hiahatf.mass.models.monero.multisig.SubmitResponse;
+import org.hiahatf.mass.models.monero.multisig.SubmitResult;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResult;
 import org.hiahatf.mass.models.monero.transfer.TransferResponse;
@@ -70,7 +79,7 @@ public class SwapServiceTest {
     
     @Test
     @DisplayName("Monero Swap Service Test")
-    public void processMoneroSwapTest() throws SSLException, IOException {
+    public void transferMoneroSwapTest() throws SSLException, IOException {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").build();
@@ -90,12 +99,18 @@ public class SwapServiceTest {
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();
+        ImportInfoResult infoResult = ImportInfoResult.builder()
+            .n_outputs(1).build();
+        ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
+            .result(infoResult).build();
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
             .thenReturn(Mono.just(walletStateResponse));
+        when(massUtil.importSwapInfo(swapRequest, table.get()))
+            .thenReturn(Mono.just(importInfoResponse));
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -109,8 +124,8 @@ public class SwapServiceTest {
     }
 
     @Test
-    @DisplayName("Monero Cancel Swap Test")
-    public void cancelSwapTest() throws SSLException, IOException {
+    @DisplayName("Monero Swap Sweep Failure Test")
+    public void sweepFailSwapTest() throws SSLException, IOException {
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").build();
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
@@ -126,10 +141,17 @@ public class SwapServiceTest {
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();
+        ImportInfoResult infoResult = ImportInfoResult.builder()
+            .n_outputs(1).build();
+        ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
+            .result(infoResult).build();
+
         // mocks
         when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
+        when(massUtil.importSwapInfo(swapRequest, table.get()))
+            .thenReturn(Mono.just(importInfoResponse));
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -198,6 +220,113 @@ public class SwapServiceTest {
         StepVerifier.create(testResponse)
         .expectNextMatches(r -> r.getTxid()
           .equals(expectedTxId))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Monero Swap Sweep Failure Test")
+    public void cancelSwapTest() throws SSLException, IOException {
+        SwapRequest swapRequest = SwapRequest.builder()
+            .hash("hash").build();
+        Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        .amount(0.1)
+        .payment_hash(new byte[32])
+        .quote_id("qid")
+        .dest_address("54xxx")
+        .funding_state(FundingState.COMPLETE)
+        .build());
+        SweepAllResponse sweepAllResponse= SweepAllResponse.builder()
+            .result(null)
+            .build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
+        ImportInfoResult infoResult = ImportInfoResult.builder()
+            .n_outputs(1).build();
+        ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
+            .result(infoResult).build();
+
+        // mocks
+        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
+        when(monero.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(massUtil.importSwapInfo(swapRequest, table.get()))
+            .thenReturn(Mono.just(importInfoResponse));
+        when(monero.sweepAll(table.get().getDest_address()))
+            .thenReturn(Mono.just(sweepAllResponse));
+        when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
+        
+        Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
+        
+        StepVerifier.create(testRes)
+        .expectNextMatches(r -> r
+          .equals(SwapResponse.builder().build()))
+        .verifyComplete();
+    }
+    
+
+    @Test
+    @DisplayName("Cancel Monero Swap Test")
+    public void cancelMoneroSwapTest() throws SSLException, IOException {
+        String expectedAddress = "54mulitsigaddress";
+        String txset = "expectedTxset";
+        SwapRequest swapRequest = SwapRequest.builder()
+            .exportMultisigInfo("exportMultisigInfo")
+            .hash("hash").build();
+        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+            .amount(0.123).dest_address(expectedAddress)
+            .funding_state(FundingState.PENDING)
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address(expectedAddress)
+            .swap_finalize_msig("sfmisg").build());
+        SweepAllResult result = SweepAllResult.builder()
+            .multisig_txset(txset)
+            .build();
+        SweepAllResponse sweepAllResponse = SweepAllResponse.builder()
+            .result(result)
+            .build();
+        ImportInfoResult infoResult = ImportInfoResult.builder()
+            .n_outputs(1).build();
+        ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
+            .result(infoResult).build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
+        List<String> txHashList = Lists.newArrayList();
+        txHashList.add("tx123");
+        SignResult signResult = SignResult.builder()
+            .tx_data_hex("tx_data_hex").tx_hash_list(txHashList).build();
+        SignResponse signResponse = SignResponse.builder()
+            .result(signResult).build();
+        SubmitResult submitResult = SubmitResult.builder()
+            .tx_hash_list(txHashList).build();
+        SubmitResponse submitResponse = SubmitResponse.builder()
+            .result(submitResult).build();
+        // mocks
+        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(massUtil.importSwapInfo(swapRequest, table.get()))
+            .thenReturn(Mono.just(importInfoResponse));
+        when(monero.controlWallet(WalletState.OPEN, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, "test"))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.sweepAll("54testrpaddress")).thenReturn(Mono.just(sweepAllResponse));
+        String mfn = table.get().getMediator_filename();
+        when(monero.controlWallet(WalletState.OPEN, mfn)).thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, mfn)).thenReturn(Mono.just(walletStateResponse));
+        when(monero.signMultisig(anyString())).thenReturn(Mono.just(signResponse));
+        when(monero.submitMultisig(anyString())).thenReturn(Mono.just(submitResponse));
+        when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
+
+        Mono<SwapResponse> testResponse = swapService.processCancel(swapRequest);
+        
+        StepVerifier.create(testResponse)
+        .expectNextMatches(r -> r
+          .equals(SwapResponse.builder().build()))
         .verifyComplete();
     }
 
