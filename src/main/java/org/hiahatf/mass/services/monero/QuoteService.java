@@ -38,7 +38,7 @@ public class QuoteService {
     private MoneroQuoteRepository quoteRepository;
     private String massWalletFilename;
     private RateService rateService;
-    private boolean isWalletOpen;
+    public static boolean isWalletOpen;
     private String proofAddress;
     private Lightning lightning;
     private MassUtil massUtil;

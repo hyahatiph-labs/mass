@@ -2,6 +2,7 @@ package org.hiahatf.mass.controllers;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.ErrorResponse;
+import org.hiahatf.mass.services.monero.QuoteService;
 import org.hiahatf.mass.services.monero.SwapService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +25,7 @@ public class BaseController {
     public ErrorResponse handleMassException(MassException e) {
         // this is bad, but need a temporary fix for wallet control lock out
         SwapService.isWalletOpen = false;
+        QuoteService.isWalletOpen = false;
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 
@@ -37,7 +39,10 @@ public class BaseController {
     public ErrorResponse handleException(Exception e) {
         // this is bad, but need a temporary fix for wallet control lock out
         SwapService.isWalletOpen = false;
-        return ErrorResponse.builder().message(e.getMessage()).build();
+        QuoteService.isWalletOpen = false;
+        // stray null pointers that haven't been fixed yet check (T_T)
+        String msg = e.getMessage() == null ? "Internal server failure" : e.getMessage();
+        return ErrorResponse.builder().message(msg).build();
     }
 
 }

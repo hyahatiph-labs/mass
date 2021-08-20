@@ -34,3 +34,5 @@ spring.datasource:
 spring.jpa:
   database-platform: org.hibernate.dialect.H2Dialect
   hibernate.ddl-auto: update
+# temp fix for mulitsig time outs
+spring.mvc.async.request-timeout: -1

@@ -10,8 +10,8 @@ Content-Type: application/json
 {
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "",
-    "preimageHash": []
+    "multisigInfo": "MultisigV1bwAY2rp3BoFg91Y1LakiPnJHeBAw4gUW982iKbQAXxExGHRHKyx1vFQ5A9TtZ3LVmZ3aktcevNGUfWGZh4DNNePcFiG9qL3qFHAQjGVoambGKSNZGNCkog1Ky7nLENWmYoccezEnwQvF6sZ287ZFXHPkZ4S2RunnjSyKc6BnABzTcMVa",
+    "preimageHash": [108,241,180,200,248,28,5,60,119,54,118,200,105,136,176,227,143,213,216,134,96,199,224,48,141,103,134,64,70,38,94,245]
 }
 
 ### Validate Monero address
@@ -105,14 +105,14 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"mass"}}
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"d3e7e6cf4f67d131c692b6a58409590e51272de126c32e70c1c7be76bb9372e31629477168"}}
 
 
 ### close wallet
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"8c7a55ee328123f15ac5e03721c9984b6facd7907e219d95e26107c6daba0c5b1629332261"}}
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"d3e7e6cf4f67d131c692b6a58409590e51272de126c32e70c1c7be76bb9372e31629477168"}}
 
 ### export multisig info
 POST http://localhost:18083/json_rpc 
@@ -176,6 +176,6 @@ POST http://localhost:6789/swap/initialize/xmr
 Content-Type: application/json
 
 {
-    "hash": "",
-    "makeMultisigInfo": ""
+    "hash": "6cf1b4c8f81c053c773676c86988b0e38fd5d88660c7e0308d67864046265ef5",
+    "makeMultisigInfo": "MultisigxV1Ym9MSP2PYiCLjoPjCaDdBL7zLKq3DfYkKEqubBeJTkVmAAUsZykie7xEL7rS6AE8A5Aua8Tmc9sVoVgkFEMwnqNYE49L2ewApb7YfAn3ffD7vxYiJRC9M9DKvDqYL98kgX7YXUHBweVEMfvEDgZnzKR5XeRDmPVUunPHpNUFgr3boh1U3cDtx9W2ocVGHzDxQKzTqW1UW2X8zTtttJWaygMBcEJ9"
 }
