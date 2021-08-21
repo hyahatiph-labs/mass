@@ -18,7 +18,7 @@ public final class Constants {
     
     // model values
     public static final String MEMO = "mass";
-    public static final String EXPIRY = "1800";
+    public static final String EXPIRY = "3600";
     public static final String XMR_RPC_VER = "2.0";
     public static final String XMR_RPC_ID = "0";
     public static final String XMR_RPC_TRANSFER = "transfer";
@@ -80,14 +80,13 @@ public final class Constants {
     public static final Long COIN = 100000000L;
     public static final String RP_ADDRESS = "${rp-address}";
     public static final String SEND_ADDRESS = "${send-address}";
-    public static final int EXPIRY_LIMIT = 600;
+    public static final int EXPIRY_LIMIT = 3600;
     public static final String MIN_PAY = "${min-pay}";
     public static final String MAX_PAY = "${max-pay}";
     public static final String MASS_WALLET_FILENAME = "${mass-wallet-filename}";
 
     // swap service values
-    public static final long FUNDING_LOCK_TIME = 1200L;
-    public static final long MEDIATOR_INTERVENE_TIME = 1800L;
+    public static final long MEDIATOR_INTERVENE_TIME = 3600L;
     public static final int MULTISIG_THRESHOLD = 2;
     public static final int MULTISIG_TOTAL = 3;
 
@@ -105,7 +104,7 @@ public final class Constants {
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
     public static final String DECODE_ERROR = "Failed to decode payment request.";
     public static final String WALLET_ERROR = "Wallet control is busy, please try agin.";
-    public static final String FUNDING_ERROR = "Consensus wallet funding error";
+    public static final String FUNDING_ERROR = "Consensus wallet funding error, {} block(s) remain";
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
 

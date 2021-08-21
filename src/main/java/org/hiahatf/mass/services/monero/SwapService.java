@@ -120,6 +120,9 @@ public class SwapService {
                 if(t.getResult() == null) {
                     return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
                 }
+
+                // TODO: separate exportSwapInfo to /initialize API
+                // keep funding flow on /fund API
                 return massUtil.exportSwapInfo(request, table).flatMap(fundResponse -> {
                     return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
                         String txid = t.getResult().getTx_hash();
@@ -128,15 +131,9 @@ public class SwapService {
                         table.setFunding_state(FundingState.IN_PROCESS);
                         quoteRepository.save(table);
                         fundResponse.setTxid(txid);
-                        long unlockTime = (System.currentTimeMillis() / 1000L) + 
-                            Constants.FUNDING_LOCK_TIME;
-                        logger.info("Funding unlock executor scheduled for {}", unlockTime);
-                        executorService.schedule(new UnlockFunding(quoteId, quoteRepository), 
-                            Constants.FUNDING_LOCK_TIME, TimeUnit.SECONDS);
                         executorService.schedule(new Mediator(quoteRepository, quoteId, 
                             lightning, monero, massUtil, rpAddress), 
                             Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
-                        fundResponse.setUnlockTime(unlockTime);
                         return Mono.just(fundResponse);
                     });
                 });

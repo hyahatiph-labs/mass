@@ -13,8 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FundResponse {
-    private String importSwapMultisigInfo;
-    private String importMediatorMultisigInfo;
     private String txid;
-    private long unlockTime;
 }

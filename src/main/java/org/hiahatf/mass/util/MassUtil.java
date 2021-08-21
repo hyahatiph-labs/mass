@@ -271,7 +271,7 @@ public class MassUtil {
      * export_multisig (Mediator wallet).
      * @param request
      * @param table
-     * @return Mono<FundResponse>
+     * @return Mono<FundResponse> //TODO: create new InitResponse
      */
     public Mono<FundResponse> exportSwapInfo(FundRequest request, XmrQuoteTable table) {
         logger.info("Exporting swap info");
@@ -312,7 +312,9 @@ public class MassUtil {
         });
     }
     
-        /**
+// TODO: debug null pointer on import info
+
+    /**
      * Extra step for adding the client multisig info which facilitates spending from the
      * consensus wallet.
      * @param request

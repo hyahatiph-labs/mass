@@ -35,6 +35,8 @@ public class SwapController extends BaseController {
         this.swapService = service;
     }
 
+        // TODO: create /swap/initialize/xmr for separate concerns
+
     /**
      * The /swap/initialize endpoint is used to export
      * multisig info. Mediator and consensus wallet unlocking are also
@@ -42,7 +44,7 @@ public class SwapController extends BaseController {
      * @param request
      * @return Mono<FundResponse>
      */
-    @PostMapping(Constants.XMR_SWAP_INIT_PATH) 
+    @PostMapping(Constants.XMR_SWAP_INIT_PATH) // TODO: change to /swap/fund/xmr
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<FundResponse> initiateMoneroSwap(@RequestBody FundRequest request) {
         return swapService.fundMoneroSwap(request);

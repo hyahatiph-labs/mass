@@ -4,6 +4,8 @@ import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 
+// TODO: convert funding unlock executor to scheduler
+
 /**
  * Runnable triggered by the ScheduledExecutor for unlocking
  * the consensus wallet funding transactions
