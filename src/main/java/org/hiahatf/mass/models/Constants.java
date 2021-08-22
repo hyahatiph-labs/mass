@@ -10,6 +10,7 @@ public final class Constants {
     public static final String HEALTH_PATH = "/health";
     public static final String XMR_QUOTE_PATH = "/quote/xmr";
     public static final String XMR_SWAP_FINAL_PATH = "/swap/xmr";
+    public static final String XMR_SWAP_FUND_PATH = "/swap/fund/xmr";
     public static final String XMR_SWAP_INIT_PATH = "/swap/initialize/xmr";
     public static final String XMR_CANCEL_PATH = "/swap/cancel/xmr";
     public static final String BTC_QUOTE_PATH = "/quote/btc";
@@ -36,8 +37,7 @@ public final class Constants {
     public static final String XMR_RPC_SUBMIT_MSIG = "submit_multisig";
     public static final String XMR_RPC_DESCRIBE_TRANSFER = "describe_transfer";
     public static final String XMR_RPC_SWEEP_ALL = "sweep_all";
-    public static final String XMR_RPC_GET_ADDRESS = "get_address";
-    public static final String XMR_RPC_IS_MULTISIG = "is_multisig";
+    public static final String XMR_RPC_GET_BALANCE = "get_balance";
     
     // rate service values
     public static final String UPDATE_RATE_MSG = "Updating XMR <-> BTC rate";
@@ -74,6 +74,7 @@ public final class Constants {
     public static final String SEMI_COLON_DELIMITER = ":";
     public static final String RIGHT_BRACKET_DELIMITER = "}";
     public static final String PARSE_RATE_MSG = "parsed rate: {} => real rate: {}";
+    public static final String MEDIATOR_CHECK = "MEDIATOR_CHECK";
 
     // quote service values
     public static final String SHA_256 = "SHA-256";

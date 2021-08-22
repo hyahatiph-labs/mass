@@ -4,6 +4,8 @@ import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
+import org.hiahatf.mass.models.monero.InitRequest;
+import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.services.monero.SwapService;
@@ -35,24 +37,34 @@ public class SwapController extends BaseController {
         this.swapService = service;
     }
 
-        // TODO: create /swap/initialize/xmr for separate concerns
-
     /**
-     * The /swap/initialize endpoint is used to export
-     * multisig info. Mediator and consensus wallet unlocking are also
+     * The /swap/fund endpoint only commits funds to the consensus wallet.
+     * The associated invoice must be in ACCEPTED status first.
      * triggered.
      * @param request
      * @return Mono<FundResponse>
      */
-    @PostMapping(Constants.XMR_SWAP_INIT_PATH) // TODO: change to /swap/fund/xmr
+    @PostMapping(Constants.XMR_SWAP_FUND_PATH)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<FundResponse> initiateMoneroSwap(@RequestBody FundRequest request) {
+    public Mono<FundResponse> fundMoneroSwap(@RequestBody FundRequest request) {
         return swapService.fundMoneroSwap(request);
     }
 
     /**
+     * The /swap/initialize endpoint is used to export
+     * multisig info. Mediator executor is also triggered
+     * @param request
+     * @return Mono<InitResponse>
+     */
+    @PostMapping(Constants.XMR_SWAP_INIT_PATH)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<InitResponse> initializeMoneroSwap(@RequestBody InitRequest request) {
+        return swapService.importAndExportInfo(request);
+    }
+
+    /**
      * The /swap/cancel/xmr endpoint is used to import
-     * multisig info. If there is a 10 min timelock window of opportunity
+     * multisig info. There is a ~20-30 min window of opportunity
      * that the client can choose to back out of the swap. Beyond the 
      * consensus wallet finality HTLC funds are consumed and client will
      * forfeit the funds
@@ -72,7 +84,7 @@ public class SwapController extends BaseController {
      * @return Mono<SwapResponse>
      */
     @PostMapping(Constants.XMR_SWAP_FINAL_PATH) 
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<SwapResponse> finalizeMoneroSwap(@RequestBody SwapRequest request) {
         return swapService.transferMonero(request);
     }

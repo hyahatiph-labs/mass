@@ -7,6 +7,9 @@ import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Destination;
+import org.hiahatf.mass.models.monero.balance.BalanceParameters;
+import org.hiahatf.mass.models.monero.balance.BalanceRequest;
+import org.hiahatf.mass.models.monero.balance.BalanceResponse;
 import org.hiahatf.mass.models.monero.multisig.DescribeParameters;
 import org.hiahatf.mass.models.monero.multisig.DescribeRequest;
 import org.hiahatf.mass.models.monero.multisig.DescribeResponse;
@@ -436,6 +439,29 @@ public class Monero {
             .retrieve()
             .bodyToMono(SweepAllResponse.class)
             .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+    }
+    
+    /**
+     * Make the Monero get_balance RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param address
+     * @return Mono<SweepAllResponse>
+     */
+    public Mono<BalanceResponse> getBalance() {
+        // build request
+        BalanceParameters parameters = BalanceParameters.builder().build();
+        BalanceRequest request = BalanceRequest.builder().params(parameters).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.JSON_RPC).build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(BalanceResponse.class);
     }
     
 }

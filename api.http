@@ -105,7 +105,7 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"574c0821a1bc8fc9d6013f3fe0b998ea198b3110b60b53e4dc3a71da4badd8301629500563m"}}
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"mass"}}
 
 
 ### close wallet

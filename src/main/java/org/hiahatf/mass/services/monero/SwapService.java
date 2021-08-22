@@ -1,6 +1,7 @@
 package org.hiahatf.mass.services.monero;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -9,10 +10,11 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.FundingState;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
+import org.hiahatf.mass.models.monero.InitRequest;
+import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
@@ -74,9 +76,6 @@ public class SwapService {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
         XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
-        if(table.getFunding_state() != FundingState.PENDING) {
-            return Mono.error(new MassException(Constants.FUNDING_ERROR));
-        }
         isWalletOpen = true;
         return massUtil.finalizeMediatorMultisig(request).flatMap(fm -> {
             table.setSwap_address(fm.getResult().getAddress());
@@ -120,25 +119,33 @@ public class SwapService {
                 if(t.getResult() == null) {
                     return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
                 }
-
-                // TODO: separate exportSwapInfo to /initialize API
-                // keep funding flow on /fund API
-                return massUtil.exportSwapInfo(request, table).flatMap(fundResponse -> {
-                    return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
                         String txid = t.getResult().getTx_hash();
                         String quoteId = table.getQuote_id();
                         table.setFunding_txid(txid);
-                        table.setFunding_state(FundingState.IN_PROCESS);
                         quoteRepository.save(table);
-                        fundResponse.setTxid(txid);
+                        FundResponse fundResponse = FundResponse.builder().txid(txid).build();
                         executorService.schedule(new Mediator(quoteRepository, quoteId, 
                             lightning, monero, massUtil, rpAddress), 
                             Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
-                    });
                 });
             });
         });
+    }
+
+    /**
+     * Import info from the client and export the necessary info from the swap
+     * and mediator wallets. This is dependent on completion of consensus wallet
+     * funding. Blocks remaining on funding transaction must be == 0;
+     * @param initRequest
+     * @return Mono<InitResponse> - Mediator / swap export_multisig_info 
+     */
+    public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
+        XmrQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
+        // add get_balance RPC check for 0 block remaining
+        return massUtil.exportSwapInfo(table, initRequest);
+
     }
 
     /**
@@ -151,11 +158,13 @@ public class SwapService {
         isWalletOpen = true;
         XmrQuoteTable quote = quoteRepository.findById(swapRequest.getHash()).get();
         String mfn = quote.getMediator_filename();
-        return massUtil.importSwapInfo(swapRequest, quote).flatMap(i -> {
-            if(i.getResult().getN_outputs() <= 0) {
-                return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
-            }
-            return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
+        return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
+            return monero.getBalance().flatMap(b -> {
+                int blocksRemaining = b.getResult().getBlocks_to_unlock();
+                if(blocksRemaining != 0) {
+                    String msg = MessageFormat.format(Constants.FUNDING_ERROR, blocksRemaining);
+                    return Mono.error(new MassException(msg));
+                }
                 return monero.sweepAll(rpAddress).flatMap(r -> {
                     // null check, since rpc since 200 on null result
                     if(r.getResult() == null) {
@@ -178,7 +187,8 @@ public class SwapService {
      * @return Mono<SwapResponse> - empty response with HTTP OK status
      */
     private Mono<SwapResponse> signAndSubmitCancel(String txset, XmrQuoteTable quote) {
-        return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(o -> {
+        String sfn = quote.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.signMultisig(txset).flatMap(r -> {
                 // null check, since rpc since 200 on null result
                 if(r.getResult() == null) {
@@ -186,7 +196,7 @@ public class SwapService {
                 }
                 return monero.submitMultisig(txset).flatMap(s -> {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
-                    return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(c -> {
+                    return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
                         logger.info("Cancel complete");
                         return cancelMoneroSwap(quote);
                     });
@@ -202,15 +212,15 @@ public class SwapService {
      */
     public Mono<SwapResponse> transferMonero(SwapRequest request) {
         XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
-        if(quote.getFunding_state() != FundingState.COMPLETE) {
-            return Mono.error(new MassException(Constants.FUNDING_ERROR));
-        }
+        String sfn = quote.getSwap_filename();
         executorService.shutdown();
-        return massUtil.importSwapInfo(request, quote).flatMap(i -> {
-            if(i.getResult().getN_outputs() <= 0) {
-                return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
-            }
-            return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(mwo -> {
+            return monero.getBalance().flatMap(b -> {
+                int blocksRemaining = b.getResult().getBlocks_to_unlock();
+                if(blocksRemaining != 0) {
+                    String msg = MessageFormat.format(Constants.FUNDING_ERROR, blocksRemaining);
+                    return Mono.error(new MassException(msg));
+                }
                 return monero.sweepAll(quote.getDest_address()).flatMap(r -> {
                     // null check, since rpc since 200 on null result
                     if(r.getResult() == null) {
@@ -218,10 +228,10 @@ public class SwapService {
                         // monero transfer failed, cancel invoice
                         return cancelMoneroSwap(quote);
                     }
-                    return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
+                    return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(mwc -> {
                         isWalletOpen = false;
                         return settleMoneroSwap(quote, r);
-                    });
+                     });
                 });
             });
         });

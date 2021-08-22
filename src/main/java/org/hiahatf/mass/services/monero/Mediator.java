@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.monero.SwapRequest;
+import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
@@ -25,7 +25,6 @@ public class Mediator implements Runnable {
 
     private Logger logger = LoggerFactory.getLogger(Mediator.class);
     private MoneroQuoteRepository quoteRepository;
-    private String massWalletFilename;
     private String refundAddress;
     private Lightning lightning;
     private MassUtil massUtil;
@@ -74,11 +73,9 @@ public class Mediator implements Runnable {
     private void refundConsensusWallet(XmrQuoteTable table) {
         SwapService.isWalletOpen = true;
         String mfn = table.getMediator_filename();
-        SwapRequest mediatorRequest = SwapRequest.builder().build();
-         massUtil.importSwapInfo(mediatorRequest, table).subscribe(i -> {
-            if(i.getResult().getN_outputs() <= 0) {
-               logger.error(Constants.MULTISIG_CONFIG_ERROR);
-            }
+        InitRequest mediatorRequest = InitRequest.builder()
+            .importInfo(Constants.MEDIATOR_CHECK).build();
+         massUtil.exportSwapInfo(table, mediatorRequest).subscribe(i -> {
              monero.controlWallet(WalletState.OPEN, mfn).subscribe(o -> {
                  monero.sweepAll(refundAddress).subscribe(r -> {
                     // null check, since rpc since 200 on null result
@@ -100,7 +97,8 @@ public class Mediator implements Runnable {
      * @param quote
      */
     private void signAndSubmitCancel(String txset, XmrQuoteTable quote) {
-         monero.controlWallet(WalletState.OPEN, massWalletFilename).subscribe(o -> {
+        String sfn = quote.getSwap_filename();
+         monero.controlWallet(WalletState.OPEN, sfn).subscribe(o -> {
              monero.signMultisig(txset).subscribe(r -> {
                 // null check, since rpc since 200 on null result
                 if(r.getResult() == null) {
@@ -108,7 +106,7 @@ public class Mediator implements Runnable {
                 }
                  monero.submitMultisig(txset).subscribe(s -> {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
-                    monero.controlWallet(WalletState.CLOSE, massWalletFilename).subscribe(c -> {
+                    monero.controlWallet(WalletState.CLOSE, sfn).subscribe(c -> {
                         SwapService.isWalletOpen = false;
                         logger.info("Cancel complete");
                     });
