@@ -53,9 +53,9 @@ public class Mediator implements Runnable {
             refundConsensusWallet(table);
             lightning.handleInvoice(table, true).subscribe(r -> {
                 if(r.getStatusCode() != HttpStatus.OK) {
-                    logger.error("Mediator intervention complete");
+                    logger.info("Mediator failed to settle invoice");
                 }
-                logger.info("Mediator failed to settle invoice");
+                logger.error("Mediator intervention complete");
             });
         } catch (SSLException se) {
             logger.error(Constants.UNK_ERROR);
@@ -75,8 +75,8 @@ public class Mediator implements Runnable {
         String mfn = table.getMediator_filename();
         InitRequest mediatorRequest = InitRequest.builder()
             .importInfo(Constants.MEDIATOR_CHECK).build();
-         massUtil.exportSwapInfo(table, mediatorRequest).subscribe(i -> {
-             monero.controlWallet(WalletState.OPEN, mfn).subscribe(o -> {
+        monero.controlWallet(WalletState.OPEN, mfn).subscribe(o -> {
+            massUtil.exportSwapInfo(table, mediatorRequest).subscribe(i -> {
                  monero.sweepAll(refundAddress).subscribe(r -> {
                     // null check, since rpc since 200 on null result
                     if(r.getResult() == null) {
