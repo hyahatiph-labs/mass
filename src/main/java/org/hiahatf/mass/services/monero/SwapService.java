@@ -143,9 +143,14 @@ public class SwapService {
      */
     public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
         XmrQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
-        // add get_balance RPC check for 0 block remaining
-        return massUtil.exportSwapInfo(table, initRequest);
-
+        return monero.getBalance().flatMap(b -> {
+            int blocksRemaining = b.getResult().getBlocks_to_unlock();
+            if(blocksRemaining != 0) {
+                String msg = MessageFormat.format(Constants.FUNDING_ERROR, blocksRemaining);
+                return Mono.error(new MassException(msg));
+            }
+            return massUtil.exportSwapInfo(table, initRequest);
+        });
     }
 
     /**

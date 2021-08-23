@@ -52,7 +52,8 @@ public class SwapController extends BaseController {
 
     /**
      * The /swap/initialize endpoint is used to export
-     * multisig info. Mediator executor is also triggered
+     * multisig info. And finish configuring swap and mediator for signing
+     * and submitting from the consensus wallet
      * @param request
      * @return Mono<InitResponse>
      */
@@ -64,7 +65,7 @@ public class SwapController extends BaseController {
 
     /**
      * The /swap/cancel/xmr endpoint is used to import
-     * multisig info. There is a ~20-30 min window of opportunity
+     * multisig info. There is a ~1-2HR min window of opportunity
      * that the client can choose to back out of the swap. Beyond the 
      * consensus wallet finality HTLC funds are consumed and client will
      * forfeit the funds

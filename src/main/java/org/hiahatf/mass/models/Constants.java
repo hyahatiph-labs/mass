@@ -19,7 +19,7 @@ public final class Constants {
     
     // model values
     public static final String MEMO = "mass";
-    public static final String EXPIRY = "3600";
+    public static final String EXPIRY = "7200";
     public static final String XMR_RPC_VER = "2.0";
     public static final String XMR_RPC_ID = "0";
     public static final String XMR_RPC_TRANSFER = "transfer";
@@ -81,7 +81,7 @@ public final class Constants {
     public static final Long COIN = 100000000L;
     public static final String RP_ADDRESS = "${rp-address}";
     public static final String SEND_ADDRESS = "${send-address}";
-    public static final int EXPIRY_LIMIT = 3600;
+    public static final int EXPIRY_LIMIT = 7200;
     public static final String MIN_PAY = "${min-pay}";
     public static final String MAX_PAY = "${max-pay}";
     public static final String MASS_WALLET_FILENAME = "${mass-wallet-filename}";
