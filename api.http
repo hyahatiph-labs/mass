@@ -10,8 +10,8 @@ Content-Type: application/json
 {
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "MultisigV1g4qiztNf7jESEvNbufnbHHVAwLa6V3zW9JGXiDSJvTuWQaCnz8r4tLANfPpUE4QZ1bUEvhZxKE31X2TXD7FxZ3iBCUYdpy6E7waeAVGcBXNn2JJ6WWJQHXWrfKLFU8MH4EqW8cZDfaxzLVFQffAXR8LTnT7U2m5qqURR5AbJKoJpvwAC",
-    "preimageHash": [87,76,8,33,161,188,143,201,214,1,63,63,224,185,152,234,25,139,49,16,182,11,83,228,220,58,113,218,75,173,216,48]
+    "multisigInfo": "",
+    "preimageHash": []
 }
 
 ### Validate Monero address
@@ -170,9 +170,9 @@ Content-Type: application/json
 }
 
 
-### /swap/initialize
+### /swap/fund/xmr
 
-POST http://localhost:6789/swap/initialize/xmr
+POST http://localhost:6789/swap/fund/xmr
 Content-Type: application/json
 
 {
@@ -180,11 +180,20 @@ Content-Type: application/json
     "makeMultisigInfo": ""
 }
 
+### /swap/initialize
+
+POST http://localhost:6789/swap/initialize/xmr
+Content-Type: application/json
+
+{
+    "hash": "",
+    "importInfo": ""
+}
+
 ### execute swap w/ multsig v0.2.0-beta+
 POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "",
-    "exportMultisigInfo": ""
+    "preimage": ""
 }

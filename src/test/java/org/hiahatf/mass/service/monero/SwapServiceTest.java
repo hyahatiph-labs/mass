@@ -81,7 +81,7 @@ public class SwapServiceTest {
     public void transferMoneroSwapTest() throws SSLException, IOException {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
-            .hash("hash").build();
+            .hash("hash").preimage(new byte[32]).build();
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
@@ -113,7 +113,7 @@ public class SwapServiceTest {
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(table.get(), true)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest, table.get(), true)).thenReturn(Mono.just(entity));
         Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
         StepVerifier.create(testRes)
@@ -126,7 +126,7 @@ public class SwapServiceTest {
     @DisplayName("Monero Swap Sweep Failure Test")
     public void sweepFailSwapTest() throws SSLException, IOException {
         SwapRequest swapRequest = SwapRequest.builder()
-            .hash("hash").build();
+            .hash("hash").preimage(new byte[32]).build();
         Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
@@ -153,7 +153,7 @@ public class SwapServiceTest {
         when(monero.sweepAll(table.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest, table.get(), false)).thenReturn(Mono.just(entity));
         
         Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
@@ -221,8 +221,7 @@ public class SwapServiceTest {
         String expectedAddress = "54mulitsigaddress";
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
-            .exportMultisigInfo("exportMultisigInfo")
-            .hash("hash").build();
+            .hash("hash").preimage(new byte[32]).build();
         Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
             .amount(0.123).dest_address(expectedAddress)
             .funding_txid("0xfundtxid")
@@ -273,7 +272,7 @@ public class SwapServiceTest {
         when(monero.signMultisig(anyString())).thenReturn(Mono.just(signResponse));
         when(monero.submitMultisig(anyString())).thenReturn(Mono.just(submitResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(table.get(), false)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest,table.get(), false)).thenReturn(Mono.just(entity));
 
         Mono<SwapResponse> testResponse = swapService.processCancel(swapRequest);
         

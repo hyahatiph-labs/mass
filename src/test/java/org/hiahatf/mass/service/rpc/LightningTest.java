@@ -15,6 +15,7 @@ import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.junit.jupiter.api.AfterAll;
@@ -131,11 +132,12 @@ public class LightningTest {
             .amount(0.1)
             .quote_id("qid")
             .build();
+        SwapRequest swapRequest = SwapRequest.builder().hash("hash").preimage(new byte[32]).build();
         mockBackEnd.enqueue(new MockResponse()
             .setResponseCode(HttpStatus.OK.value())
             .addHeader(HttpHeaders.CONTENT_TYPE, 
                 HttpHeaderValues.APPLICATION_JSON.toString()));
-        Mono<ResponseEntity<Void>> testRes = lightning.handleInvoice(quote, true);
+        Mono<ResponseEntity<Void>> testRes = lightning.handleInvoice(swapRequest, quote, true);
 
         StepVerifier.create(testRes)
         .expectNextMatches(r -> r.getStatusCode()

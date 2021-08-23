@@ -6,6 +6,7 @@ import javax.net.ssl.SSLException;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.InitRequest;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
@@ -51,7 +52,8 @@ public class Mediator implements Runnable {
         try {
             XmrQuoteTable table = quoteRepository.findById(quoteId).get();
             refundConsensusWallet(table);
-            lightning.handleInvoice(table, true).subscribe(r -> {
+            SwapRequest dummySwap = SwapRequest.builder().hash(quoteId).preimage(new byte[32]).build();
+            lightning.handleInvoice(dummySwap, table, true).subscribe(r -> {
                 if(r.getStatusCode() != HttpStatus.OK) {
                     logger.info("Mediator failed to settle invoice");
                 }

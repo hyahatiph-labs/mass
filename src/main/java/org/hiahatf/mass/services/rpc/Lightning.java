@@ -17,6 +17,7 @@ import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.lightning.PaymentRequest;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 
 import org.apache.commons.codec.binary.Hex;
@@ -126,11 +127,12 @@ public class Lightning {
      * @throws SSLException
      * @throws IOException
      */
-    public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
+    public Mono<ResponseEntity<Void>> handleInvoice(SwapRequest swapRequest,
+    XmrQuoteTable quote, boolean settle)
         throws SSLException, IOException {
             String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest
-                .builder().preimage(quote.getPayment_hash()).build();
+                .builder().preimage(swapRequest.getPreimage()).build();
             CancelInvoiceRequest cancelReq = CancelInvoiceRequest
                 .builder().payment_hash(quote.getPayment_hash()).build();
             WebClient client = createClient();

@@ -15,6 +15,7 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.monero.InitResponse;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.models.monero.multisig.SignResponse;
 import org.hiahatf.mass.models.monero.multisig.SignResult;
@@ -68,6 +69,7 @@ public class MediatorTest {
     @DisplayName("Mediator Test")
     public void mediatorTest() throws SSLException, IOException {
         String txset = "txset";
+        SwapRequest swapRequest = SwapRequest.builder().hash("quoteId").preimage(new byte[32]).build();
         XmrQuoteTable table = XmrQuoteTable.builder()
             .amount(0.1)
             .dest_address("dest_address")
@@ -101,7 +103,7 @@ public class MediatorTest {
         // mocks
         when(moneroQuoteRepository.findById(anyString())).thenReturn(Optional.of(table));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(table, true)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest, table, true)).thenReturn(Mono.just(entity));
         when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))

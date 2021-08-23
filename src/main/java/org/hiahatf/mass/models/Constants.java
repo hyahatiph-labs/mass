@@ -105,7 +105,7 @@ public final class Constants {
     public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
     public static final String DECODE_ERROR = "Failed to decode payment request.";
     public static final String WALLET_ERROR = "Wallet control is busy, please try agin.";
-    public static final String FUNDING_ERROR = "Consensus wallet funding error, {} block(s) remain";
+    public static final String FUNDING_ERROR = "Consensus wallet funding error, {0} block(s) remain";
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
 

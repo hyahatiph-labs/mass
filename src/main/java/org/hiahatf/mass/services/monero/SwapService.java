@@ -143,13 +143,19 @@ public class SwapService {
      */
     public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
         XmrQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
-        return monero.getBalance().flatMap(b -> {
-            int blocksRemaining = b.getResult().getBlocks_to_unlock();
-            if(blocksRemaining != 0) {
-                String msg = MessageFormat.format(Constants.FUNDING_ERROR, blocksRemaining);
-                return Mono.error(new MassException(msg));
-            }
-            return massUtil.exportSwapInfo(table, initRequest);
+        String sfn = table.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
+            return monero.getBalance().flatMap(b -> {
+                int blocksRemaining = b.getResult().getBlocks_to_unlock();
+                if(blocksRemaining != 0) {
+                    String msg = MessageFormat.format(Constants.FUNDING_ERROR, 
+                        String.valueOf(blocksRemaining));
+                    return Mono.error(new MassException(msg));
+                }
+                return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
+                    return massUtil.exportSwapInfo(table, initRequest);
+                });
+            });
         });
     }
 
@@ -176,8 +182,10 @@ public class SwapService {
                         logger.error(Constants.MEDIATOR_ERROR);
                     }
                     return monero.controlWallet(WalletState.CLOSE, mfn).flatMap(c -> {
+                        isWalletOpen = false;
                         logger.info("Mediator sweep complete");
-                        return signAndSubmitCancel(r.getResult().getMultisig_txset(), quote);
+                        return signAndSubmitCancel(swapRequest, 
+                            r.getResult().getMultisig_txset(), quote);
                     });
                 });
             });
@@ -191,7 +199,8 @@ public class SwapService {
      * @param quote
      * @return Mono<SwapResponse> - empty response with HTTP OK status
      */
-    private Mono<SwapResponse> signAndSubmitCancel(String txset, XmrQuoteTable quote) {
+    private Mono<SwapResponse> signAndSubmitCancel(SwapRequest swapRequest,
+    String txset, XmrQuoteTable quote) {
         String sfn = quote.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.signMultisig(txset).flatMap(r -> {
@@ -203,7 +212,7 @@ public class SwapService {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
                     return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
                         logger.info("Cancel complete");
-                        return cancelMoneroSwap(quote);
+                        return cancelMoneroSwap(swapRequest, quote);
                     });
                 });
             });
@@ -218,7 +227,6 @@ public class SwapService {
     public Mono<SwapResponse> transferMonero(SwapRequest request) {
         XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
         String sfn = quote.getSwap_filename();
-        executorService.shutdown();
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(mwo -> {
             return monero.getBalance().flatMap(b -> {
                 int blocksRemaining = b.getResult().getBlocks_to_unlock();
@@ -231,11 +239,11 @@ public class SwapService {
                     if(r.getResult() == null) {
                         isWalletOpen = false;
                         // monero transfer failed, cancel invoice
-                        return cancelMoneroSwap(quote);
+                        return cancelMoneroSwap(request, quote);
                     }
                     return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(mwc -> {
                         isWalletOpen = false;
-                        return settleMoneroSwap(quote, r);
+                        return settleMoneroSwap(request, quote, r);
                      });
                 });
             });
@@ -247,10 +255,10 @@ public class SwapService {
      * @param quote
      * @return Mono
      */
-    private Mono<SwapResponse> cancelMoneroSwap(XmrQuoteTable quote) {
+    private Mono<SwapResponse> cancelMoneroSwap(SwapRequest swapRequest, XmrQuoteTable quote) {
         isWalletOpen = false;
         try {
-            return lightning.handleInvoice(quote, false).flatMap(c -> {
+            return lightning.handleInvoice(swapRequest, quote, false).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     quoteRepository.deleteById(quote.getQuote_id());
                     SwapResponse response = SwapResponse.builder().build();
@@ -270,11 +278,12 @@ public class SwapService {
      * @param quote
      * @return Mono<SwapResponse>
      */
-    private Mono<SwapResponse> settleMoneroSwap(XmrQuoteTable quote, 
+    private Mono<SwapResponse> settleMoneroSwap(SwapRequest swapRequest, XmrQuoteTable quote, 
     SweepAllResponse sweepAllResponse) {
         try {
-            return lightning.handleInvoice(quote, true).flatMap(c -> {
+            return lightning.handleInvoice(swapRequest, quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
+                    executorService.shutdown();
                     // monero transfer succeeded, settle invoice
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())

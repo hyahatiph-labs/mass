@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapRequest {
-    // payment hash / quoteId
+    // quoteId
     private String hash;
-    // export multisig info from client
-    private String exportMultisigInfo;
+    // preimage to settle invoice
+    private byte[] preimage;
 }

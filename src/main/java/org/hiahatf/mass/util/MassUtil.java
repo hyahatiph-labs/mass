@@ -278,6 +278,7 @@ public class MassUtil {
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             return monero.exportMultisigInfo().flatMap(sem -> {
                 InitResponse initResponse = InitResponse.builder()
+                    .hash(initRequest.getHash())
                     .swapExportInfo(sem.getResult().getInfo()).build();
                 return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
                     return exportMediatorInfo(table, initRequest, initResponse);
@@ -318,6 +319,7 @@ public class MassUtil {
      */
     private Mono<InitResponse> importSwapInfo(InitRequest initRequest, XmrQuoteTable table,
     InitResponse initResponse) {
+        logger.info("Importing swap info");
         String swapFilename = table.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             List<String> sInfoList = Lists.newArrayList();  
@@ -344,6 +346,7 @@ public class MassUtil {
      */
     private Mono<InitResponse> importMediatorInfo(InitRequest request, XmrQuoteTable table,
     InitResponse initResponse) {
+        logger.info("Importing Mediator Info");
         String mediatorFilename = table.getMediator_filename();
         return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {
             List<String> mInfoList = Lists.newArrayList();
@@ -353,8 +356,8 @@ public class MassUtil {
             if (clientExportInfo != Constants.MEDIATOR_CHECK) {
                 mInfoList.add(request.getImportInfo());
             }
-            return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
-                return monero.importMultisigInfo(mInfoList).flatMap(imi -> {
+            return monero.importMultisigInfo(mInfoList).flatMap(imi -> {
+                return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
                     if(imi.getResult().getN_outputs() <= 0) {
                         return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                     }
