@@ -272,8 +272,8 @@ public class MassUtil {
      * export_multisig (Mediator wallet) import_multisig (Swap wallet) =>
      * import_multisig (Mediator wallet).
      * 
-     * @param request
      * @param table
+     * @param initRequest
      * @return Mono<InitResponse>
      */
     public Mono<InitResponse> exportSwapInfo(XmrQuoteTable table, InitRequest initRequest) {
@@ -295,8 +295,10 @@ public class MassUtil {
      * Helper method for exporting mediator multisig wallet info.
      * This is a necessary process for being able to spend from the 
      * consensus wallet.
-     * @param request
+     * 
      * @param table
+     * @param initRequest
+     * @param initResponse
      * @return Mono<String> - the address of the finalized multisig wallet
      */
     private Mono<InitResponse> exportMediatorInfo(XmrQuoteTable table, InitRequest initRequest,
@@ -319,6 +321,7 @@ public class MassUtil {
      * 
      * @param request
      * @param table
+     * @param initResponse
      * @return Mono<FundResponse>
      */
     private Mono<InitResponse> importSwapInfo(InitRequest initRequest, XmrQuoteTable table,
@@ -327,17 +330,30 @@ public class MassUtil {
         String swapFilename = table.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwom -> {
             List<String> sInfoList = Lists.newArrayList();
-            sInfoList.add(initRequest.getImportInfo());
             // mediator check
             String clientExportInfo = initRequest.getImportInfo();
             if (clientExportInfo == Constants.MEDIATOR_CHECK) {
+                logger.info("Getting mediator to import");
                 sInfoList.add(initResponse.getMediatorExportSwapInfo());
-            }
-            return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
-                return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
-                    return importMediatorInfo(table, initResponse);
+                return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
+                    if(sim.getResult().getN_outputs() <= 0) {
+                        return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
+                    }
+                    return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
+                        return importMediatorInfo(table, initResponse);
+                    });
                 });
-            });
+            } else {
+                sInfoList.add(initRequest.getImportInfo());
+                return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
+                    if(sim.getResult().getN_outputs() <= 0) {
+                        return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
+                    }
+                    return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
+                        return Mono.just(initResponse);
+                    });
+                });
+            }
         });
     }
 
@@ -345,12 +361,11 @@ public class MassUtil {
      * Helper method for importing client info to mediator multisig wallet. This is
      * a necessary process for being able to spend from the consensus wallet.
      * 
-     * @param request
      * @param table
+     * @param initResponse
      * @return Mono<InitResponse>
      */
-    private Mono<InitResponse> importMediatorInfo(XmrQuoteTable table,
-    InitResponse initResponse) {
+    private Mono<InitResponse> importMediatorInfo(XmrQuoteTable table, InitResponse initResponse) {
         logger.info("Importing Mediator Info");
         String mediatorFilename = table.getMediator_filename();
         return monero.controlWallet(WalletState.OPEN, mediatorFilename).flatMap(mcwo -> {

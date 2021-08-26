@@ -10,8 +10,8 @@ Content-Type: application/json
 {
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "",
-    "preimageHash": []
+    "multisigInfo": "MultisigV1JtZ7chrKP4cfMYhV6sqzupBgt6N31F2tcgy2LsKpoauueRuSdkbgnDg3eWfS7Dwsme7rhUs22L6iyfkkFae24maEXpRM4V2KEKYDs8xyC2D9s76SPSn1H8gQpDa1rjZe5X9HjMNMoZJiKzJbvWAVuqxQXiNPkJDXQZ3KrRC7ybGGPmtF",
+    "preimageHash": [56,104,41,10,102,46,209,43,55,172,163,245,189,137,23,41,215,112,132,169,171,68,171,109,12,33,115,147,53,100,104,28]
 }
 
 ### Validate Monero address
@@ -112,7 +112,7 @@ Content-Type: application/json
 POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"574c0821a1bc8fc9d6013f3fe0b998ea198b3110b60b53e4dc3a71da4badd8301629500563m"}}
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"mass"}}
 
 ### export multisig info
 POST http://localhost:18083/json_rpc 
@@ -176,8 +176,8 @@ POST http://localhost:6789/swap/fund/xmr
 Content-Type: application/json
 
 {
-    "hash": "",
-    "makeMultisigInfo": ""
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
+    "makeMultisigInfo": "MultisigxV1Psatu3CxV4Q7SNpmjBxJzY2afNUQi9Ng97qkjZMSbuTAgzKqPHDv8vTTHyN9kywFAHgvDnFPjUavWX9TBdzNNddTZ9z82BPiEnXKk3gshpXZpn4Rg2nCSrKnNNigSNWj9g2rECHA1Fwf6T1FUKTXCTQf8jHAZe8aefXQRiLZp2QEk7ediAty8NVwsUYUF3w8Ju6BAZQ8XpuErUarmEXbajyp4Tun"
 }
 
 ### /swap/initialize
@@ -186,7 +186,7 @@ POST http://localhost:6789/swap/initialize/xmr
 Content-Type: application/json
 
 {
-    "hash": "",
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
     "importInfo": ""
 }
 
@@ -195,5 +195,6 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "preimage": ""
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
+    "preimage": [223,170,234,101,192,203,20,100,57,7,43,236,232,7,121,194,116,73,13,147,124,252,119,126,25,147,65,130,81,233,9,84]
 }
