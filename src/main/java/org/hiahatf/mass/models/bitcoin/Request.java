@@ -13,6 +13,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Request {
-    private String paymentRequest;
+    // client's amount of monero (must be same as reserve proof)
+    private Double amount;
+    // address to use for reserve proof
+    private String proofAddress;
+    // client's prepare multisig info
+    private String swapMultisigInfo;
+    // mediator's prepare multisig info
+    private String mediatorMultisigInfo;
+    // client's xmr refund address
     private String refundAddress;
+    // clients's reserve proof
+    private String reserveProof;
 }

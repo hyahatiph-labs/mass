@@ -34,9 +34,9 @@ public class SwapController extends BaseController {
     }
 
     /**
-     * This endpoint reaches utilizes lightning network
-     * hold invoices to verify in-flight payments and settles
-     * with the equivalent amount in Monero.
+     * This endpoint reaches utilizes Monero RPC to verify
+     * a multisig txset and release a preimage for the associated amount
+     * in a Bitcoin HTLC.
      * @return Mono<SwapResponse>
      */
     @PostMapping(Constants.BTC_SWAP_FINAL_PATH)

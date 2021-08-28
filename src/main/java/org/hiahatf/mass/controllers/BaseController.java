@@ -26,6 +26,7 @@ public class BaseController {
         // this is bad, but need a temporary fix for wallet control lock out
         SwapService.isWalletOpen = false;
         QuoteService.isWalletOpen = false;
+        org.hiahatf.mass.services.bitcoin.QuoteService.isWalletOpen = false;
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 
@@ -40,6 +41,7 @@ public class BaseController {
         // this is bad, but need a temporary fix for wallet control lock out
         SwapService.isWalletOpen = false;
         QuoteService.isWalletOpen = false;
+        org.hiahatf.mass.services.bitcoin.QuoteService.isWalletOpen = false;
         // stray null pointers that haven't been fixed yet check (T_T)
         String msg = e.getMessage() == null ? "Internal server failure" : e.getMessage();
         return ErrorResponse.builder().message(msg).build();

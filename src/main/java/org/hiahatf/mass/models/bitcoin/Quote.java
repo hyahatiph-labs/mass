@@ -14,10 +14,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Quote {
     private String quoteId;
-    private String paymentRequest;
     private String sendAddress;
-    private Double moneroAmt;
     private Double rate;
     private Long minSwapAmt;
     private Long maxSwapAmt;
+    // prepare multisig information outputs client needs this to do make_multisig
+    private String swapMakeMultisigInfo;
+    private String mediatorMakeMultisigInfo;
+    // make multisig information outputs client needs this to do finalize_multisig
+    private String swapFinalizeMultisigInfo;
+    private String mediatorFinalizeMultisigInfo;
 }

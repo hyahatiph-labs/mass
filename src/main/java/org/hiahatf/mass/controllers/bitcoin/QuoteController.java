@@ -36,8 +36,6 @@ public class QuoteController extends BaseController {
      * This endpoint reaches out to an external
      * API to get the exchange rate and return
      * a quote when a request for Bitcoin is received.
-     * The quote contains a lightning network invoice
-     * with additional details.
      * @return BitcoinQuote
      */
     @GetMapping(Constants.BTC_QUOTE_PATH)
