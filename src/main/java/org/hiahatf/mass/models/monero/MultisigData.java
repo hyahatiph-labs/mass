@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.monero;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MultisigData {
     private String clientMultisigInfo;
+    private List<String> clientMultisigInfos;
     private String mediatorFilename;
     private String mediatorFinalizeMultisigInfo;
     private String mediatorMakeMultisigInfo;

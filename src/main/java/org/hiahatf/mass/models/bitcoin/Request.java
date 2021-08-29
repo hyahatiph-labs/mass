@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.bitcoin;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,11 +20,10 @@ public class Request {
     // address to use for reserve proof
     private String proofAddress;
     // client's prepare multisig info
-    private String swapMultisigInfo;
-    // mediator's prepare multisig info
-    private String mediatorMultisigInfo;
+    // (should be at least n=2 because client will need to create their own mediator)
+    private List<String> swapMultisigInfos;
     // client's xmr refund address
     private String refundAddress;
     // clients's reserve proof
-    private String reserveProof;
+    private String proofSignature;
 }

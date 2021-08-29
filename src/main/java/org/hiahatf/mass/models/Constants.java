@@ -25,6 +25,7 @@ public final class Constants {
     public static final String XMR_RPC_TRANSFER = "transfer";
     public static final String XMR_RPC_VALIDATE_ADDRESS = "validate_address";
     public static final String XMR_RPC_GET_RESERVE_PROOF = "get_reserve_proof";
+    public static final String XMR_RPC_CHECK_RESERVE_PROOF = "check_reserve_proof";
     public static final String XMR_RPC_CREATE_WALLET = "create_wallet";
     public static final String XMR_RPC_OPEN_WALLET = "open_wallet";
     public static final String XMR_RPC_CLOSE_WALLET = "close_wallet";
@@ -68,6 +69,7 @@ public final class Constants {
     public static final String JSON_RPC = "json_rpc";
     public static final String XMR_RPC_PATH = "${host.monero}";
     public static final long MULTISIG_WAIT = 60L;
+    public static final double PICONERO = 1.0E12;
     
     // util values
     public static final String MARKUP = "${markup}";

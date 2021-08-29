@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 
+import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
@@ -12,11 +13,11 @@ import org.hiahatf.mass.models.LiquidityType;
 import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
 import org.hiahatf.mass.models.bitcoin.Quote;
 import org.hiahatf.mass.models.bitcoin.Request;
-import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.monero.MultisigData;
+import org.hiahatf.mass.models.monero.proof.CheckReserveProofResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
 import org.hiahatf.mass.services.rate.RateService;
-import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
 import org.slf4j.Logger;
@@ -38,7 +39,6 @@ public class QuoteService {
     public static boolean isWalletOpen;
     private String massWalletFilename;
     private RateService rateService;
-    private String sendAddress;
     private MassUtil massUtil;
     private Monero monero;
     private Long minPay;
@@ -46,12 +46,11 @@ public class QuoteService {
 
     @Autowired
     public QuoteService(BitcoinQuoteRepository bitcoinQuoteRepository,
-    @Value(Constants.SEND_ADDRESS) String sendAddress, @Value(Constants.MIN_PAY) Long minPay,
-    @Value(Constants.MAX_PAY) Long maxPay, MassUtil massUtil, RateService rateService,
-    @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename, Monero monero) {
+    @Value(Constants.MIN_PAY) Long minPay, @Value(Constants.MAX_PAY) Long maxPay, 
+    MassUtil massUtil, RateService rateService, Monero monero,
+    @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
         this.bitcoinQuoteRepository = bitcoinQuoteRepository;
         this.massWalletFilename = massWalletFilename;
-        this.sendAddress = sendAddress;
         this.rateService = rateService;
         this.massUtil = massUtil;
         this.monero = monero;
@@ -61,6 +60,7 @@ public class QuoteService {
     
     /**
      * Get the rate and configure multisig wallet.
+     * 
      * @param request
      * @return Mono<Quote>
      */
@@ -82,9 +82,7 @@ public class QuoteService {
             if(l.booleanValue()) {
                 return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
                     isWalletOpen = true;
-                    // TODO: refactor this to chaining quote logic to a verification
-                    // of the Monero reserve proof
-                    return Mono.just(Quote.builder().build());
+                    return checkReserveProof(request, parsedRate);
                 });
             }
             logger.error(Constants.UNK_ERROR);
@@ -93,83 +91,57 @@ public class QuoteService {
         });
     }
 
-    // TODO: move this to swap, will decode payment request before handling
-    // handling the txset and revealing the preimage
-
-    // /**
-    //  * Call Lightning API for decoding the payment request
-    //  * @param request
-    //  * @param rate
-    //  * @return Mono<Quote>
-    //  */
-    // private Mono<Quote> decodePayReq(Request request, Double rate) {
-    //     try {
-    //         return lightning.decodePaymentRequest(request.getPaymentRequest()).flatMap(p -> {
-    //             Double value = Double.valueOf(p.getNum_satoshis());
-    //             // validate expiry is not set for a longer than limit
-    //             if(Integer.valueOf(p.getExpiry()) > Constants.EXPIRY_LIMIT) {
-    //                 return Mono.error(new MassException(Constants.EXPIRY_ERROR));
-    //             }
-    //             // calculate the amount of monero we expect
-    //             Double rawAmt = value / (rate * Constants.COIN);
-    //             Double moneroAmt = BigDecimal.valueOf(rawAmt)
-    //                 .setScale(12, RoundingMode.HALF_UP)
-    //                 .doubleValue();
-    //             return finalizeQuote(value, request, p, rate, moneroAmt);
-    //         });
-    //     } catch (SSLException se) {
-    //         return Mono.error(new MassException(se.getMessage()));
-    //     } catch (IOException ie) {
-    //         return Mono.error(new MassException(ie.getMessage()));
-    //     }
-    // }
-
     /**
-     * Persist the quote to the database
+     * Call Monero RPC to validate the reserve proof.
+     * Afterwards validate the Monero refund address, persist the quote to
+     * the database and return the quote as requested.
+     * 
      * @param request
-     * @param paymentRequest
-     * @param rate
-     * @param value
-     * @param moneroAmt
-     */
-    private void persistQuote(Request request, PaymentRequest paymentRequest, Double moneroAmount) {
-        // TODO: persist multisig data   
-        BtcQuoteTable table = BtcQuoteTable.builder()
-            .amount(moneroAmount)
-            .quote_id(paymentRequest.getPayment_hash())
-            .refund_address(request.getRefundAddress())
-            .build();
-        bitcoinQuoteRepository.save(table);
-    }
-
-    /**
-     * Perform any remaining work needed to process quote
-     * and return to the client.
-     * @param value
-     * @param request
-     * @param paymentRequest
      * @param rate
      * @return Mono<Quote>
      */
-    private Mono<Quote> finalizeQuote(Double value, Request request, 
-    PaymentRequest paymentRequest, Double rate, Double moneroAmt) {
-        return massUtil.validateLiquidity(value, LiquidityType.OUTBOUND).flatMap(l -> {
-            if(l.booleanValue()) {
-                persistQuote(request, paymentRequest, moneroAmt);
-                Quote quote = Quote.builder()
-                    .sendAddress(sendAddress)
-                    .rate(rate)
-                    .minSwapAmt(minPay)
-                    .maxSwapAmt(maxPay)
-                    .build();
-                return Mono.just(quote);
+    private Mono<Quote> checkReserveProof(Request request, Double rate) {
+        return monero.checkReserveProof(request.getProofAddress(), request.getProofSignature())
+            .flatMap(rp -> {
+            CheckReserveProofResult checked = rp.getResult();
+            if(rp == null || !checked.isGood() || checked.getTotal()
+               < (request.getAmount() * Constants.PICONERO)) {
+                return Mono.error(new MassException(Constants.RESERVE_PROOF_ERROR));
             }
-            return Mono.error(new MassException(Constants.DECODE_ERROR));
+            return validateMoneroAddress(request, rate);
         });
     }
-    
+
+    /**
+     * Validate the Monero address that will receive the swap
+     * 
+     * @param request
+     * @param rate
+     * @return Mono<Quote>
+     */
+    private Mono<Quote> validateMoneroAddress(Request request, Double rate) {
+        byte[] preimage = createPreimage();
+        byte[] preimageHash = createPreimageHash(preimage);
+        String hexHash = Hex.encodeHexString(preimageHash);
+        String address = request.getRefundAddress();
+        return monero.validateAddress(address).flatMap(r -> {
+            if(!r.getResult().isValid()) {
+                return Mono.error(new MassException(Constants.INVALID_ADDRESS_ERROR));
+            }
+            logger.info("Entering Multisig Setup");
+            return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwo -> {
+                return massUtil.rConfigureMultisig(request.getSwapMultisigInfos(), hexHash).flatMap(m -> {
+                    logger.info("Multisig setup complete");
+                    persistQuote(request, m, preimage, preimageHash, hexHash);
+                    return finalizeQuote(request, m, rate, hexHash);
+                });
+            });
+        });
+    }
+
     /**
      * Create the 32 byte preimage
+     * 
      * @return byte[] 
      */
     private byte[] createPreimage() {
@@ -181,6 +153,7 @@ public class QuoteService {
 
     /**
      * Create the 32 byte preimage hash
+     * 
      * @param preimage
      * @return byte[]
      */
@@ -193,6 +166,52 @@ public class QuoteService {
             logger.error(Constants.HASH_ERROR, e.getMessage());
         }     
         return digest.digest(preimage);
+    }
+
+    /**
+     * Persist the quote to the database
+     * 
+     * @param request - request from client
+     * @param data - multisig configuration data
+     * @param preimage - 32-byte array of preimage
+     * @param hash - 32-byte array of preimage hash
+     * @param hexHash - hex-encoding of the 32-byte array preimage
+     */
+    private void persistQuote(Request request, MultisigData data, byte[] preimage, 
+    byte[] hash, String hexHash) {
+        BtcQuoteTable table = BtcQuoteTable.builder()
+            .amount(request.getAmount())
+            .preimage(preimage)
+            .payment_hash(hash)
+            .quote_id(hexHash)
+            .refund_address(request.getRefundAddress())
+            .swap_filename(data.getSwapFilename())
+            .build();
+        bitcoinQuoteRepository.save(table);
+    }
+
+    /**
+     * Perform any remaining work needed to process quote
+     * and return to the client.
+     * 
+     * @param request - request from client
+     * @param data - multisig configuration data
+     * @param rate - rate for swap, includes Mass markup / premium
+     * @param hash - hex-encoding of the 32-byte array preimage
+     * @return Mono<Quote>
+     */
+    private Mono<Quote> finalizeQuote(Request request, MultisigData data, Double rate, String hash) {
+        Quote quote = Quote.builder()
+            .quoteId(hash)
+            .amount(request.getAmount())
+            .refundAddress(request.getRefundAddress())
+            .rate(rate)
+            .minSwapAmt(minPay)
+            .maxSwapAmt(maxPay)
+            .swapMakeMultisigInfo(data.getSwapMakeMultisigInfo())
+            .swapFinalizeMultisigInfo(data.getSwapFinalizeMultisigInfo())
+            .build();
+        return Mono.just(quote);
     }
 
 }

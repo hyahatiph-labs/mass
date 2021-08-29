@@ -35,6 +35,9 @@ import org.hiahatf.mass.models.monero.multisig.SubmitResponse;
 import org.hiahatf.mass.models.monero.multisig.SweepAllParameters;
 import org.hiahatf.mass.models.monero.multisig.SweepAllRequest;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
+import org.hiahatf.mass.models.monero.proof.CheckReserveProofParameters;
+import org.hiahatf.mass.models.monero.proof.CheckReserveProofRequest;
+import org.hiahatf.mass.models.monero.proof.CheckReserveProofResponse;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofParameters;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofRequest;
 import org.hiahatf.mass.models.monero.proof.GetReserveProofResponse;
@@ -63,7 +66,6 @@ import reactor.core.publisher.Mono;
 @Service
 public class Monero {
     
-    private static final double PICONERO = 1.0E12;
     private String moneroHost;
 
     /**
@@ -111,7 +113,7 @@ public class Monero {
      */
     public Mono<TransferResponse> transfer(String address, Double amount) {
         // build request
-        Double piconeroAmt = amount * PICONERO;
+        Double piconeroAmt = amount * Constants.PICONERO;
         List<Destination> destinations = Lists.newArrayList();
         Destination destination = Destination.builder()
             .address(address).amount(piconeroAmt.longValue()).build();
@@ -141,7 +143,7 @@ public class Monero {
      */
     public Mono<GetReserveProofResponse> getReserveProof(Double amount) {
         // build request
-        Double piconeroAmt = amount * PICONERO;
+        Double piconeroAmt = amount * Constants.PICONERO;
         GetReserveProofParameters parameters = GetReserveProofParameters
             .builder().amount(piconeroAmt.longValue()).build();
         GetReserveProofRequest request = GetReserveProofRequest
@@ -463,5 +465,30 @@ public class Monero {
             .retrieve()
             .bodyToMono(BalanceResponse.class);
     }
-    
+      
+    /**
+     * Make the Monero check_reserve_proof RPC call.
+     * Due to lack of digest authentication support in 
+     * Spring WebFlux, run Monero Wallet RPC with the
+     * --rpc-disable-login flag.
+     * TODO: roll custom digest authentication support
+     * @param address
+     * @return Mono<SweepAllResponse>
+     */
+    public Mono<CheckReserveProofResponse> checkReserveProof(String address, String signature) {
+        // build request
+        CheckReserveProofParameters parameters = CheckReserveProofParameters.builder()
+            .address(address).signature(signature).build();
+        CheckReserveProofRequest request = CheckReserveProofRequest.builder()
+            .params(parameters).build();
+        // monero rpc web client
+        WebClient client = WebClient.builder().baseUrl(moneroHost).build();
+        return client.post()
+            .uri(uriBuilder -> uriBuilder
+            .path(Constants.JSON_RPC).build())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(CheckReserveProofResponse.class);
+    }  
+
 }

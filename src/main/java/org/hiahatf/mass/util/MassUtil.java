@@ -382,4 +382,73 @@ public class MassUtil {
         });
     }
 
+    /* 
+        Reverse multisig logic below. This custom multisig very much replicates the similar
+        flow when the server is delivering xmr to the client, however, the reverse logic
+        does not require mediation. Hence, rather than attempting to refactor the above code
+        a custom flow is created. It could be used for other crypto / assets beyond Bitcoin
+        in the future.
+    */
+
+    /**
+     * This method is similar to configureMultisig but excludes any flow
+     * for creating a mediator. It also accepts a list of multisig info
+     * which could be used for different types of consensus wallets and 
+     * associated thresholds.
+     * 
+     * @param multisigInfo
+     * @param hash
+     * @return Mono<MultisigData>
+     */
+    public Mono<MultisigData> rConfigureMultisig(List<String> multisigInfos, String hash) {
+        long unixTime = System.currentTimeMillis() / 1000L;
+        String format = "{0}{1}";
+        String swapFilename = MessageFormat.format(format, hash, String.valueOf(unixTime));
+        logger.info("Swap filename: {}", swapFilename);
+        MultisigData data = MultisigData.builder().swapFilename(swapFilename)
+                .clientMultisigInfos(multisigInfos).build();
+        logger.info("Creating swap wallet");
+        return monero.createWallet(swapFilename).flatMap(sfn -> {
+            return rPrepareSwapMultisig(data);
+        });
+    }
+
+        /**
+     * Helper method for preparing main swap wallet multisig
+     * for reverse-swap logic.
+     * 
+     * @param data
+     * @return Mono<MultisigData>
+     */
+    private Mono<MultisigData> rPrepareSwapMultisig(MultisigData data) {
+        String swapFilename = data.getSwapFilename();
+        return monero.controlWallet(WalletState.OPEN, swapFilename).flatMap(scwo -> {
+            logger.info("Opening swap wallet");
+            return monero.prepareMultisig().flatMap(spm -> {
+                logger.info("Preparing swap wallet");
+                data.setSwapMakeMultisigInfo(spm.getResult().getMultisig_info());
+                return rMakeSwapMultisig(data);
+            });
+        });
+    }
+
+    /**
+     * Helper method for making main swap wallet multisig
+     * for reverse-swap logic.
+     * 
+     * @param data
+     * @return Mono<MultisigData>
+     */
+    private Mono<MultisigData> rMakeSwapMultisig(MultisigData data) {
+        String swapFilename = data.getSwapFilename();
+        logger.info("Making swap multisig");
+        return monero.makeMultisig(data.getClientMultisigInfos()).flatMap(smm -> {
+            data.setSwapFinalizeMultisigInfo(smm.getResult().getMultisig_info());
+            logger.info("Closing swap wallet");
+            return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(scwcm -> {
+                return Mono.just(data);
+            });
+        });
+    }
+
 }
