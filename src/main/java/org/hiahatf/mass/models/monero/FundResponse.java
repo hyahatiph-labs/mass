@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FundResponse {
     private String txid;
+    private String swapAddress;
 }

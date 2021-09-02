@@ -451,4 +451,25 @@ public class MassUtil {
         });
     }
 
+    /**
+     * Helper method for finalizing main swap wallet multisig
+     * 
+     * @param data
+     * @return Mono<FinalizeResponse>
+     */
+    public Mono<FinalizeResponse> rFinalizeSwapMultisig(FundRequest request, String sfn) {
+        List<String> sInfoList = Lists.newArrayList();
+        sInfoList.add(request.getMakeMultisigInfo());
+        logger.info("Opening swap wallet");
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(scwo -> {
+            logger.info("Finalizing swap multisig");
+            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+                logger.info("Closing swap wallet");
+                return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(scwc -> {
+                    return Mono.just(sfm);
+                });
+            });
+        });
+    }
+
 }

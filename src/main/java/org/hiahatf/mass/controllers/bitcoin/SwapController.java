@@ -4,6 +4,8 @@ import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
+import org.hiahatf.mass.models.monero.FundRequest;
+import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.services.bitcoin.SwapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,8 +35,46 @@ public class SwapController extends BaseController {
         this.swapService = service;
     }
 
-    // TODO: create the helper endpoints for fund, cancel and initialization
-    
+    /**
+     * The /swap/fund endpoint puts the finishing touches on the consensus wallet from the
+     * swap server perspective. The address is returned for funding and verification purposes
+     * on the client side.
+     * @param request
+     * @return Mono<FundResponse>
+     */
+    @PostMapping(Constants.BTC_SWAP_FUND_PATH)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<FundResponse> fundMoneroSwap(@RequestBody FundRequest request) {
+        return swapService.fundBitcoinSwap(request);
+    }
+
+    /**
+     * The /swap/initialize endpoint is used to verify funds have been committed 
+     * to the consensus wallet. The associated invoice is then placed into ACCEPTED status.
+     * @param request
+     * @return Mono<InitResponse>
+     */
+    @PostMapping(Constants.BTC_SWAP_INIT_PATH)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<Object> initializeMoneroSwap(@RequestBody Object request) {
+        return null;
+    }
+
+    /**
+     * The /swap/cancel/btc endpoint is used to import
+     * multisig info. There is a ~1-2HR min window of opportunity
+     * that the client can choose to back out of the swap. Beyond the 
+     * consensus wallet finality HTLC funds are consumed and client will
+     * forfeit the funds
+     * @param request
+     * @return Mono<FundResponse>
+     */
+    @PostMapping(Constants.BTC_CANCEL_PATH) 
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Mono<SwapResponse> cancelMoneroSwap(@RequestBody SwapRequest request) {
+        return null;
+    }
+
     /**
      * This endpoint reaches utilizes Monero RPC to verify
      * a multisig txset and release a preimage for the associated amount
