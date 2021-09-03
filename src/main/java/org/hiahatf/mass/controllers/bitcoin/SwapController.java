@@ -2,10 +2,12 @@ package org.hiahatf.mass.controllers.bitcoin;
 
 import org.hiahatf.mass.controllers.BaseController;
 import org.hiahatf.mass.models.Constants;
+import org.hiahatf.mass.models.bitcoin.InitRequest;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
+import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.services.bitcoin.SwapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,23 +58,8 @@ public class SwapController extends BaseController {
      */
     @PostMapping(Constants.BTC_SWAP_INIT_PATH)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Object> initializeMoneroSwap(@RequestBody Object request) {
-        return null;
-    }
-
-    /**
-     * The /swap/cancel/btc endpoint is used to import
-     * multisig info. There is a ~1-2HR min window of opportunity
-     * that the client can choose to back out of the swap. Beyond the 
-     * consensus wallet finality HTLC funds are consumed and client will
-     * forfeit the funds
-     * @param request
-     * @return Mono<FundResponse>
-     */
-    @PostMapping(Constants.BTC_CANCEL_PATH) 
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public Mono<SwapResponse> cancelMoneroSwap(@RequestBody SwapRequest request) {
-        return null;
+    public Mono<InitResponse> initializeMoneroSwap(@RequestBody InitRequest initRequest) {
+        return swapService.importAndExportInfo(initRequest);
     }
 
     /**

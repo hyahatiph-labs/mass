@@ -59,6 +59,8 @@ public final class Constants {
     public static final String BALANCE_PATH = "/v1/balance/channels";
     public static final String ADD_INVOICE_PATH = "/v2/invoices/hodl";
     public static final String PAYREQ = "payreq";
+    public static final String ROUTER = "router";
+    public static final String SEND = "send";
     public static final String SETTLE = "settle";
     public static final String CANCEL = "cancel";
     public static final String INVOICE = "invoice";
@@ -112,6 +114,7 @@ public final class Constants {
     public static final String FUNDING_ERROR = "Consensus wallet funding error, {0} block(s) remain";
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
+    public static final String INVALID_AMT_ERROR = "Funding amount is invalid error";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

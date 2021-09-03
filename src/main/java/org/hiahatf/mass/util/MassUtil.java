@@ -472,4 +472,35 @@ public class MassUtil {
         });
     }
 
+    /**
+     * Extra step for adding the multisig info which facilitates spending from the
+     * consensus wallet. WebFlux chained as: export_multisig (Swap wallet) =>
+     * import_multisig (Swap wallet).
+     * 
+     * @param table
+     * @param initRequest
+     * @return Mono<InitResponse>
+     */
+    public Mono<InitResponse> rExportSwapInfo(String sfn, 
+    org.hiahatf.mass.models.bitcoin.InitRequest initRequest) {
+        logger.info("Exporting swap info");
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(scwom -> {
+            return monero.exportMultisigInfo().flatMap(sem -> {
+                InitResponse initResponse = InitResponse.builder()
+                    .hash(initRequest.getHash())
+                    .swapExportInfo(sem.getResult().getInfo()).build();
+                List<String> sInfoList = Lists.newArrayList();
+                sInfoList.add(initRequest.getImportInfo());
+                return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
+                    if(sim.getResult().getN_outputs() <= 0) {
+                        return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
+                    }
+                    return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(swcc -> {
+                        return Mono.just(initResponse);
+                    });
+                });
+            });
+        });
+    }
+
 }

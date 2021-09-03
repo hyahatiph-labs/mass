@@ -16,6 +16,7 @@ import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.lightning.RouterSendResponse;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
@@ -180,6 +181,18 @@ public class Lightning {
             .bodyToMono(PaymentRequest.class);
     }
     
+    public Mono<RouterSendResponse> sendPayment(String paymentRequest) 
+    throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .pathSegment(Constants.V2, Constants.ROUTER, Constants.SEND)
+            .build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(RouterSendResponse.class);
+    }
+
     /**
      * Create the SSL Context for working with 
      * LND self-signed certificate.
