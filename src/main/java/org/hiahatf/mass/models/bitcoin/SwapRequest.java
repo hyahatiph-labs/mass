@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapRequest {
-    private String paymentRequest;
-    private String metadata;
+    private String hash;
+    private String txset;
 }

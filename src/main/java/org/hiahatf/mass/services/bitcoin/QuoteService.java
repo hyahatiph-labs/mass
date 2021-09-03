@@ -39,6 +39,7 @@ public class QuoteService {
     public static boolean isWalletOpen;
     private String massWalletFilename;
     private RateService rateService;
+    private String sendAddress;
     private MassUtil massUtil;
     private Monero monero;
     private Long minPay;
@@ -47,11 +48,12 @@ public class QuoteService {
     @Autowired
     public QuoteService(BitcoinQuoteRepository bitcoinQuoteRepository,
     @Value(Constants.MIN_PAY) Long minPay, @Value(Constants.MAX_PAY) Long maxPay, 
-    MassUtil massUtil, RateService rateService, Monero monero,
-    @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
+    MassUtil massUtil, RateService rateService, Monero monero, @Value(Constants.SEND_ADDRESS) 
+    String sendAddress, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
         this.bitcoinQuoteRepository = bitcoinQuoteRepository;
         this.massWalletFilename = massWalletFilename;
         this.rateService = rateService;
+        this.sendAddress = sendAddress;
         this.massUtil = massUtil;
         this.monero = monero;
         this.minPay = minPay;
@@ -208,6 +210,7 @@ public class QuoteService {
             .rate(rate)
             .minSwapAmt(minPay)
             .maxSwapAmt(maxPay)
+            .sendTo(sendAddress)
             .swapMakeMultisigInfo(data.getSwapMakeMultisigInfo())
             .swapFinalizeMultisigInfo(data.getSwapFinalizeMultisigInfo())
             .build();

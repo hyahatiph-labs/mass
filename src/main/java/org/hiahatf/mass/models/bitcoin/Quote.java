@@ -19,6 +19,7 @@ public class Quote {
     private Double rate;
     private Long minSwapAmt;
     private Long maxSwapAmt;
+    private String sendTo;
     // prepare multisig information outputs client needs this to do make_multisig
     private String swapMakeMultisigInfo;
     // finalize multisig information outputs client needs this to do finalize_multisig

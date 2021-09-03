@@ -13,6 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SwapResponse {
-    private String paymentRequest;
-    private String txid;
+    private String preimage;
 }

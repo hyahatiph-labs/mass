@@ -7,12 +7,14 @@ import java.text.MessageFormat;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.commons.codec.binary.Hex;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
 import org.hiahatf.mass.models.lightning.PaymentStatus;
+import org.hiahatf.mass.models.monero.Destination;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.bitcoin.InitRequest;
@@ -40,11 +42,10 @@ public class SwapService {
     private Logger logger = LoggerFactory.getLogger(SwapService.class);
     private BitcoinQuoteRepository quoteRepository;
     public static boolean isWalletOpen;
-    private String massWalletFilename;
     private RateService rateService;
     private Lightning lightning;
+    private String sendAddress;
     private MassUtil massUtil;
-    private String rpAddress;
     private Monero monero;
 
     /**
@@ -53,13 +54,12 @@ public class SwapService {
     @Autowired
     public SwapService(
         BitcoinQuoteRepository quoteRepository, Lightning lightning, Monero monero,
-        MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
-        @Value(Constants.RP_ADDRESS) String rpAddress, RateService rateService) {
+        MassUtil massUtil, String massWalletFilename, RateService rateService, 
+        @Value(Constants.SEND_ADDRESS) String sendAddress) {
             this.quoteRepository = quoteRepository;
-            this.massWalletFilename = massWalletFilename;
             this.rateService = rateService;
+            this.sendAddress = sendAddress;
             this.lightning = lightning;
-            this.rpAddress = rpAddress;
             this.massUtil = massUtil;
             this.monero = monero;
     }
@@ -161,11 +161,26 @@ public class SwapService {
     }
 
     public Mono<SwapResponse> processBitcoinSwap(SwapRequest swapRequest) {
-        // TODO: run describe on txset
-        // TODO: sweep and sign to address (use rpAddress for now)
-        // TODO: return preimage
-        SwapResponse response = SwapResponse.builder().build();
-        return Mono.just(response);
+        String txset = swapRequest.getTxset();
+        BtcQuoteTable table = quoteRepository.findById(swapRequest.getHash()).get();
+        Double amount = table.getAmount() * Constants.PICONERO;
+        Destination expectDestination = Destination.builder()
+            .address(sendAddress).amount(amount.longValue()).build();
+        return monero.describeTransfer(txset).flatMap(dt -> {
+            if(dt.getResult().getDesc().getRecipients().contains(expectDestination)) {
+                return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
+            }
+            return monero.signMultisig(txset).flatMap(sign -> {
+                return monero.submitMultisig(sign.getResult().getTx_data_hex()).flatMap(submit -> {
+                    if(submit.getResult() == null) {
+                        return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR)); 
+                    }
+                    SwapResponse response = SwapResponse.builder()
+                        .preimage(Hex.encodeHexString(table.getPreimage())).build();
+                    return Mono.just(response);
+                });
+            });
+        });   
     }
 
 }
