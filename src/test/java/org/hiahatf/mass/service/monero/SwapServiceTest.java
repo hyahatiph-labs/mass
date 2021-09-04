@@ -16,6 +16,8 @@ import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.FundResponse;
+import org.hiahatf.mass.models.monero.InitRequest;
+import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
@@ -279,6 +281,44 @@ public class SwapServiceTest {
         StepVerifier.create(testResponse)
         .expectNextMatches(r -> r
           .equals(SwapResponse.builder().build()))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Test Import / Export Info")
+    public void importExportTest() {
+        String expectedHash = "hash123";
+        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+            .amount(0.123).dest_address("address")
+            .funding_txid("0xfundtxid")
+            .mediator_filename("mfn")
+            .swap_filename("sfn")
+            .mediator_finalize_msig("mfmsig")
+            .quote_id("lnbcrtquoteid")
+            .swap_address("address")
+            .swap_finalize_msig("sfmisg").build());
+        InitRequest initRequest = InitRequest.builder()
+            .hash("hash").importInfo("importInfo").build();
+        InitResponse initResponse = InitResponse.builder().hash(expectedHash)
+            .swapExportInfo("swapExportInfo").build();
+        WalletStateResult walletStateResult = WalletStateResult.builder().build();
+        WalletStateResponse walletStateResponse = WalletStateResponse.builder()
+            .result(walletStateResult).build();
+        BalanceResult balanceResult = BalanceResult.builder().blocks_to_unlock(0).build();
+        BalanceResponse balanceResponse = BalanceResponse.builder().result(balanceResult).build();
+            // mocks
+        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+            .thenReturn(Mono.just(walletStateResponse));
+        when(massUtil.exportSwapInfo(table.get(), initRequest)).thenReturn(Mono.just(initResponse));
+        when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
+        Mono<InitResponse> testResponse = swapService.importAndExportInfo(initRequest);
+
+        StepVerifier.create(testResponse)
+        .expectNextMatches(r -> r.getHash()
+          .equals(expectedHash))
         .verifyComplete();
     }
 

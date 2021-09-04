@@ -46,7 +46,7 @@ public class SwapController extends BaseController {
      */
     @PostMapping(Constants.BTC_SWAP_FUND_PATH)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<FundResponse> fundMoneroSwap(@RequestBody FundRequest request) {
+    public Mono<FundResponse> fundBitcoinSwap(@RequestBody FundRequest request) {
         return swapService.fundBitcoinSwap(request);
     }
 
@@ -58,7 +58,7 @@ public class SwapController extends BaseController {
      */
     @PostMapping(Constants.BTC_SWAP_INIT_PATH)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<InitResponse> initializeMoneroSwap(@RequestBody InitRequest initRequest) {
+    public Mono<InitResponse> initializeBitcoinSwap(@RequestBody InitRequest initRequest) {
         return swapService.importAndExportInfo(initRequest);
     }
 
@@ -70,7 +70,7 @@ public class SwapController extends BaseController {
      */
     @PostMapping(Constants.BTC_SWAP_FINAL_PATH)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SwapResponse> fetchBitcoinSwap(@RequestBody SwapRequest request) {
+    public Mono<SwapResponse> finalizeBitcoinSwap(@RequestBody SwapRequest request) {
         return swapService.processBitcoinSwap(request);
     }
     
