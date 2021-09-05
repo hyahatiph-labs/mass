@@ -97,6 +97,8 @@ POST http://localhost:6789/swap/fund/xmr
 
 ### initialize the swap
 
+#### NOTE: there appears to be a bug here with n_ouputs = 0 on the first try, so you need some retry logic here. It 'should' work on the retry but if not open an issue.
+
 POST http://localhost:6789/swap/initialize/xmr
 
 ```json
