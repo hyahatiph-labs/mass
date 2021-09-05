@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 public class SwapResponse {
     // payment hash / quoteId
     private String hash;
-    // metadata needed to relay tx
-    private String metadata;
+    // multisig data needed by client to sign and submit
+    private String multisigTxSet;
 }

@@ -15,7 +15,10 @@ import org.hiahatf.mass.models.lightning.CancelInvoiceRequest;
 import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.lightning.RouterSendResponse;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 
 import org.apache.commons.codec.binary.Hex;
@@ -56,7 +59,7 @@ public class Lightning {
 
     /**
      * Testing LND connectivity
-     * @returns Mono<String>
+     * @returns Mono<Info>
      */
     public Mono<Info> getInfo() throws IOException {
         // lightning rpc web client
@@ -125,11 +128,12 @@ public class Lightning {
      * @throws SSLException
      * @throws IOException
      */
-    public Mono<ResponseEntity<Void>> handleInvoice(XmrQuoteTable quote, boolean settle)
+    public Mono<ResponseEntity<Void>> handleInvoice(SwapRequest swapRequest,
+    XmrQuoteTable quote, boolean settle)
         throws SSLException, IOException {
             String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest
-                .builder().preimage(quote.getPreimage()).build();
+                .builder().preimage(swapRequest.getPreimage()).build();
             CancelInvoiceRequest cancelReq = CancelInvoiceRequest
                 .builder().payment_hash(quote.getPayment_hash()).build();
             WebClient client = createClient();
@@ -164,10 +168,36 @@ public class Lightning {
             .retrieve()
             .bodyToMono(Liquidity.class);
     }
+
+    public Mono<PaymentRequest> decodePaymentRequest(String payReq) 
+    throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .pathSegment(Constants.V1, Constants.PAYREQ, payReq)
+            .build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(PaymentRequest.class);
+    }
     
+    public Mono<RouterSendResponse> sendPayment(String paymentRequest) 
+    throws SSLException, IOException {
+        WebClient client = createClient();
+        return client.get()
+            .uri(uriBuilder -> uriBuilder
+            .pathSegment(Constants.V2, Constants.ROUTER, Constants.SEND)
+            .build())
+            .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .retrieve()
+            .bodyToMono(RouterSendResponse.class);
+    }
+
     /**
      * Create the SSL Context for working with 
-     * LND self-signed certificate
+     * LND self-signed certificate.
+     * NOTE: This is not safe for production code! 
+     * TODO: Implement a permanent solution.
      * @return HttpClient
      * @throws SSLException
      */

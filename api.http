@@ -8,8 +8,10 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
+    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+    "multisigInfo": "MultisigV1JtZ7chrKP4cfMYhV6sqzupBgt6N31F2tcgy2LsKpoauueRuSdkbgnDg3eWfS7Dwsme7rhUs22L6iyfkkFae24maEXpRM4V2KEKYDs8xyC2D9s76SPSn1H8gQpDa1rjZe5X9HjMNMoZJiKzJbvWAVuqxQXiNPkJDXQZ3KrRC7ybGGPmtF",
+    "preimageHash": [56,104,41,10,102,46,209,43,55,172,163,245,189,137,23,41,215,112,132,169,171,68,171,109,12,33,115,147,53,100,104,28]
 }
 
 ### Validate Monero address
@@ -32,11 +34,7 @@ POST https://localhost:8180/v2/invoices/hodl
 Grpc-Metadata-macaroon: 
 
 {
-    "hash": [224, 199, 253,  44, 149,  34, 254,
-  240, 249, 243, 120, 108, 140, 190,
-   74,  38, 149, 157,  65, 141, 117,
-  176,  47, 166, 199,  59, 185,  30,
-  217, 113, 161, 236],
+    "hash": [224, 199, 253,  44, 149, 34, 254, 240, 249, 243, 120, 108, 140, 190, 74,  38, 149, 157,  65,141, 117, 176,  47, 166, 199,  59, 185,  30, 217, 113, 161, 236],
     "value": "10000",
     "expiry": "600"
 }
@@ -52,7 +50,7 @@ Grpc-Metadata-macaroon:
   156, 161, 114, 203, 240,  65,  20,  53]
 }
 
-### perform xmr swap
+### perform xmr swap v0.1.0-beta
 POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
@@ -61,10 +59,17 @@ Content-Type: application/json
 }
 
 ### get balances of xmr wallet
-POST http://localhost:18082/json_rpc 
+POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}
+{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,0]}}
+
+### is_multisig check for xmr wallet
+
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"is_multisig"}
 
 ### xmr get_tx_proof
 
@@ -79,3 +84,130 @@ POST http://127.0.0.1:18082/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"get_transfers","params":{"out":true,"account_index":0}}
+
+### bitcoin quote
+GET http://localhost:6789/quote/btc
+Content-Type: application/json
+
+{
+    "paymentRequest": "",
+    "refundAddress": ""
+}
+
+
+### create wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"mass","language":"English"}}
+
+### open wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"mass"}}
+
+
+### close wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"mass"}}
+
+### export multisig info
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"export_multisig_info"}
+
+### sign multisig
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"sign_multisig",
+    "params": {
+        "tx_data_hex": ""
+    }
+}
+
+### submit multisig
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"submit_multisig",
+    "params": {
+        "tx_data_hex": ""
+    }
+}
+
+### transfer
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"transfer","params":{"destinations":[{"amount":322000000000,"address":"54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj"}],"account_index":0,"subaddr_indices":[0],"priority":0,"ring_size":11}}
+
+### sweep all
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"sweep_all",
+    "params":{      
+        "address":"5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C","account_index":0,"priority":0,"ring_size":11
+    }
+}
+
+### import multisig info
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"import_multisig_info", 
+    "params": {
+        "info": [""]
+    }
+}
+
+
+### /swap/fund/xmr
+
+POST http://localhost:6789/swap/fund/xmr
+Content-Type: application/json
+
+{
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
+    "makeMultisigInfo": "MultisigxV1Psatu3CxV4Q7SNpmjBxJzY2afNUQi9Ng97qkjZMSbuTAgzKqPHDv8vTTHyN9kywFAHgvDnFPjUavWX9TBdzNNddTZ9z82BPiEnXKk3gshpXZpn4Rg2nCSrKnNNigSNWj9g2rECHA1Fwf6T1FUKTXCTQf8jHAZe8aefXQRiLZp2QEk7ediAty8NVwsUYUF3w8Ju6BAZQ8XpuErUarmEXbajyp4Tun"
+}
+
+### /swap/initialize
+
+POST http://localhost:6789/swap/initialize/xmr
+Content-Type: application/json
+
+{
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
+    "importInfo": ""
+}
+
+### execute swap w/ multsig v0.2.0-beta+
+POST http://localhost:6789/swap/xmr
+Content-Type: application/json
+
+{
+    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
+    "preimage": [223,170,234,101,192,203,20,100,57,7,43,236,232,7,121,194,116,73,13,147,124,252,119,126,25,147,65,130,81,233,9,84]
+}
+
+### btc quote
+
+GET http://localhost:6789/quote/btc
+Content-Type: application/json
+
+{
+    "amount": 0.123,
+    "proofAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
+    "proofSignature": "ReserveProofV21Ai4rHZdv888azBiCUDZTFj6aigfv1CFz6my7fC5qwwMChkJof9KVKy83H81wLYbzTHBj6GMaau8JTWzoB9MutPgTaX7CGGgUQjT9DGqS1puXx4SQEizukGhqb4zfSW7HFBEE4gJfaf7bozE4ssXZjYP5ii14uZ5zm5RLPfYYdgYkaCvbrGmmRpx4CSGmTexosetvk5BZPa1mRGQ75WDFuyZ9ztTiEdHJrJSs54fVUvJotZaBdNB2GKXXrGzhiVYpscC6nLuFn1UdAcT7tLgANbLtKkGiZbrDoDfBubbwaKPidLVbVzPN1a4gNtKkJXWSt3noQhDRZ6qLb2vVYKg2LFVHm6LqkTdXz8PhtuoLAtNU6T94UecJYUQ5FATAmxZx5SWChdmZdLSSK3vLiXFBehLnwTVyxrsH772jMDhDycxfL1VrtbwuH687PpYvGa",
+    "refundAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
+    "swapMultisigInfos": ["MultisigV1U4127UrxYQhWE7MVtZwxzbNtkzVUQFWBgaHTWk4JX5W2hPkL47JeRebBxRbDE37T1gE7WtfCwRnurJixdLx9SvGj8Uif8kUqEw7SVcqwbPzcTRL7rXB3xUfN3Sk6QHcVexBWC79dHKNedFgaDZ84heXdUDR255m5kHyWuhEWF4kz9oKE", "MultisigV1SUX3fBezZrY7csuKj8s5C9jWThCo6PRERMEjFiahN3ABJdrQNmsPmRmVUuYh1a5mDCQjx8LBCbgM4KRiU9e2rFLY45mteKifQUR3SRY2bQsVyJRohU7jX8ob9XyWq1yp5sLi5yu8JuQTiV634cEn7VwtdagfRjibm9T7VjbUjN7NgQnr"]
+}

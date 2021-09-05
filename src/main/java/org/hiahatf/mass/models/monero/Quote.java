@@ -13,22 +13,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Quote {
-    // quote id is the same as lnd payment hash  
-    private String quoteId;
-    // monero rx address
-    private String address;
-    // proof of address validity
-    private Boolean isValidAddress;
-    // reserve proof
-    private ReserveProof reserveProof;
-    // minimum swap amount in satoshis
-    private Long minSwapAmt;
-    // maximum swap amount in satoshis
-    private Long maxSwapAmt;
+    
     // amount in monero
     private double amount;
-    // this the mass rate including markup?
-    private Double rate;
+    // monero rx address
+    private String destAddress;
     // lightning network invoice to pay
     private String invoice;
+    // maximum swap amount in satoshis
+    private Long maxSwapAmt;
+    // minimum swap amount in satoshis
+    private Long minSwapAmt;
+    // prepare multisig information outputs client needs this to do make_multisig
+    private String swapMakeMultisigInfo;
+    private String mediatorMakeMultisigInfo;
+    // make multisig information outputs client needs this to do finalize_multisig
+    private String swapFinalizeMultisigInfo;
+    private String mediatorFinalizeMultisigInfo;
+    // quote id is the same as lnd payment hash  
+    private String quoteId;
+    // this the mass rate including markup?
+    private Double rate;
+    // reserve proof
+    private ReserveProof reserveProof;
+
 }

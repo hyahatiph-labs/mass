@@ -18,7 +18,7 @@ If successfully settled the equivalent amount in Monero is sent
 4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
 5. Run Monero on [stagenet](https://monerodocs.org/infrastructure/networks/)
 6. H2 db runs at host/h2-console.
-7. Currently working on Bitcoin core 0.21, LND 0.12.x, Debian 10, Java 11, Maven 3.6 and Monero 0.17.2
+7. Currently working on Bitcoin core 0.21, LND 0.13.x, Fedora 34, Java 11, Maven 3.6 and Monero 0.17.2
 
 NOTE: currently have an issue with Monero digest authentication rpc calls, so use `--disable-rpc-login`
 
@@ -26,53 +26,108 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 ~/monero-gui-v0.17.2.2/extras/monero-wallet-rpc --rpc-bind-port=18082 --wallet-file=/path/to/wallet --prompt-for-password --disable-rpc-login --daemon-address monero-stagenet.exan.tech:38081 --stagenet
 ```
 
-## API
+## BTC -> XMR API
 
 samples at `./api.http`
 
 health check at GET `http://localhost:6789/health`
 
-generate a quote at GET `http://localhost:6789/quote/xmr`
+1. generate a quote at GET `http://localhost:6789/quote/xmr`
 
-request:
+### quote request
+
+`address` - recipient's address to receive xmr
+
+`amount` - amount of monero requested
+
+`multisigInfo` - client's prepare_multisig info (from a newly generated wallet)
+
+`preimageHash` - client must generate a 32-byte array preimage hash and reveal the preimage to complete the swap
 
 ```json
 {
-    "amount": 0.123, 
-    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
+    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
+    "amount": 0.123,
+    "multisigInfo": "MultisigV1QUMnWLpohJt1va3RiRZJ5sMGzRuMCRxLu2L2oLdXEU5jSudoWf2L1UTJ89NUTqFqiRLriB2toCzquARxagDXaBZsKEGVSu9suSobN2jR68fgp4c5doHbKsWExZHQ4UkqcBJhd24VxTA4mR2Yw2eDGpeQ1kR8EW6aMdtozYeNkhKmBt94",
+    "preimageHash": [9,89,171,169,187,120,6,135,239,136,79,42,77,80,218,62,155,44,141,244,220,100,203,213,201,181,85,16,29,242,129,80]
 }
 ```
 
-response:
-
+### quote response
 ```json
 {
-  "quoteId": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
-  "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
-  "isValidAddress": true,
-  "reserveProof": {
-    "signature": "ReserveProofV21AhtWZDjV1SG7AcQFSxfSVWZvQB9QG99kgr2havWLjWgewkBnnKYBt3UqQycx7A9sTaNYfiCo8PLGi28kjP7f9SvN16QNUMNaLKH7kuqySYJ4kYtnPT8qPnHK72weEpQXZhmAm3ebXEjZiH9wskFnVEfVjeCBegqcAVNsXjBZHfv95NZBoE4MgKZvfDT2ank1cqLj7VLUyC4pGVR2Y8bNdv8R1gjjQEQFo6r4YFcPKUz59k6yQ1iokWr6ZJwEauMviEk5CNEK8XYUr47TWJTzM5S3whFW5NhDZFeQ1fdsHTHbV332kwcHoDjGf3ZKaeGa5hNMHbb1XjjM5MURdHR6N59vHXPkN3xTnmZd2k1d6Dg8btwutBZujBBzWT5QNswm1V4ewutYTBBcg1cT8XsZh5MtG7cpobgaHGYYxEtGSfpD9R3agCJBpF5EZ9vsm5",
-    "proofAddress": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
-  },
-  "minSwapAmt": 10000,
-  "maxSwapAmt": 10000000,
   "amount": 0.123,
-  "rate": 0.00629129,
-  "invoice": "lnbcrt773820n1ps0xdf8pp5v0452dzntfxy47552hma4n0gem9m4jg790xnjpq8uxugwp9f5avqdq8d4shxuccqzpgxqzjcsp5a75z3kfuwvas78t2a8rmm7j04su4e7t2dwh02x3e0dvwpc6w4urs9qyyssqqqryuthw0sgmtpwymmqjue89ltsre8vnh9uzrey9fs46tynqfk4rxnq5jwyjwvq3vksndfklxa578540zhuu9dprjweyezqjhcg9n8qp068g75"
+  "destAddress": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
+  "invoice": "lnbcrt715930n1ps3scfzpp5p9v6h2dm0qrg0mugfu4y65x686djer05m3jvh4wfk423q80js9gqdq8d4shxuccqzpgxqrpcgsp506z2znrgcdxyrjd5egdae5n8fa5py8f4cf0x427nlqjgpv3067qq9qyyssqyssc3wn3xrgtw04wm8wamxglpge8cmu0qex6rd4c4jhz4cyggvh3mtaw9axf8hjvvtdl98jxjflscqp50tsu96j08xvzfmmc4akuwyqqw3xlja",
+  "maxSwapAmt": 10000000,
+  "minSwapAmt": 10000,
+  "swapMakeMultisigInfo": "MultisigV1apVSuNSr13h2sjc41NM4twGjavqUGuZXtEWWExcTsfrEahkE1AxKWDSggyNAAhMfvmcjjBSmJbRqfWGWjC9QGFAnEY64yFpkb4LCLmFmCiCNRwbJr5pWoCqnp4q7j8xy8m1R5gcw1vrrFVXhNzzKGZ3pq1RTupACz57qzhBbzDu9B6Ks",
+  "mediatorMakeMultisigInfo": "MultisigV1HQhvW8ANd9RMG8WqA68iVbAwWd9F7E1zbVSwv2sWcsD5HddsvBDQSamUUND5GDtyknDV55eXJYwxv22Fd4mZz4AKdMYwzFdaiYpYJHZcayxJDGeZ2naTCmb48DeWqQRiCj1Q3KdT24wJKHRJz8EY72fVezJHQU3S4aKMZ3JfKbnts8wq",
+  "swapFinalizeMultisigInfo": "MultisigxV1X69iiu6DQF3PcfhhqAEJgCKVA1vTforUs3GPNqN5uDjRU92SauVA1CGGu3HS7FC57WSkCeZn3dxhyMPAgBdnGgLB13fmdEUgYWx8pJt6AzRnYnBVAhkaFtp1BQTCQf1HEV6BDUfenBzFrnmioL9JUCB8FCisEyf6QXYGVW1uUgYxCevGNDzHKhmMJAvb2pYQTHazTdfeS2VXwfQGaVzVWaJZNGQJ",
+  "mediatorFinalizeMultisigInfo": "MultisigxV1X69iiu6DQF3PcfhhqAEJgCKVA1vTforUs3GPNqN5uDjRU92SauVA1CGGu3HS7FC57WSkCeZn3dxhyMPAgBdnGgLB13fmdEUgYWx8pJt6AzRnYnBVAhkaFtp1BQTCQf1HEV6BDUfenBzFrnmioL9JUCB8FCisEyf6QXYGVW1uUgYxCevGNDzHKhmMJAvb2pYQTHazTdfeS2VXwfQGaVzVWaJZNGQJ",
+  "quoteId": "0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df28150",
+  "rate": 0.00582063,
+  "reserveProof": {
+    "signature": "ReserveProofV21AiqQ3aniJq1RHxjRQnD8AT4qqR4iQ2m75csXaJQszdNjEVT5DQSGM2FU9NFKN44ii44xpPx9maxSiEkcowi7aHhCeZe9B8EANcU4mD3FxBAGXHf4vsTFyAz9bZEUgURsQ7g8NR3dNnAP1pRSSWRTgdqMUV4fAWF666bbHbvt21WeH9e54V5p4E1HVMKKB3f41Ea1G5WDFMYecU34Jeic7gsJe4sKDnyp6FSeNnG6VNGuRnpi9jevjTVxPuUcHaW2c3FXrhe9dymviL44VY6Pn8uGVbtG6QfgKtAnR1xEhSqvkxnhLDUPMfyYjphayXXNWvXnPfKYp2YCZjiQ9nbvZcKj3oTEbMvYfGmKEkrN2qKFTq5TVRT74frGjUTDuJSzFAXWWmSPG6ZNMppnZB17rkNuLcTfFr2QtC8G5nD9Fvmei9FoyQAKi8K9SQarua",
+    "proofAddress": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn"
+  }
 }
 ```
 
-pay the (hold) `invoice` from response
+2. Pay the (hold) `invoice` from response. Fund the consensus wallet by sending quote id and output from make_multisig_info
 
-use the `quoteId` (aka preimage hash) to complete swap execution
+### funding request
 
-execute swap at POST `http://localhost:6789/swap/xmr`
-
-request:
+POST http://localhost:6789/swap/fund/xmr
 
 ```json
 {
-    "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758" 
+    "hash": "02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94",
+    "makeMultisigInfo": "MultisigxV1SR6MxEnobnw8xYjJ2WCBNh4gQDHvLR1pX7df9xABRHHL1hbcb5A5NLgCxgEcNz61tpeofhcut9o6xWnFyhBpiGzLKfGTBomYYuN8P1ZPgjNpHBaXM52LStyhaAuFp43WAx2HdHKpVj9pXdmdVrhoWdGRNCKURwPYsPnP1idNvmVAxQajYYave3A4r6DYPzTAETac4pLijvR8ixT3kNgW1oj1RGLY"
+}
+```
+/swap/fund/xmr response: 
+```json
+{
+  "txid": "3ce4567390b2e4ec60f2bd208bd5d3c0cd4b31dc9f75a5da94b44c8a5e5f7600"
+}
+```
+
+3. Send export_multisig_info and quote id to initialize the swap
+
+### initialize the swap
+
+#### NOTE: there appears to be a bug here with n_ouputs = 0 on the first try, so you need some retry logic here. It 'should' work on the retry but if not open an issue.
+
+POST http://localhost:6789/swap/initialize/xmr
+
+```json
+
+{
+    "hash": "0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df28150",
+    "importInfo": "MultiSigInfo..."
+}
+```
+
+/swap/initialize/xmr response:
+```json
+
+{
+    "hash": "0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df28150",
+    "swapExportInfo": "MultiSigInfo...",
+    "mediatorExportInfo": "MultiSigInfo..."
+}
+```
+
+4. Use the `quoteId` (aka preimage hash) and preimage to complete swap execution
+
+
+POST http://localhost:6789/swap/xmr
+
+```json
+{
+    "hash": "02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94",
+    "preimage": [223,170,234,101,192,203,20,100,57,7,43,236,232,7,121,194,116,73,13,147,124,252,119,126,25,147,65,130,81,233,9,84]
 }
 ```
 
@@ -82,7 +137,7 @@ lncli
 
 ```bash
 user@server:~$ lncli -n regtest payinvoice $PAY_REQ
-Payment hash: 63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
+Payment hash: 02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94
 Description: mass
 Amount (in satoshis): 77382
 Fee limit (in satoshis): 77382
@@ -94,20 +149,28 @@ Confirm payment (yes/no): yes
 | SUCCEEDED  |        0.041 |       33.868 | 77382        | 0   |      792 | 713583046557696 | 03e420f400087f0640ee |
 +------------+--------------+--------------+--------------+-----+----------+-----------------+----------------------+
 Amount + fee:   77382 + 0 sat
-Payment hash:   63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758
-Payment status: SUCCEEDED, preimage: cb4605aa339a21d70e20db617a2853214759999cac90c35e5a65fd2462bc0447
+Payment hash:   02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94
+Payment status: SUCCEEDED, preimage: xxx
 ```
 
 ```json
 
 {
   "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
-  "metadata": "02000102000b8e8ee801a5a31b..."
+  "multisigTxSet": "Multisig..."
 }
 
 ```
 
-relay the transaction with [relay_tx](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#relay_tx)
+sign and submit the transaction 
+
+* [sign_multisig](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#sign_multisig)
+
+* [submit_multisig](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#submit_multisig)
+
+## XMR -> BTC API
+
+Coming soon!
 
 ## Tests
 
