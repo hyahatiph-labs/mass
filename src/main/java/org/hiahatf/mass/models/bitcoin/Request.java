@@ -19,11 +19,11 @@ public class Request {
     private Double amount;
     // address to use for reserve proof
     private String proofAddress;
+    // clients's reserve proof
+    private String proofSignature;
+    // client's xmr refund address
+    private String refundAddress;
     // client's prepare multisig info
     // (should be at least n=2 because client will need to create their own mediator)
     private List<String> swapMultisigInfos;
-    // client's xmr refund address
-    private String refundAddress;
-    // clients's reserve proof
-    private String proofSignature;
 }

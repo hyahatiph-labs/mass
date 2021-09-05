@@ -54,7 +54,7 @@ public class SwapService {
     @Autowired
     public SwapService(
         BitcoinQuoteRepository quoteRepository, Lightning lightning, Monero monero,
-        MassUtil massUtil, String massWalletFilename, RateService rateService, 
+        MassUtil massUtil, RateService rateService, 
         @Value(Constants.SEND_ADDRESS) String sendAddress) {
             this.quoteRepository = quoteRepository;
             this.rateService = rateService;

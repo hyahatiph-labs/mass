@@ -74,7 +74,7 @@ public class BitcoinSwapServiceTest {
     private Monero monero;
     @InjectMocks
     SwapService swapService = new SwapService(quoteRepository, lightning, monero, massUtil, 
-        "test", rateService, "sendAddy");
+        rateService, "sendAddy");
 
     @Test
     @DisplayName("Fund Swap Service Test")
