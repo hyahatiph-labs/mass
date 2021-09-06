@@ -211,3 +211,6 @@ Content-Type: application/json
     "refundAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
     "swapMultisigInfos": ["MultisigV1U4127UrxYQhWE7MVtZwxzbNtkzVUQFWBgaHTWk4JX5W2hPkL47JeRebBxRbDE37T1gE7WtfCwRnurJixdLx9SvGj8Uif8kUqEw7SVcqwbPzcTRL7rXB3xUfN3Sk6QHcVexBWC79dHKNedFgaDZ84heXdUDR255m5kHyWuhEWF4kz9oKE", "MultisigV1SUX3fBezZrY7csuKj8s5C9jWThCo6PRERMEjFiahN3ABJdrQNmsPmRmVUuYh1a5mDCQjx8LBCbgM4KRiU9e2rFLY45mteKifQUR3SRY2bQsVyJRohU7jX8ob9XyWq1yp5sLi5yu8JuQTiV634cEn7VwtdagfRjibm9T7VjbUjN7NgQnr"]
 }
+
+### integrity
+GET http://localhost:6789/integrity
