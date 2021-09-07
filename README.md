@@ -32,7 +32,7 @@ samples at `./api.http`
 
 health check at GET `http://localhost:6789/health`
 
-source code integrity hashes at `GET http://localhost:6789/integrity`
+source code integrity hashes at GET `http://localhost:6789/integrity`
 
 integrity response:
 
