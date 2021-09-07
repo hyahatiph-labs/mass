@@ -32,6 +32,24 @@ samples at `./api.http`
 
 health check at GET `http://localhost:6789/health`
 
+source code integrity hashes at `GET http://localhost:6789/integrity`
+
+integrity response:
+
+```json
+{
+  "integrity": "93c53eedd4fd32d832a4d4086f42ba8397d2d1690242183c128785a6e8969c7c",
+  "btcQuoteController": "1d5b779a64b0ff237624cef9c2a897b21c6496e4eb61a48674d674020f7dbe43",
+  "btcSwapController": "c16f9a67df5f4060cddb9c1179f29a228052f11ad0cd839ccbe9fd64bbb6d26a",
+  "btcQuoteService": "05adb103051b7025fe95fb0b152680e02c2aa305374bd5711d7984d5d08a803c",
+  "btcSwapService": "a3b021dba3f97b8dcb4c81ddede140574c61a1407c9b77aacd0a2d3f6a4c9cbf",
+  "xmrQuoteController": "3d1b335f974985871cf77aa1ab90863b051f960e3ead20c08f7e247c43d68b39",
+  "xmrSwapController": "95296e96e25331c88bbaee1bf5c08e30bd9adbaf7bbd6ee2bb107d3e87d3a18f",
+  "xmrQuoteService": "a2465a8fe8e61ba97e627074d6742c52fa5656d3fa5a31dbe2d9d052758d3a33",
+  "xmrSwapService": "30b07e5568355079595f44fde25bc9696d9dd8977bf2b2d105ad54773365e057"
+}
+```
+
 1. generate a quote at GET `http://localhost:6789/quote/xmr`
 
 ### quote request
