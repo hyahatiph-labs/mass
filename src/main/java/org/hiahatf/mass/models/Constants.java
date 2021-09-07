@@ -8,6 +8,7 @@ public final class Constants {
 
     // controller values
     public static final String HEALTH_PATH = "/health";
+    public static final String INTEGRITY_PATH = "/integrity";
     public static final String XMR_QUOTE_PATH = "/quote/xmr";
     public static final String XMR_SWAP_FINAL_PATH = "/swap/xmr";
     public static final String XMR_SWAP_FUND_PATH = "/swap/fund/xmr";
@@ -18,6 +19,26 @@ public final class Constants {
     public static final String BTC_SWAP_FUND_PATH = "/swap/fund/btc";
     public static final String BTC_SWAP_INIT_PATH = "/swap/initialize/btc";
     public static final String BTC_CANCEL_PATH = "/swap/cancel/btc";
+
+    // Integrity values
+    public static final String XMR_QUOTE_CONTROLLER_SRC = 
+        "src/main/java/org/hiahatf/mass/controllers/monero/QuoteController.java";
+    public static final String XMR_SWAP_CONTROLLER_SRC = 
+        "src/main/java/org/hiahatf/mass/controllers/monero/SwapController.java";
+    public static final String XMR_QUOTE_SERVICE_SRC = 
+        "src/main/java/org/hiahatf/mass/services/monero/QuoteService.java";
+    public static final String XMR_SWAP_SERVICE_SRC = 
+        "src/main/java/org/hiahatf/mass/services/monero/SwapService.java";
+    public static final String BTC_QUOTE_CONTROLLER_SRC = 
+        "src/main/java/org/hiahatf/mass/controllers/bitcoin/QuoteController.java";
+    public static final String BTC_SWAP_CONTROLLER_SRC = 
+        "src/main/java/org/hiahatf/mass/controllers/bitcoin/SwapController.java";
+    public static final String BTC_QUOTE_SERVICE_SRC = 
+        "src/main/java/org/hiahatf/mass/services/bitcoin/QuoteService.java";
+    public static final String BTC_SWAP_SERVICE_SRC = 
+        "src/main/java/org/hiahatf/mass/services/bitcoin/SwapService.java";
+    public static final String INTEGRITY_SRC = 
+        "src/main/java/org/hiahatf/mass/controllers/IntegrityController.java";
     
     // model values
     public static final String MEMO = "mass";
