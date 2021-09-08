@@ -27,6 +27,7 @@ public class BaseController {
         SwapService.isWalletOpen = false;
         QuoteService.isWalletOpen = false;
         org.hiahatf.mass.services.bitcoin.QuoteService.isWalletOpen = false;
+        org.hiahatf.mass.services.bitcoin.SwapService.isWalletOpen = false;
         return ErrorResponse.builder().message(e.getMessage()).build();
     }
 
@@ -42,6 +43,7 @@ public class BaseController {
         SwapService.isWalletOpen = false;
         QuoteService.isWalletOpen = false;
         org.hiahatf.mass.services.bitcoin.QuoteService.isWalletOpen = false;
+        org.hiahatf.mass.services.bitcoin.SwapService.isWalletOpen = false;
         // stray null pointers that haven't been fixed yet check (T_T)
         String msg = e.getMessage() == null ? "Internal server failure" : e.getMessage();
         return ErrorResponse.builder().message(msg).build();

@@ -66,9 +66,7 @@ public class SwapController extends BaseController {
     /**
      * The /swap/cancel/xmr endpoint is used to import
      * multisig info. There is a ~1-2HR min window of opportunity
-     * that the client can choose to back out of the swap. Beyond the 
-     * consensus wallet finality HTLC funds are consumed and client will
-     * forfeit the funds
+     * that the client can choose to back out of the swap.
      * @param request
      * @return Mono<FundResponse>
      */

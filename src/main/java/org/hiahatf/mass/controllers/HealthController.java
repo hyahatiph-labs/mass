@@ -45,7 +45,6 @@ public class HealthController extends BaseController{
     @GetMapping(Constants.HEALTH_PATH)
 	@ResponseStatus(HttpStatus.OK)
 	public Mono<Info> ping() throws SSLException, IOException {
-		// return http 200 status code
 		return lightning.getInfo();
 	}
     

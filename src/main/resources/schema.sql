@@ -14,7 +14,9 @@ CREATE TABLE XMR_QUOTE_TABLE (
 
 CREATE TABLE BTC_QUOTE_TABLE (
     quote_id VARCHAR(64) PRIMARY KEY,
-    payment_request VARCHAR(300) NOT NULL,
     amount FLOAT(30) NOT NULL,
-    refund_address VARCHAR(200) NOT NULL
+    payment_hash VARCHAR(64) NOT NULL,
+    preimage VARCHAR(64) NOT NULL,
+    refund_address VARCHAR(200) NOT NULL,
+    swap_filename VARCHAR(100) NOT NULL
 );   

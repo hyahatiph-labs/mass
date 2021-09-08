@@ -125,9 +125,8 @@ public class SwapService {
                         table.setFunding_txid(txid);
                         quoteRepository.save(table);
                         FundResponse fundResponse = FundResponse.builder().txid(txid).build();
-                        executorService.schedule(new Mediator(quoteRepository, quoteId, 
-                            lightning, monero, massUtil, rpAddress), 
-                            Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
+                        executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
+                            massUtil, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
                 });
             });
