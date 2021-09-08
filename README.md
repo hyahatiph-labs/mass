@@ -62,6 +62,28 @@ integrity response:
 
 `preimageHash` - client must generate a 32-byte array preimage hash and reveal the preimage to complete the swap
 
+#### sample preimage generation in node.js
+
+```javascript
+// import crypto module
+const crypto = require("crypto")
+// use cryptographically secure random bytes generation
+const preimage = crypto.randomBytes(32)
+// get the raw bytes from the buffer
+const preimageRaw = JSON.parse(JSON.stringify(preimage)).data
+// log the preimage raw bytes
+console.log(`preimage bytes: ${preimageRaw}`)
+// create SHA-256 hash
+const hash = crypto.createHash('sha256')
+hash.update(preimage);
+// log preimage hash raw bytes
+console.log(`hash bytes: ${new Uint32Array(hash.copy().digest())}`)
+// log hex-encoded preimage
+console.log(`hex: ${preimage.toString('hex')}`)
+// log hex-encoded preimage hash
+console.log(`hash: ${hash.copy().digest('hex')}`);
+```
+
 ```json
 {
     "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH",
