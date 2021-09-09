@@ -80,7 +80,7 @@ public class Mediator implements Runnable {
                 if(r.getResult() == null) {
                     logger.error(Constants.MULTISIG_CONFIG_ERROR);
                 }
-                 monero.submitMultisig(txset).subscribe(s -> {
+                 monero.submitMultisig(r.getResult().getTx_data_hex()).subscribe(s -> {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
                     monero.controlWallet(WalletState.CLOSE, sfn).subscribe(c -> {
                         SwapService.isWalletOpen = false;
