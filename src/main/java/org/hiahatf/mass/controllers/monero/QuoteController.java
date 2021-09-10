@@ -6,9 +6,11 @@ import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.services.monero.QuoteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Mono;
@@ -40,6 +42,7 @@ public class QuoteController extends BaseController {
      * with additional details.
      * @return MoneroQuote
      */
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping(Constants.XMR_QUOTE_PATH)
     public Mono<Quote> fetchMoneroQuote(@RequestBody Request request) {
         return quoteService.processMoneroQuote(request);

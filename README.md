@@ -28,11 +28,18 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 
 ## BTC -> XMR API
 
+1. Generate a quote at GET `http://localhost:6789/quote/xmr`
+2. Pay the (hold) `invoice` from response. Fund the consensus wallet by sending quote id and output from make_multisig_info
+3. Send export_multisig_info and quote id to initialize the swap
+4. Use the `quoteId` (aka preimage hash) and preimage to complete swap execution
+
 samples at `./api.http`
 
 health check at GET `http://localhost:6789/health`
 
 source code integrity hashes at GET `http://localhost:6789/integrity`
+
+obtain rate and bypass quote at GET `http://localhost:6789/rate`
 
 integrity response:
 
@@ -50,9 +57,9 @@ integrity response:
 }
 ```
 
-1. generate a quote at GET `http://localhost:6789/quote/xmr`
 
-### quote request
+
+### Quote Request
 
 `address` - recipient's address to receive xmr
 
@@ -62,7 +69,7 @@ integrity response:
 
 `preimageHash` - client must generate a 32-byte array preimage hash and reveal the preimage to complete the swap
 
-#### sample preimage generation in node.js
+#### Sample preimage generation in node.js
 
 ```javascript
 // import crypto module
@@ -93,7 +100,7 @@ console.log(`hash: ${hash.copy().digest('hex')}`);
 }
 ```
 
-### quote response
+### Quote Response
 ```json
 {
   "amount": 0.123,
@@ -114,9 +121,7 @@ console.log(`hash: ${hash.copy().digest('hex')}`);
 }
 ```
 
-2. Pay the (hold) `invoice` from response. Fund the consensus wallet by sending quote id and output from make_multisig_info
-
-### funding request
+### Funding Request
 
 POST http://localhost:6789/swap/fund/xmr
 
@@ -126,7 +131,11 @@ POST http://localhost:6789/swap/fund/xmr
     "makeMultisigInfo": "MultisigxV1SR6MxEnobnw8xYjJ2WCBNh4gQDHvLR1pX7df9xABRHHL1hbcb5A5NLgCxgEcNz61tpeofhcut9o6xWnFyhBpiGzLKfGTBomYYuN8P1ZPgjNpHBaXM52LStyhaAuFp43WAx2HdHKpVj9pXdmdVrhoWdGRNCKURwPYsPnP1idNvmVAxQajYYave3A4r6DYPzTAETac4pLijvR8ixT3kNgW1oj1RGLY"
 }
 ```
+
+### Funding Response
+
 /swap/fund/xmr response: 
+
 ```json
 {
   "txid": "88546046d697e8c193fa6a85ab9d8374e9c65c10d2fafbc06223a60cf7c5ad2c",
@@ -134,13 +143,13 @@ POST http://localhost:6789/swap/fund/xmr
 }
 ```
 
-3. Send export_multisig_info and quote id to initialize the swap
 
-### initialize the swap
 
-#### NOTE: there appears to be a bug here with n_ouputs = 0 on the first try, so you need some retry logic here. It 'should' work on the retry but if not open an issue.
+### Initialize the Swap
 
-#### CANCELLING? don't send output from export_multisig_info, just sent the hash
+* NOTE: there appears to be a bug here with n_ouputs = 0 on the first try, so you need some retry logic here. It 'should' work on the retry but if not open an issue.
+
+* CANCELLING? don't send output from export_multisig_info, just send the hash
 
 POST http://localhost:6789/swap/initialize/xmr
 
@@ -152,6 +161,8 @@ POST http://localhost:6789/swap/initialize/xmr
 }
 ```
 
+### Initialize Response 
+
 /swap/initialize/xmr response:
 ```json
 
@@ -162,8 +173,7 @@ POST http://localhost:6789/swap/initialize/xmr
 }
 ```
 
-4. Use the `quoteId` (aka preimage hash) and preimage to complete swap execution
-
+### Swap
 
 POST http://localhost:6789/swap/xmr
 
@@ -174,7 +184,7 @@ POST http://localhost:6789/swap/xmr
 }
 ```
 
-response:
+/swap/xmr response:
 
 lncli
 
@@ -213,7 +223,9 @@ sign and submit the transaction
 
 ### Cancel
 
-at this point it is still possible to cancel the swap by sending the hash
+* At this point it is still possible to cancel the swap by sending the hash
+* If export_multisig_info was sent during initialization then client must wait for 7200s timelock
+
 
 POST http://localhost:6789/swap/cancel/xmr
 

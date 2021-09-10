@@ -9,6 +9,7 @@ public final class Constants {
     // controller values
     public static final String HEALTH_PATH = "/health";
     public static final String INTEGRITY_PATH = "/integrity";
+    public static final String MASS_RATE_PATH = "/rate";
     public static final String XMR_QUOTE_PATH = "/quote/xmr";
     public static final String XMR_SWAP_FINAL_PATH = "/swap/xmr";
     public static final String XMR_SWAP_FUND_PATH = "/swap/fund/xmr";

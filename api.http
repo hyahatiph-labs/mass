@@ -221,3 +221,6 @@ Content-Type: application/json
 
 ### integrity
 GET http://localhost:6789/integrity
+
+### rate check
+GET http://localhost:6789/rate

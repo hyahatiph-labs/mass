@@ -128,6 +128,10 @@ public class SwapService {
                         FundResponse fundResponse = FundResponse.builder()
                             .swapAddress(swapAddress)
                             .txid(txid).build();
+
+                            // TODO: test mediator with lower intervene time
+                            // change back when done
+
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
                             massUtil, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
