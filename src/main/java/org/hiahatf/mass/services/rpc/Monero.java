@@ -1,6 +1,6 @@
 package org.hiahatf.mass.services.rpc;
 
-import java.time.Duration;
+
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -180,8 +180,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(CreateWalletResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(CreateWalletResponse.class);
     }
 
     /**
@@ -213,8 +212,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(WalletStateResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(WalletStateResponse.class);
     }
 
     /**
@@ -235,8 +233,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(PrepareResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(PrepareResponse.class);
     }
 
     /**
@@ -261,8 +258,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(MakeResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(MakeResponse.class);
     }
 
     /**
@@ -287,8 +283,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(FinalizeResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(FinalizeResponse.class);
     }
     
     /**
@@ -313,8 +308,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(ImportInfoResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(ImportInfoResponse.class);
     }
 
     /**
@@ -335,8 +329,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(ExportInfoResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(ExportInfoResponse.class);
     }
 
     /**
@@ -361,8 +354,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SignResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(SignResponse.class);
     }
 
     /**
@@ -387,8 +379,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SubmitResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(SubmitResponse.class);
     }
 
     /**
@@ -413,8 +404,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(DescribeResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(DescribeResponse.class);
     }
 
     /**
@@ -439,8 +429,7 @@ public class Monero {
             .path(Constants.JSON_RPC).build())
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(SweepAllResponse.class)
-            .timeout(Duration.ofSeconds(Constants.MULTISIG_WAIT));
+            .bodyToMono(SweepAllResponse.class);
     }
     
     /**
