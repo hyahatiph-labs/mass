@@ -332,11 +332,11 @@ public class MassUtil {
             List<String> sInfoList = Lists.newArrayList();
             // mediator check
             String clientExportInfo = initRequest.getImportInfo();
-            if (clientExportInfo == Constants.MEDIATOR_CHECK) {
+            if (clientExportInfo == Constants.MEDIATOR_CHECK || clientExportInfo == null) {
                 logger.info("Getting mediator to import");
                 sInfoList.add(initResponse.getMediatorExportSwapInfo());
                 return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
-                    if(sim.getResult().getN_outputs() <= 0) {
+                    if(sim.getResult() == null) {
                         return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                     }
                     return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {

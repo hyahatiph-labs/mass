@@ -129,7 +129,8 @@ POST http://localhost:6789/swap/fund/xmr
 /swap/fund/xmr response: 
 ```json
 {
-  "txid": "3ce4567390b2e4ec60f2bd208bd5d3c0cd4b31dc9f75a5da94b44c8a5e5f7600"
+  "txid": "88546046d697e8c193fa6a85ab9d8374e9c65c10d2fafbc06223a60cf7c5ad2c",
+  "swapAddress": "53QeEYRzE8t4PuTu2VDb9DaWbNvgqYhgf3gEYdyWSoQNggyJJwwZd1nQpqzu3dhfZBXocUrtABLZX6xQY5i3fDT9JvCmYEb"
 }
 ```
 
@@ -138,6 +139,8 @@ POST http://localhost:6789/swap/fund/xmr
 ### initialize the swap
 
 #### NOTE: there appears to be a bug here with n_ouputs = 0 on the first try, so you need some retry logic here. It 'should' work on the retry but if not open an issue.
+
+#### CANCELLING? don't send output from export_multisig_info, just sent the hash
 
 POST http://localhost:6789/swap/initialize/xmr
 
@@ -207,6 +210,18 @@ sign and submit the transaction
 * [sign_multisig](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#sign_multisig)
 
 * [submit_multisig](https://web.getmonero.org/resources/developer-guides/wallet-rpc.html#submit_multisig)
+
+### Cancel
+
+at this point it is still possible to cancel the swap by sending the hash
+
+POST http://localhost:6789/swap/cancel/xmr
+
+```json
+{
+    "hash": "02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94"
+}
+```
 
 ## XMR -> BTC API
 

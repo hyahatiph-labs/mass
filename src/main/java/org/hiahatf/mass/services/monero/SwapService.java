@@ -124,7 +124,10 @@ public class SwapService {
                         String quoteId = table.getQuote_id();
                         table.setFunding_txid(txid);
                         quoteRepository.save(table);
-                        FundResponse fundResponse = FundResponse.builder().txid(txid).build();
+                        String swapAddress = table.getSwap_address();
+                        FundResponse fundResponse = FundResponse.builder()
+                            .swapAddress(swapAddress)
+                            .txid(txid).build();
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
                             massUtil, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
@@ -159,7 +162,7 @@ public class SwapService {
     }
 
     /**
-     * Allows the client to back out of the swap within the 10 min.
+     * Allows the client to back out of the swap within the 60 min.
      * window between funding tx unlock time and mediator intervention time.
      * @param swapRequest
      * @return Mono<SwapResponse> - empty response with HTTP OK status
@@ -167,8 +170,8 @@ public class SwapService {
     public Mono<SwapResponse> processCancel(SwapRequest swapRequest) {
         isWalletOpen = true;
         XmrQuoteTable quote = quoteRepository.findById(swapRequest.getHash()).get();
-        String mfn = quote.getMediator_filename();
-        return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
+        String sfn = quote.getSwap_filename();
+        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.getBalance().flatMap(b -> {
                 int blocksRemaining = b.getResult().getBlocks_to_unlock();
                 if(blocksRemaining != 0) {
@@ -178,9 +181,9 @@ public class SwapService {
                 return monero.sweepAll(rpAddress).flatMap(r -> {
                     // null check, since rpc since 200 on null result
                     if(r.getResult() == null) {
-                        logger.error(Constants.MEDIATOR_ERROR);
+                        logger.error(Constants.UNK_ERROR);
                     }
-                    return monero.controlWallet(WalletState.CLOSE, mfn).flatMap(c -> {
+                    return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
                         isWalletOpen = false;
                         logger.info("Mediator sweep complete");
                         return signAndSubmitCancel(swapRequest, 
@@ -193,23 +196,23 @@ public class SwapService {
 
     /**
      * Sign and submit the multisig transaction for refund with client approval in the 
-     * form of export_multisig_info. The HTLC involved is cancelled out.s
+     * form of export_multisig_info. The HTLC involved is cancelled out.
      * @param txset
      * @param quote
      * @return Mono<SwapResponse> - empty response with HTTP OK status
      */
     private Mono<SwapResponse> signAndSubmitCancel(SwapRequest swapRequest,
     String txset, XmrQuoteTable quote) {
-        String sfn = quote.getSwap_filename();
-        return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
+        String mfn = quote.getMediator_filename();
+        return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
             return monero.signMultisig(txset).flatMap(r -> {
                 // null check, since rpc since 200 on null result
                 if(r.getResult() == null) {
-                    logger.error(Constants.MULTISIG_CONFIG_ERROR);
+                    return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                 }
-                return monero.submitMultisig(txset).flatMap(s -> {
+                return monero.submitMultisig(r.getResult().getTx_data_hex()).flatMap(s -> {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
-                    return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
+                    return monero.controlWallet(WalletState.CLOSE, mfn).flatMap(c -> {
                         logger.info("Cancel complete");
                         return cancelMoneroSwap(swapRequest, quote);
                     });
@@ -283,7 +286,7 @@ public class SwapService {
             return lightning.handleInvoice(swapRequest, quote, true).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
                     executorService.shutdown();
-                    // monero transfer succeeded, settle invoice
+                    // settle invoice, succeeded send txset
                     SwapResponse res = SwapResponse.builder()
                         .hash(quote.getQuote_id())
                         .multisigTxSet(sweepAllResponse.getResult().getMultisig_txset())

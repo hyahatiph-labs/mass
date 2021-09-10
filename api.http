@@ -10,8 +10,8 @@ Content-Type: application/json
 {
     "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "multisigInfo": "MultisigV1JtZ7chrKP4cfMYhV6sqzupBgt6N31F2tcgy2LsKpoauueRuSdkbgnDg3eWfS7Dwsme7rhUs22L6iyfkkFae24maEXpRM4V2KEKYDs8xyC2D9s76SPSn1H8gQpDa1rjZe5X9HjMNMoZJiKzJbvWAVuqxQXiNPkJDXQZ3KrRC7ybGGPmtF",
-    "preimageHash": [56,104,41,10,102,46,209,43,55,172,163,245,189,137,23,41,215,112,132,169,171,68,171,109,12,33,115,147,53,100,104,28]
+    "multisigInfo": "",
+    "preimageHash": []
 }
 
 ### Validate Monero address
@@ -176,18 +176,17 @@ POST http://localhost:6789/swap/fund/xmr
 Content-Type: application/json
 
 {
-    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
-    "makeMultisigInfo": "MultisigxV1Psatu3CxV4Q7SNpmjBxJzY2afNUQi9Ng97qkjZMSbuTAgzKqPHDv8vTTHyN9kywFAHgvDnFPjUavWX9TBdzNNddTZ9z82BPiEnXKk3gshpXZpn4Rg2nCSrKnNNigSNWj9g2rECHA1Fwf6T1FUKTXCTQf8jHAZe8aefXQRiLZp2QEk7ediAty8NVwsUYUF3w8Ju6BAZQ8XpuErUarmEXbajyp4Tun"
+    "hash": "",
+    "makeMultisigInfo": ""
 }
 
-### /swap/initialize
+### /swap/initialize (don't send import info when cancelling)
 
 POST http://localhost:6789/swap/initialize/xmr
 Content-Type: application/json
 
 {
-    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
-    "importInfo": ""
+    "hash": "4e10d70616a930e2a6cbb80e6de735a5f6eeee9f970d9a5737607c052afa7ffb"
 }
 
 ### execute swap w/ multsig v0.2.0-beta+
@@ -195,8 +194,16 @@ POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
 {
-    "hash": "3868290a662ed12b37aca3f5bd891729d77084a9ab44ab6d0c2173933564681c",
-    "preimage": [223,170,234,101,192,203,20,100,57,7,43,236,232,7,121,194,116,73,13,147,124,252,119,126,25,147,65,130,81,233,9,84]
+    "hash": "",
+    "preimage": []
+}
+
+### cancel xmr swap (no need to send preimage to cancel, initialize first!)
+POST http://localhost:6789/swap/cancel/xmr
+Content-Type: application/json
+
+{
+    "hash": "4e10d70616a930e2a6cbb80e6de735a5f6eeee9f970d9a5737607c052afa7ffb"
 }
 
 ### btc quote
@@ -206,10 +213,10 @@ Content-Type: application/json
 
 {
     "amount": 0.123,
-    "proofAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
-    "proofSignature": "ReserveProofV21Ai4rHZdv888azBiCUDZTFj6aigfv1CFz6my7fC5qwwMChkJof9KVKy83H81wLYbzTHBj6GMaau8JTWzoB9MutPgTaX7CGGgUQjT9DGqS1puXx4SQEizukGhqb4zfSW7HFBEE4gJfaf7bozE4ssXZjYP5ii14uZ5zm5RLPfYYdgYkaCvbrGmmRpx4CSGmTexosetvk5BZPa1mRGQ75WDFuyZ9ztTiEdHJrJSs54fVUvJotZaBdNB2GKXXrGzhiVYpscC6nLuFn1UdAcT7tLgANbLtKkGiZbrDoDfBubbwaKPidLVbVzPN1a4gNtKkJXWSt3noQhDRZ6qLb2vVYKg2LFVHm6LqkTdXz8PhtuoLAtNU6T94UecJYUQ5FATAmxZx5SWChdmZdLSSK3vLiXFBehLnwTVyxrsH772jMDhDycxfL1VrtbwuH687PpYvGa",
+    "proofAddress": "",
+    "proofSignature": "",
     "refundAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
-    "swapMultisigInfos": ["MultisigV1U4127UrxYQhWE7MVtZwxzbNtkzVUQFWBgaHTWk4JX5W2hPkL47JeRebBxRbDE37T1gE7WtfCwRnurJixdLx9SvGj8Uif8kUqEw7SVcqwbPzcTRL7rXB3xUfN3Sk6QHcVexBWC79dHKNedFgaDZ84heXdUDR255m5kHyWuhEWF4kz9oKE", "MultisigV1SUX3fBezZrY7csuKj8s5C9jWThCo6PRERMEjFiahN3ABJdrQNmsPmRmVUuYh1a5mDCQjx8LBCbgM4KRiU9e2rFLY45mteKifQUR3SRY2bQsVyJRohU7jX8ob9XyWq1yp5sLi5yu8JuQTiV634cEn7VwtdagfRjibm9T7VjbUjN7NgQnr"]
+    "swapMultisigInfos": ["", ""]
 }
 
 ### integrity
