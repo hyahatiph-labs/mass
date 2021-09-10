@@ -77,10 +77,7 @@ public class SwapService {
         }
         XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
         isWalletOpen = true;
-        return massUtil.finalizeMediatorMultisig(request).flatMap(fm -> {
-            table.setSwap_address(fm.getResult().getAddress());
-            return processMoneroSwap(request, table);
-        });
+        return processMoneroSwap(request, table);
     }
 
     /**
@@ -96,7 +93,10 @@ public class SwapService {
         try {
             return lightning.lookupInvoice(table.getQuote_id()).flatMap(l -> {
                 if(l.getState() == InvoiceState.ACCEPTED) {
-                    return sendToConsensusWallet(request, table);
+                    return massUtil.finalizeMediatorMultisig(request).flatMap(fm -> {
+                        table.setSwap_address(fm.getResult().getAddress());
+                        return sendToConsensusWallet(request, table);
+                    });
                 }
                 return Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR));
             });
@@ -128,10 +128,6 @@ public class SwapService {
                         FundResponse fundResponse = FundResponse.builder()
                             .swapAddress(swapAddress)
                             .txid(txid).build();
-
-                            // TODO: test mediator with lower intervene time
-                            // change back when done
-
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
                             massUtil, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
