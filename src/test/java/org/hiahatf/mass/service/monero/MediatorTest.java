@@ -55,7 +55,7 @@ public class MediatorTest {
     MoneroQuoteRepository moneroQuoteRepository;
     @InjectMocks
     Mediator mediator = new Mediator(moneroQuoteRepository, "quoteId", monero, 
-        massUtil, "refundAddress");
+        massUtil, "refundAddress", 0);
     
     @Test
     @DisplayName("Mediator Test")

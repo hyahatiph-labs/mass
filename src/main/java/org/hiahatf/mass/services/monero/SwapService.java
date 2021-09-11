@@ -129,7 +129,7 @@ public class SwapService {
                             .swapAddress(swapAddress)
                             .txid(txid).build();
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                            massUtil, rpAddress), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
+                            massUtil, rpAddress, 0), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
                 });
             });

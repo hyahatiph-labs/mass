@@ -116,6 +116,7 @@ public final class Constants {
 
     // swap service values
     public static final long MEDIATOR_INTERVENE_TIME = 3600L;
+    public static final long MEDIATOR_RETRY_DELAY = 60L;
     public static final int MULTISIG_THRESHOLD = 2;
     public static final int MULTISIG_TOTAL = 3;
 

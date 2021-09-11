@@ -346,7 +346,7 @@ public class MassUtil {
             } else {
                 sInfoList.add(initRequest.getImportInfo());
                 return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
-                    if(sim.getResult().getN_outputs() <= 0) {
+                    if(sim.getResult() == null) {
                         return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                     }
                     return monero.controlWallet(WalletState.CLOSE, swapFilename).flatMap(swcc -> {
@@ -373,7 +373,7 @@ public class MassUtil {
             mInfoList.add(initResponse.getSwapExportInfo());
             return monero.importMultisigInfo(mInfoList).flatMap(imi -> {
                 return monero.controlWallet(WalletState.CLOSE, mediatorFilename).flatMap(mcwc -> {
-                    if(imi.getResult().getN_outputs() <= 0) {
+                    if(imi.getResult() == null) {
                         return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                     }
                     return Mono.just(initResponse);
