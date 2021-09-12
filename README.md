@@ -243,7 +243,7 @@ POST http://localhost:6789/swap/cancel/xmr
 ## XMR -> BTC API
 
 1. Send reserve proof along with refund address, amount and prepare multisig info (two newly generated wallets)
-2. Send quoteId and output from make multisig info x3, fund the multisig wallet prior to initializing
+2. Send quoteId and output from make multisig info x2, fund the multisig wallet prior to initializing
 3. Send quoteId, export multisig x2 info and payment request generated from the preimage hash (< 7200 expiry). Derive the amount of sats to send from the quote. (rate x amount * COIN)
 4. Send quoteId and multisigTxSet in exchange for preimage to complete the swap
 
