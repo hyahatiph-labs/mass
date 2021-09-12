@@ -118,8 +118,11 @@ public class BitcoinSwapServiceTest {
             .result(walletStateResult).build();
         BalanceResult balanceResult = BalanceResult.builder().blocks_to_unlock(0).build();
         BalanceResponse balanceResponse = BalanceResponse.builder().result(balanceResult).build();
+        List<String> infos = Lists.newArrayList();
+        infos.add("info1");
+        infos.add("info2");
         InitRequest initRequest = InitRequest.builder().hash("hash")
-            .importInfo("importInfo").paymentRequest("lntest123").build();
+            .importInfos(infos).paymentRequest("lntest123").build();
         InitResponse initResponse = InitResponse.builder().hash("hash")
             .swapExportInfo(expectedSwapInfo).build();
         PaymentRequest paymentRequest = PaymentRequest.builder()
@@ -161,8 +164,10 @@ public class BitcoinSwapServiceTest {
         Destination destination = Destination.builder().address(expectedAddress)
             .amount(1000000000000L).build();
         destinations.add(destination);
+        List<Description> descriptions = Lists.newArrayList();
         Description desc = Description.builder().recipients(destinations).build();
-        DescribeResult describeResult = DescribeResult.builder().desc(desc).build();
+        descriptions.add(desc);
+        DescribeResult describeResult = DescribeResult.builder().desc(descriptions).build();
         DescribeResponse describeResponse = DescribeResponse.builder().result(describeResult).build();
         SignResult signResult = SignResult.builder().tx_data_hex("tx_data_hex").build();
         SignResponse signResponse = SignResponse.builder().result(signResult).build();

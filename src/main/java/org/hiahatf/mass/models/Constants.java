@@ -131,13 +131,13 @@ public final class Constants {
         "Payment threshold error. (min: {0}, max: {1} satoshis)";
     public static final String HASH_ERROR = "Preimage hashing error: {}";
     public static final String RESERVE_PROOF_ERROR = "Reserve proof error";
-    public static final String EXPIRY_ERROR = "Expiry limit is 600 seconds";
+    public static final String EXPIRY_ERROR = "Expiry limit is 7200 seconds";
     public static final String DECODE_ERROR = "Failed to decode payment request.";
     public static final String WALLET_ERROR = "Wallet control is busy, please try agin.";
     public static final String FUNDING_ERROR = "Consensus wallet funding error, {0} block(s) remain";
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
-    public static final String INVALID_AMT_ERROR = "Funding amount is invalid error";
+    public static final String INVALID_AMT_ERROR = "Funding amount is invalid";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

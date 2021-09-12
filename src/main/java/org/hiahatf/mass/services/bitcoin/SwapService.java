@@ -119,6 +119,7 @@ public class SwapService {
      * @return Mono<Quote>
      */
     private Mono<InitResponse> decodePayReq(InitRequest request, BtcQuoteTable table, String sfn) {
+        // TODO: add rate to quote in db to lock rate for swap duration
         String rate = rateService.getMoneroRate();
         Double parsedRate = massUtil.parseMoneroRate(rate);
         try {
@@ -147,12 +148,12 @@ public class SwapService {
     
     private Mono<InitResponse> payInvoice(InitRequest initRequest, String sfn) {
         try {
-            return lightning.sendPayment(initRequest.getPaymentRequest()).flatMap(pay -> {
+            lightning.sendPayment(initRequest.getPaymentRequest()).subscribe(pay -> {
                 if(pay.getStatus() == PaymentStatus.FAILED) {
-                    return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
+                    logger.error(Constants.FATAL_SWAP_ERROR);
                 }
-                return massUtil.rExportSwapInfo(sfn, initRequest);
             });
+            return massUtil.rExportSwapInfo(sfn, initRequest);
         } catch (SSLException se) {
             return Mono.error(new MassException(se.getMessage()));
         } catch (IOException ie) {
@@ -164,10 +165,11 @@ public class SwapService {
         String txset = swapRequest.getTxset();
         BtcQuoteTable table = quoteRepository.findById(swapRequest.getHash()).get();
         Double amount = table.getAmount() * Constants.PICONERO;
+        // could add multiple destinations in the future here...
         Destination expectDestination = Destination.builder()
             .address(sendAddress).amount(amount.longValue()).build();
         return monero.describeTransfer(txset).flatMap(dt -> {
-            if(dt.getResult().getDesc().getRecipients().contains(expectDestination)) {
+            if(dt.getResult().getDesc().get(0).getRecipients().contains(expectDestination)) {
                 return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
             }
             return monero.signMultisig(txset).flatMap(sign -> {

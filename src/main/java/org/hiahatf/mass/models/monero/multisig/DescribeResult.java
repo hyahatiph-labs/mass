@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.monero.multisig;
 
+import java.util.List;
+
 import org.hiahatf.mass.models.monero.Description;
 
 import lombok.AllArgsConstructor;
@@ -16,5 +18,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DescribeResult {
-    private Description desc;
+    private List<Description> desc;
 }

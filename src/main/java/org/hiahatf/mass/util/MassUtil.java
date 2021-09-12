@@ -458,12 +458,10 @@ public class MassUtil {
      * @return Mono<FinalizeResponse>
      */
     public Mono<FinalizeResponse> rFinalizeSwapMultisig(FundRequest request, String sfn) {
-        List<String> sInfoList = Lists.newArrayList();
-        sInfoList.add(request.getMakeMultisigInfo());
         logger.info("Opening swap wallet");
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(scwo -> {
             logger.info("Finalizing swap multisig");
-            return monero.finalizeMultisig(sInfoList).flatMap(sfm -> {
+            return monero.finalizeMultisig(request.getMakeMultisigInfos()).flatMap(sfm -> {
                 logger.info("Closing swap wallet");
                 return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(scwc -> {
                     return Mono.just(sfm);
@@ -489,10 +487,8 @@ public class MassUtil {
                 InitResponse initResponse = InitResponse.builder()
                     .hash(initRequest.getHash())
                     .swapExportInfo(sem.getResult().getInfo()).build();
-                List<String> sInfoList = Lists.newArrayList();
-                sInfoList.add(initRequest.getImportInfo());
-                return monero.importMultisigInfo(sInfoList).flatMap(sim -> {
-                    if(sim.getResult().getN_outputs() <= 0) {
+                return monero.importMultisigInfo(initRequest.getImportInfos()).flatMap(sim -> {
+                    if(sim.getResult() == null) {
                         return Mono.error(new MassException(Constants.MULTISIG_CONFIG_ERROR));
                     }
                     return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(swcc -> {

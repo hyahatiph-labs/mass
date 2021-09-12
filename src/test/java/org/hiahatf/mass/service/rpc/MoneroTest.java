@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.monero.Description;
+import org.hiahatf.mass.models.monero.Destination;
 import org.hiahatf.mass.models.monero.multisig.DescribeResponse;
 import org.hiahatf.mass.models.monero.multisig.DescribeResult;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
@@ -320,10 +321,15 @@ public class MoneroTest {
     @DisplayName("Monero Describe Transfer Test")
     public void describeTransferTest() throws JsonProcessingException { 
         String txSet = "testtxset";
+        List<Description> descriptions = Lists.newArrayList();
+        List<Destination> destinations = Lists.newArrayList();
+        Destination destination = Destination.builder().address("address").build();
+        destinations.add(destination);
         Description desc = Description.builder().amount_in(123L)
-        .amount_out(123L).change_address("54change").change_amount(123L)
-        .dummy_outputs(11).fee(123L).build();
-        DescribeResult result = DescribeResult.builder().desc(desc).build();
+            .amount_out(123L).change_address("54change").change_amount(123L)
+            .recipients(destinations).dummy_outputs(11).fee(123L).build();
+        descriptions.add(desc);
+        DescribeResult result = DescribeResult.builder().desc(descriptions).build();
         DescribeResponse response = DescribeResponse.builder().result(result).build();
         mockBackEnd.enqueue(new MockResponse()
             .setBody(objectMapper.writeValueAsString(response))
@@ -332,8 +338,8 @@ public class MoneroTest {
         Mono<DescribeResponse> testRes = monero.describeTransfer(txSet);
         
         StepVerifier.create(testRes)
-        .expectNextMatches(r -> r.getResult().getDesc()
-          .equals(desc))
+        .expectNextMatches(r -> r.getResult().getDesc().get(0).getRecipients()
+          .contains(destination))
         .verifyComplete();
     }
 

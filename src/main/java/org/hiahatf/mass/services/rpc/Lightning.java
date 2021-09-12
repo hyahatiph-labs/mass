@@ -16,6 +16,7 @@ import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.lightning.RouterSendRequest;
 import org.hiahatf.mass.models.lightning.RouterSendResponse;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.SwapRequest;
@@ -184,11 +185,14 @@ public class Lightning {
     public Mono<RouterSendResponse> sendPayment(String paymentRequest) 
     throws SSLException, IOException {
         WebClient client = createClient();
-        return client.get()
+        RouterSendRequest request = RouterSendRequest.builder()
+            .payment_request(paymentRequest).build();
+        return client.post()
             .uri(uriBuilder -> uriBuilder
             .pathSegment(Constants.V2, Constants.ROUTER, Constants.SEND)
             .build())
             .header(Constants.MACAROON_HEADER, createMacaroonHex())
+            .bodyValue(request)
             .retrieve()
             .bodyToMono(RouterSendResponse.class);
     }

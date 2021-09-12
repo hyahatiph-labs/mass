@@ -250,9 +250,12 @@ public class MassUtilTest {
     @DisplayName("Reverse-logic Export Multisig Test")
     public void rExportMultisigTest() {
         String importInfo = "MultisigIinfo";
+        List<String> infos = Lists.newArrayList();
+        infos.add("info1");
+        infos.add("info2");
         org.hiahatf.mass.models.bitcoin.InitRequest initRequest = 
             org.hiahatf.mass.models.bitcoin.InitRequest.builder()
-            .hash("hash").importInfo("importInfo").build();
+            .hash("hash").importInfos(infos).build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();

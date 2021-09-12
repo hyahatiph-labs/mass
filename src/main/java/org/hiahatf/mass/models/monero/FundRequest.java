@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.monero;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +19,6 @@ public class FundRequest {
     private String hash;
     // make_multisig_info from client
     private String makeMultisigInfo;
+    // use a list on reverse swap logic
+    private List<String> makeMultisigInfos;
 }

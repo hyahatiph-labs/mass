@@ -16,7 +16,7 @@ If successfully settled the equivalent amount in Monero is sent
 2. The `src/main/resources/application.yml` can be configured as needed.
 3. Run bitcoind on [regtest](https://developer.bitcoin.org/examples/testing.html)
 4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
-5. Run Monero on [stagenet](https://monerodocs.org/infrastructure/networks/)
+5. Run Monero on [stagenet](https://monerodocs.org/infrastructure/networks/). Get those lovely piconeros at the [Stagenet Faucet](https://melo.tools/faucet/stagenet/)
 6. H2 db runs at host/h2-console.
 7. Currently working on Bitcoin core 0.21, LND 0.13.x, Fedora 34, Java 11, Maven 3.6 and Monero 0.17.2
 
@@ -214,7 +214,7 @@ Payment status: SUCCEEDED, preimage: xxx
 ```json
 
 {
-  "hash": "63eb4534535a4c4afa9455f7dacde8cecbbac91e2bcd390407e1b88704a9a758",
+  "hash": "02a69bb6043d2a4101502efef3da901095c7ea97c0e6bd277b9b7430de8a7b94",
   "multisigTxSet": "Multisig..."
 }
 
@@ -242,7 +242,104 @@ POST http://localhost:6789/swap/cancel/xmr
 
 ## XMR -> BTC API
 
-Coming soon!
+1. Send reserve proof along with refund address, amount and prepare multisig info (two newly generated wallets)
+2. Send quoteId and output from make multisig info x3, fund the multisig wallet prior to initializing
+3. Send quoteId, export multisig x2 info and payment request generated from the preimage hash (< 7200 expiry). Derive the amount of sats to send from the quote. (rate x amount * COIN)
+4. Send quoteId and multisigTxSet in exchange for preimage to complete the swap
+
+### Quote Request
+
+GET http://localhost:6789/quote/btc
+
+```json
+{
+    "amount": 0.123,
+    "proofAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
+    "proofSignature": "ReserveProofV2...",
+    "refundAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
+    "swapMultisigInfos": ["MultisigV1..."]
+}
+```
+
+### Quote Response
+
+```json
+
+{
+  "amount": 0.123,
+  "quoteId": "58e778fa4223f30b14c2228edc31f6c1d0a461c12ef7587f34f0aa213ab8bba8",
+  "refundAddress": "54Czx3ETpFZJPeYJC9RPvD9MzTrRjtdM4AYkryvQVD9259CUZ3shG99S53LzWFr5E1jJgd9fqZkzZbVz28N4oCzJBMLjDpj",
+  "rate": 0.0055731800000000005,
+  "minSwapAmt": 10000,
+  "maxSwapAmt": 10000000,
+  "sendTo": "5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C",
+  "swapMakeMultisigInfo": "MultisigV1X...",
+  "swapFinalizeMultisigInfo": "Multisigx..."
+}
+```
+
+### Funding Request
+
+POST http://localhost:6789/swap/fund/btc
+
+```json
+{
+    "hash": "58e778fa4223f30b14c2228edc31f6c1d0a461c12ef7587f34f0aa213ab8bba8",
+    "makeMultisigInfos": ["Multisigx...","Multisigx..."]
+}
+```
+
+### Funding Response
+
+GET http://localhost:6789/quote/btc
+
+```json
+{
+  "txid": null,
+  "swapAddress": "57ZWGGmAqHBSsXgQrDpkSkPv4QQaqvCobG2ET29HbD81ZgoAPCsvpJDMp5tbSRt76XYGaREsjKCEG4y4kEzzr1avK4t15fw"
+}
+```
+
+### Initialize Request
+
+POST http://localhost:6789/swap/initialize/btc
+
+```json
+{
+    "hash": "58e778fa4223f30b14c2228edc31f6c1d0a461c12ef7587f34f0aa213ab8bba8",
+    "importInfos": ["46895...","48ksfafi..."],
+    "paymentRequest": "lnbcrt..."
+}
+```
+
+### Initialize Response
+
+```json
+{
+    "hash": "0959aba9bb780687ef884f2a4d50da3e9b2c8df4dc64cbd5c9b555101df28150",
+    "swapExportInfo": "MultiSigInfo...",
+    "mediatorExportInfo": null
+}
+
+```
+
+### Swap Request
+
+POST http://localhost:6789/swap/btc
+
+```json
+{
+    "hash": "3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec07",
+    "txset": "...long hex..."
+}
+```
+### Swap Response
+
+```json
+{
+  "preimage": "88d093e1ee8ba149141bd1ee1e0c9a87b2579a201bab3f4435b24b6503ab59de"
+}
+```
 
 ## Tests
 
@@ -253,7 +350,6 @@ Run `mvn clean install` from the root directory
 View test coverage with web browser `./target/site/jacoco/index.htm`
 
 ![image](https://user-images.githubusercontent.com/13033037/126047819-09fe351a-be62-4bf9-bd5f-cb3580862c6e.png)
-
 
 ## TODOs
 
