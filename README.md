@@ -143,6 +143,11 @@ POST http://localhost:6789/swap/fund/xmr
 }
 ```
 
+#### Mediator
+
+* Attempts to sweep funds if no action is taken t+3600s
+* Max 3 retries
+* src/main/services/monero/Mediator.java
 
 
 ### Initialize the Swap
