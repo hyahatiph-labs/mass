@@ -3,10 +3,12 @@ server.port: 6789
 # hosts for external data
 host: 
   price: https://min-api.cryptocompare.com
-  monero: http://localhost:18082
+  monero: http://localhost:18083
   lightning: https://localhost:8180
 # reserve proof address
-rp-address: 56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH
+rp-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
+send-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
+mass-wallet-filename: mass
 # macaroon path
 macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
@@ -32,3 +34,5 @@ spring.datasource:
 spring.jpa:
   database-platform: org.hibernate.dialect.H2Dialect
   hibernate.ddl-auto: update
+# temp fix for mulitsig time outs
+spring.mvc.async.request-timeout: -1

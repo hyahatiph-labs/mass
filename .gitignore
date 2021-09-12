@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### db
+# h2 db
 data.mv.db
+data.trace.db

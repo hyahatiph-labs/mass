@@ -8,8 +8,10 @@ GET http://localhost:6789/quote/xmr
 Content-Type: application/json
 
 {
+    "address": "54gqcJZAtgzBFnQWEQHec3RoWfmoHqL4H8sASqdQMGshfqdpG1fzT5ddCpz9y4C2MwQkB5GE2o6vUVCGKbokJJa6S6NSatn",
     "amount": 0.123,
-    "address": "56fK1PpmCjz5CEiAb8dbpyQZtpJ8s4B2WaXPqyFD2FU9DUobuSDJZztEPeppvAqT2DPWcdp7qtW6KasCbYoWJC7qBcwWrSH"
+    "multisigInfo": "",
+    "preimageHash": []
 }
 
 ### Validate Monero address
@@ -32,11 +34,7 @@ POST https://localhost:8180/v2/invoices/hodl
 Grpc-Metadata-macaroon: 
 
 {
-    "hash": [224, 199, 253,  44, 149,  34, 254,
-  240, 249, 243, 120, 108, 140, 190,
-   74,  38, 149, 157,  65, 141, 117,
-  176,  47, 166, 199,  59, 185,  30,
-  217, 113, 161, 236],
+    "hash": [224, 199, 253,  44, 149, 34, 254, 240, 249, 243, 120, 108, 140, 190, 74,  38, 149, 157,  65,141, 117, 176,  47, 166, 199,  59, 185,  30, 217, 113, 161, 236],
     "value": "10000",
     "expiry": "600"
 }
@@ -52,7 +50,7 @@ Grpc-Metadata-macaroon:
   156, 161, 114, 203, 240,  65,  20,  53]
 }
 
-### perform xmr swap
+### perform xmr swap v0.1.0-beta
 POST http://localhost:6789/swap/xmr
 Content-Type: application/json
 
@@ -61,10 +59,17 @@ Content-Type: application/json
 }
 
 ### get balances of xmr wallet
-POST http://localhost:18082/json_rpc 
+POST http://localhost:18083/json_rpc 
 Content-Type: application/json
 
-{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,1]}}
+{"jsonrpc":"2.0","id":"0","method":"get_balance","params":{"account_index":0,"address_indices":[0,0]}}
+
+### is_multisig check for xmr wallet
+
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"is_multisig"}
 
 ### xmr get_tx_proof
 
@@ -79,3 +84,183 @@ POST http://127.0.0.1:18082/json_rpc
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":"0","method":"get_transfers","params":{"out":true,"account_index":0}}
+
+### bitcoin quote
+GET http://localhost:6789/quote/btc
+Content-Type: application/json
+
+{
+    "paymentRequest": "",
+    "refundAddress": ""
+}
+
+
+### create wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"mass","language":"English"}}
+
+### open wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec071631480869"}}
+
+
+### close wallet
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"close_wallet","params":{"filename":"3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec071631480869"}}
+
+### export multisig info
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"export_multisig_info"}
+
+### sign multisig
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"sign_multisig",
+    "params": {
+        "tx_data_hex": ""
+    }
+}
+
+### submit multisig
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"submit_multisig",
+    "params": {
+        "tx_data_hex": ""
+    }
+}
+
+### transfer
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"transfer","params":{"destinations":[{"amount":900000000000,"address":"54ZGkxaYG7WXN6FFjapkMp7CyxSSjZq4uYvY9DnXejPSLv554Vxm7eR8Kydz3zBA2xan3dpJF1suMMriBJWShnwZVX6Bo8Y"}],"account_index":0,"subaddr_indices":[0],"priority":0,"ring_size":11}}
+
+### sweep all
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{
+"jsonrpc":"2.0","id":"0","method":"sweep_all",
+    "params":{      
+        "address":"5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C","account_index":0,"priority":0,"ring_size":11
+    }
+}
+
+### import multisig info
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"import_multisig_info", 
+    "params": {
+        "info": [""]
+    }
+}
+
+### describe transer
+
+POST http://localhost:18083/json_rpc 
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":"0","method":"describe_transfer","params":{"multisig_txset":""}}
+
+
+### /swap/fund/xmr
+
+POST http://localhost:6789/swap/fund/xmr
+Content-Type: application/json
+
+{
+    "hash": "",
+    "makeMultisigInfo": ""
+}
+
+### /swap/initialize/xmr (don't send import info when cancelling)
+
+POST http://localhost:6789/swap/initialize/xmr
+Content-Type: application/json
+
+{
+    "hash": "4e10d70616a930e2a6cbb80e6de735a5f6eeee9f970d9a5737607c052afa7ffb"
+}
+
+### execute swap w/ multsig v0.2.0-beta+
+POST http://localhost:6789/swap/xmr
+Content-Type: application/json
+
+{
+    "hash": "",
+    "preimage": []
+}
+
+### cancel xmr swap (no need to send preimage to cancel, initialize first!)
+POST http://localhost:6789/swap/cancel/xmr
+Content-Type: application/json
+
+{
+    "hash": "4e10d70616a930e2a6cbb80e6de735a5f6eeee9f970d9a5737607c052afa7ffb"
+}
+
+### btc quote
+
+GET http://localhost:6789/quote/btc
+Content-Type: application/json
+
+{
+    "amount": 0.123,
+    "proofAddress": "59Cr7SVrqbW9Nej2EAnqUFTugNZhkETdEG5MMMRtqSnZbAZx4Hiv5272MvZM5jjgWedwSQTiEnvsGCjFnXiomdTjPd2uAbC",
+    "proofSignature": "",
+    "refundAddress": "59Cr7SVrqbW9Nej2EAnqUFTugNZhkETdEG5MMMRtqSnZbAZx4Hiv5272MvZM5jjgWedwSQTiEnvsGCjFnXiomdTjPd2uAbC",
+    "swapMultisigInfos": ["", ""]
+}
+
+### fund xmr -> btc
+
+POST http://localhost:6789/swap/fund/btc
+Content-Type: application/json
+
+{
+    "hash": "3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec07",
+    "makeMultisigInfos": ["",""]
+}
+
+### /swap/initialize/btc
+
+POST http://localhost:6789/swap/initialize/btc
+Content-Type: application/json
+
+{
+    "hash": "3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec07",
+    "importInfos": ["",""],
+    "paymentRequest": ""
+}
+
+### swap
+
+### fund xmr -> btc
+
+POST http://localhost:6789/swap/btc
+Content-Type: application/json
+
+{
+    "hash": "3ac451b7910267ed82d656cd738fdb05994820ecc90a86b1a3a5c4699910ec07",
+    "txset": "...long hex..."
+}
+
+### integrity
+GET http://localhost:6789/integrity
+
+### rate check
+GET http://localhost:6789/rate

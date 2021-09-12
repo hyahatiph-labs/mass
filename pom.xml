@@ -11,7 +11,7 @@
 	<groupId>org.hiahatf</groupId>
 	<artifactId>mass</artifactId>
 	<!-- release version -->
-	<version>0.1.0-beta</version>
+	<version>0.2.0-beta</version>
 	<name>mass</name>
 	<description>lightning powered xmr swaps</description>
 	
@@ -104,16 +104,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<!-- WebFlux -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
-			<version>2.2.6.RELEASE</version>
+			<version>2.5.3</version>
 		</dependency>
 		<!-- hex conversion -->
 		<dependency>
@@ -210,8 +205,8 @@
 						<configuration>
 							<rules>
 								<rule>
-									<!-- build restrict the application, not individual packages -->
-									<element>BUNDLE</element>
+									<!-- build restrict the individual packages -->
+									<element>PACKAGE</element>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
@@ -221,10 +216,6 @@
 									</limits>
 								</rule>
 							</rules>
-							<excludes>
-								<!-- no need to test entry point -->
-								<exclude>**/MassApplication.class</exclude>
-							</excludes>
 						</configuration>
 					</execution>
 				</executions>

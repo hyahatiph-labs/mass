@@ -14,6 +14,8 @@ import org.hiahatf.mass.models.lightning.Info;
 import org.hiahatf.mass.models.lightning.InvoiceLookupResponse;
 import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.lightning.Liquidity;
+import org.hiahatf.mass.models.lightning.PaymentRequest;
+import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.XmrQuoteTable;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.junit.jupiter.api.AfterAll;
@@ -130,11 +132,12 @@ public class LightningTest {
             .amount(0.1)
             .quote_id("qid")
             .build();
+        SwapRequest swapRequest = SwapRequest.builder().hash("hash").preimage(new byte[32]).build();
         mockBackEnd.enqueue(new MockResponse()
             .setResponseCode(HttpStatus.OK.value())
             .addHeader(HttpHeaders.CONTENT_TYPE, 
                 HttpHeaderValues.APPLICATION_JSON.toString()));
-        Mono<ResponseEntity<Void>> testRes = lightning.handleInvoice(quote, true);
+        Mono<ResponseEntity<Void>> testRes = lightning.handleInvoice(swapRequest, quote, true);
 
         StepVerifier.create(testRes)
         .expectNextMatches(r -> r.getStatusCode()
@@ -159,6 +162,24 @@ public class LightningTest {
         StepVerifier.create(testRes)
         .expectNextMatches(r -> r.getLocal_balance()
           .equals(amount))
+        .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Decode Payment Request Test")
+    public void decodePaymentRequestTest() throws JsonProcessingException, IOException,
+    SSLException {
+        PaymentRequest paymentRequest = PaymentRequest.builder()
+            .expiry("600").num_satoshis("100000").payment_hash("hash").build();
+        mockBackEnd.enqueue(new MockResponse()
+            .setBody(objectMapper.writeValueAsString(paymentRequest))
+            .addHeader(HttpHeaders.CONTENT_TYPE, 
+                HttpHeaderValues.APPLICATION_JSON.toString()));
+        Mono<PaymentRequest> testRes = lightning.decodePaymentRequest("lntest");
+        
+        StepVerifier.create(testRes)
+        .expectNextMatches(pr -> pr.getPayment_hash()
+          .equals(paymentRequest.getPayment_hash()))
         .verifyComplete();
     }
 

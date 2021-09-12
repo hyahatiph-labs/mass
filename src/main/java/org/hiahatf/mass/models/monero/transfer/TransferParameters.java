@@ -21,8 +21,6 @@ public class TransferParameters {
     private List<Destination> destinations;
     private final int account_index = 0;
     private final int[] subaddr_indices = {0};
-    private final int priority = 0;
+    private final int priority = 2;
     private final int ring_size = 11;
-    private final boolean do_not_relay = true;
-    private final boolean get_tx_metadata = true;
 }
