@@ -354,3 +354,9 @@ View test coverage with web browser `./target/site/jacoco/index.htm`
 ## TODOs
 
 See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
+
+## Contributing
+
+* Styling TBD
+* Fork and open pr.
+* Working code is underrated

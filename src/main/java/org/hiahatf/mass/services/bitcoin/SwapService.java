@@ -134,6 +134,9 @@ public class SwapService {
                 Double rawAmt = value / (parsedRate * Constants.COIN);
                 Double moneroAmt = BigDecimal.valueOf(rawAmt)
                     .setScale(12, RoundingMode.HALF_UP).doubleValue();
+                // TODO: add a confidence interval of 95% to facilitate for price flucuations
+                // the swap could get rejected on wild fluctuations that occur for swap duration
+                // but this protects the server : if(moneroAmt < (table.getAmount * priceConfidence))
                 if(moneroAmt < table.getAmount()) {
                     return Mono.error(new MassException(Constants.INVALID_AMT_ERROR));
                 }

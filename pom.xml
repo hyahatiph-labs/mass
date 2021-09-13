@@ -11,7 +11,7 @@
 	<groupId>org.hiahatf</groupId>
 	<artifactId>mass</artifactId>
 	<!-- release version -->
-	<version>0.2.0-beta</version>
+	<version>0.2.1-beta</version>
 	<name>mass</name>
 	<description>lightning powered xmr swaps</description>
 	
