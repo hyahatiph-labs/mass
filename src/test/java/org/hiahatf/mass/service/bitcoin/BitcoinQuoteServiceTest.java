@@ -55,7 +55,7 @@ public class BitcoinQuoteServiceTest {
     private MassUtil massUtil;
     @InjectMocks
     private QuoteService quoteService = new QuoteService(bitcoinQuoteRepository, 10000L, 100000L, 
-        massUtil, rateService, monero, "sendAddy", "test");
+        massUtil, rateService, monero, "sendAddy", "test", false);
         
     @Test
     @DisplayName("Bitcoin Quote Service Test")

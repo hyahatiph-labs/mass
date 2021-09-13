@@ -48,5 +48,15 @@
     "name": "mass-wallet-filename",
     "type": "java.lang.String",
     "description": "MASS application wallet filename for tx / rx."
+  },
+  {
+    "name": "mode.rate-lock",
+    "type": "java.lang.String",
+    "description": "Set to true to enable locking in price rate for swap duration"
+  },
+  {
+    "name": "mode.price-confidence",
+    "type": "java.lang.String",
+    "description": "Use this value for price threshold floating when mode.rate-lock is FALSE"
   }
 ]}

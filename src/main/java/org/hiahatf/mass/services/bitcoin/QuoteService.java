@@ -39,6 +39,7 @@ public class QuoteService {
     public static boolean isWalletOpen;
     private String massWalletFilename;
     private RateService rateService;
+    private boolean isRateLocked;
     private String sendAddress;
     private MassUtil massUtil;
     private Monero monero;
@@ -49,9 +50,11 @@ public class QuoteService {
     public QuoteService(BitcoinQuoteRepository bitcoinQuoteRepository,
     @Value(Constants.MIN_PAY) Long minPay, @Value(Constants.MAX_PAY) Long maxPay, 
     MassUtil massUtil, RateService rateService, Monero monero, @Value(Constants.SEND_ADDRESS) 
-    String sendAddress, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename) {
+    String sendAddress, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
+    @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked) {
         this.bitcoinQuoteRepository = bitcoinQuoteRepository;
         this.massWalletFilename = massWalletFilename;
+        this.isRateLocked = isRateLocked;
         this.rateService = rateService;
         this.sendAddress = sendAddress;
         this.massUtil = massUtil;
@@ -134,7 +137,7 @@ public class QuoteService {
             return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwo -> {
                 return massUtil.rConfigureMultisig(request.getSwapMultisigInfos(), hexHash).flatMap(m -> {
                     logger.info("Multisig setup complete");
-                    persistQuote(request, m, preimage, preimageHash, hexHash);
+                    persistQuote(request, m, preimage, preimageHash, hexHash, rate);
                     return finalizeQuote(request, m, rate, hexHash);
                 });
             });
@@ -180,9 +183,10 @@ public class QuoteService {
      * @param hexHash - hex-encoding of the 32-byte array preimage
      */
     private void persistQuote(Request request, MultisigData data, byte[] preimage, 
-    byte[] hash, String hexHash) {
+    byte[] hash, String hexHash, Double lockedRate) {
         BtcQuoteTable table = BtcQuoteTable.builder()
             .amount(request.getAmount())
+            .locked_rate(isRateLocked ? lockedRate : 0.0)
             .preimage(preimage)
             .payment_hash(hash)
             .quote_id(hexHash)

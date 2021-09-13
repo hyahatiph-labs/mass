@@ -119,6 +119,8 @@ public final class Constants {
     public static final long MEDIATOR_RETRY_DELAY = 60L;
     public static final int MULTISIG_THRESHOLD = 2;
     public static final int MULTISIG_TOTAL = 3;
+    public static final String RATE_LOCK_MODE = "${mode.rate-lock}";
+    public static final String PRICE_CONFIDENCE = "${mode.price-confidence}";
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
@@ -137,7 +139,7 @@ public final class Constants {
     public static final String FUNDING_ERROR = "Consensus wallet funding error, {0} block(s) remain";
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
-    public static final String INVALID_AMT_ERROR = "Funding amount is invalid";
+    public static final String INVALID_AMT_ERROR = "Funding amount is invalid. This could be due to a an unacceptable price fluctuation for a not rate-locked server. Please create a new swap.";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

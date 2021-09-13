@@ -12,6 +12,11 @@ mass-wallet-filename: mass
 # macaroon path
 macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
 # markup so we can pay the bills
+# needs to be > 0.05 when not in rate lock mode
+# TODO: rate lock mode
+mode:
+  rate-lock: false
+  price-confidence: 0.95
 markup: 0.01
 # payment thresholds in satoshis
 min-pay: 10000
