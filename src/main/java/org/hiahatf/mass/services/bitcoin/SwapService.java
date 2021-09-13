@@ -124,7 +124,6 @@ public class SwapService {
      * @return Mono<Quote>
      */
     private Mono<InitResponse> decodePayReq(InitRequest request, BtcQuoteTable table, String sfn) {
-        // TODO: add rate to quote in db to lock rate for swap duration
         String rate = rateService.getMoneroRate();
         Double parsedRate = isRateLocked ? table.getLocked_rate() : 
             (massUtil.parseMoneroRate(rate) * priceConfidence);
@@ -141,6 +140,7 @@ public class SwapService {
                 Double moneroAmt = BigDecimal.valueOf(rawAmt)
                     .setScale(12, RoundingMode.HALF_UP).doubleValue();
                 if(moneroAmt < table.getAmount()) {
+                    quoteRepository.delete(table);
                     return Mono.error(new MassException(Constants.INVALID_AMT_ERROR));
                 }
                 return payInvoice(request, sfn);

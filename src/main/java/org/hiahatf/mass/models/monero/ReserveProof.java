@@ -17,6 +17,5 @@ public class ReserveProof {
     private String signature;
     // proof address
     // configure in application.yml
-    // TODO: dynamic configuration
     private String proofAddress;
 }

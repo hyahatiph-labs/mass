@@ -57,8 +57,6 @@ integrity response:
 }
 ```
 
-
-
 ### Quote Request
 
 `address` - recipient's address to receive xmr
@@ -340,6 +338,10 @@ POST http://localhost:6789/swap/btc
   "preimage": "88d093e1ee8ba149141bd1ee1e0c9a87b2579a201bab3f4435b24b6503ab59de"
 }
 ```
+### Rate Lock Mode
+
+* `./src/main/application.yml` property `mode.rate-lock`
+* There is default price confidence interval of 95% to handle the bug that causes /swap/initialize/btc to fail when large price fluctuations occur over swap duration. The value will be configurable as well. Markup must be > 0.05 in order to run a profitable swap server. Swaps with larger price fluctuations will be destroyed and new swaps must be created. Rate lock mode will not be enabled by default.
 
 ## Tests
 
@@ -351,6 +353,7 @@ View test coverage with web browser `./target/site/jacoco/index.htm`
 
 ![image](https://user-images.githubusercontent.com/13033037/126047819-09fe351a-be62-4bf9-bd5f-cb3580862c6e.png)
 
+
 ## TODOs
 
 See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
@@ -360,3 +363,9 @@ See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
 * Styling TBD
 * Fork and open pr.
 * Working code is underrated
+
+## Comms
+
+* support@hiahatf.org
+* donations via OpenAlias => hiahatf.org
+* [Slack](https://join.slack.com/t/hyahatiphlabs/shared_invite/zt-vvuak4dd-T3TAZ~~EvYZ5rmM5s1xGMg)
