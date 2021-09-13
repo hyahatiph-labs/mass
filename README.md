@@ -23,7 +23,7 @@ If successfully settled the equivalent amount in Monero is sent
 NOTE: currently have an issue with Monero digest authentication rpc calls, so use `--disable-rpc-login`
 
 ```bash
-~/monero-gui-v0.17.2.2/extras/monero-wallet-rpc --rpc-bind-port=18082 --wallet-file=/path/to/wallet --prompt-for-password --disable-rpc-login --daemon-address monero-stagenet.exan.tech:38081 --stagenet
+~/monero-x86_64-linux-gnu-v0.17.2.3/monero-wallet-rpc --rpc-bind-port=18083 --wallet-dir=/home/USER/Monero/wallets/mass/ --disable-rpc-login --daemon-address monero-stagenet.exan.tech:38081 --stagenet
 ```
 
 ## BTC -> XMR API
@@ -241,7 +241,7 @@ POST http://localhost:6789/swap/cancel/xmr
 ## XMR -> BTC API
 
 1. Send reserve proof along with refund address, amount and prepare multisig info (two newly generated wallets)
-2. Send quoteId and output from make multisig info x3, fund the multisig wallet prior to initializing
+2. Send quoteId and output from make multisig info x2, fund the multisig wallet prior to initializing
 3. Send quoteId, export multisig x2 info and payment request generated from the preimage hash (< 7200 expiry). Derive the amount of sats to send from the quote. (rate x amount * COIN)
 4. Send quoteId and multisigTxSet in exchange for preimage to complete the swap
 
