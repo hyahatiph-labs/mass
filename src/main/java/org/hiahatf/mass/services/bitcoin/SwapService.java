@@ -43,6 +43,8 @@ public class SwapService {
     private BitcoinQuoteRepository quoteRepository;
     public static boolean isWalletOpen;
     private RateService rateService;
+    private double priceConfidence;
+    private boolean isRateLocked;
     private Lightning lightning;
     private String sendAddress;
     private MassUtil massUtil;
@@ -54,9 +56,12 @@ public class SwapService {
     @Autowired
     public SwapService(
         BitcoinQuoteRepository quoteRepository, Lightning lightning, Monero monero,
-        MassUtil massUtil, RateService rateService, 
-        @Value(Constants.SEND_ADDRESS) String sendAddress) {
+        MassUtil massUtil, RateService rateService, @Value(Constants.SEND_ADDRESS) String sendAddress,
+        @Value(Constants.PRICE_CONFIDENCE) double priceConfidence,
+        @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked) {
             this.quoteRepository = quoteRepository;
+            this.priceConfidence = priceConfidence;
+            this.isRateLocked = isRateLocked;
             this.rateService = rateService;
             this.sendAddress = sendAddress;
             this.lightning = lightning;
@@ -119,9 +124,9 @@ public class SwapService {
      * @return Mono<Quote>
      */
     private Mono<InitResponse> decodePayReq(InitRequest request, BtcQuoteTable table, String sfn) {
-        // TODO: add rate to quote in db to lock rate for swap duration
         String rate = rateService.getMoneroRate();
-        Double parsedRate = massUtil.parseMoneroRate(rate);
+        Double parsedRate = isRateLocked ? table.getLocked_rate() : 
+            (massUtil.parseMoneroRate(rate) * priceConfidence);
         try {
             logger.info("Decoding payment request");
             return lightning.decodePaymentRequest(request.getPaymentRequest()).flatMap(p -> {
@@ -135,6 +140,7 @@ public class SwapService {
                 Double moneroAmt = BigDecimal.valueOf(rawAmt)
                     .setScale(12, RoundingMode.HALF_UP).doubleValue();
                 if(moneroAmt < table.getAmount()) {
+                    quoteRepository.delete(table);
                     return Mono.error(new MassException(Constants.INVALID_AMT_ERROR));
                 }
                 return payInvoice(request, sfn);

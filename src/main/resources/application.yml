@@ -11,8 +11,16 @@ send-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRK
 mass-wallet-filename: mass
 # macaroon path
 macaroon-path: /home/rimuru/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
+# Rate lock mode will lock rate for xmr -> btc swaps.
+# Price confidence will allow greater freedom for flucuations.
+# When not in rate lock mode it is possible for swaps to get rejected if it the server would take a
+# loss beyond the threshold. While locked rates will never be rejected.
+mode:
+  rate-lock: false
+  price-confidence: 0.95
 # markup so we can pay the bills
-markup: 0.01
+# needs to be > 0.05 when not in rate lock mode to maintain profitablility
+markup: 0.06
 # payment thresholds in satoshis
 min-pay: 10000
 max-pay: 10000000

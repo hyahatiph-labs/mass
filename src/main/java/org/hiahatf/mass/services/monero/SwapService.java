@@ -185,7 +185,7 @@ public class SwapService {
                     }
                     return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
                         isWalletOpen = false;
-                        logger.info("Mediator sweep complete");
+                        logger.info("Cancel sweep complete");
                         return signAndSubmitCancel(swapRequest, 
                             r.getResult().getMultisig_txset(), quote);
                     });
@@ -262,6 +262,7 @@ public class SwapService {
         try {
             return lightning.handleInvoice(swapRequest, quote, false).flatMap(c -> {
                 if(c.getStatusCode() == HttpStatus.OK) {
+                    executorService.shutdown();
                     quoteRepository.deleteById(quote.getQuote_id());
                     SwapResponse response = SwapResponse.builder().build();
                     return Mono.just(response);

@@ -41,6 +41,8 @@ public class BtcQuoteTable {
     private byte[] preimage;
     @Column // store the preimage hash as byte array
     private byte[] payment_hash;
+    @Column // locked rate to use when in mode.rate-lock
+    private Double locked_rate;
     @Column // multisig address generated for participants
     private String swap_address;
     @Column // filename used for wallet control
