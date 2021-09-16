@@ -40,6 +40,12 @@ View test coverage with web browser `./target/site/jacoco/index.htm`
 
 ![image](https://user-images.githubusercontent.com/13033037/126047819-09fe351a-be62-4bf9-bd5f-cb3580862c6e.png)
 
+## APM
+
+MASS works well with the [Glowroot](https://glowroot.org/) open-source project
+* Extract the zip to your home directory
+* Run MASS with `java -javaagent:/home/USER/glowroot/glowroot.jar -jar target/mass-x.x.x-beta.jar`
+* Application performance dashboard is located at `http://localhost:4000`
 
 ## TODOs
 
