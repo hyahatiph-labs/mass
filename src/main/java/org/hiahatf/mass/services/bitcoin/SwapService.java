@@ -152,6 +152,12 @@ public class SwapService {
         }
     }
     
+    /**
+     * Helper method for settling the hold invoice
+     * @param initRequest
+     * @param sfn
+     * @return
+     */
     private Mono<InitResponse> payInvoice(InitRequest initRequest, String sfn) {
         try {
             lightning.sendPayment(initRequest.getPaymentRequest()).subscribe(pay -> {
@@ -167,6 +173,11 @@ public class SwapService {
         }
     }
 
+    /**
+     * Return the the preimage if the expected txset is processed correctly
+     * @param swapRequest
+     * @return Mono<SwapResponse>
+     */
     public Mono<SwapResponse> processBitcoinSwap(SwapRequest swapRequest) {
         String txset = swapRequest.getTxset();
         BtcQuoteTable table = quoteRepository.findById(swapRequest.getHash()).get();

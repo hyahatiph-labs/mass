@@ -53,7 +53,10 @@ See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
 
 ## Contributing
 
-* Styling TBD
+* Styling
+    * MASS uses prettier pre-commit hooks
+    * Install Node.js 10+
+    * run `npm install` from the root directory
 * Fork and open pr.
 * Working code is underrated
 
