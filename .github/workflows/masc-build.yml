@@ -26,4 +26,4 @@ jobs:
 
       # Build the UI
       - name: UI-Build
-        run: cd masc && npm run build
+        run: cd masc && npm install && npm run build
