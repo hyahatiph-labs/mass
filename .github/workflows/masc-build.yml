@@ -1,5 +1,5 @@
 # Mass build workflow
-name: ui-build
+name: UI-Build
 
 # Controls when the action will run. 
 on:
