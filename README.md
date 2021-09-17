@@ -65,4 +65,3 @@ See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
 * support@hiahatf.org
 * donations via OpenAlias => hiahatf.org
 * [Element Matrix-based messenger](https://matrix.to/#/#hiahatf:matrix.org)
-* 
