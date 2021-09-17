@@ -1,5 +1,6 @@
 import React from 'react';
-// App.tsx
+
+// eslint-disable-next-line
 const App: any = () => (
   <>masc test</>
 );
