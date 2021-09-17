@@ -64,4 +64,5 @@ See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
 
 * support@hiahatf.org
 * donations via OpenAlias => hiahatf.org
-* [Slack](https://join.slack.com/t/hyahatiphlabs/shared_invite/zt-vvuak4dd-T3TAZ~~EvYZ5rmM5s1xGMg)
+* [Element Matrix-based messenger](https://matrix.to/#/#hiahatf:matrix.org)
+* 
