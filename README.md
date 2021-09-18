@@ -12,10 +12,12 @@ If successfully settled the equivalent amount in Monero or Bitcoin is sent
 
 ## Development
 
+### Manual
+
 1. Run as Spring Boot App from your favorite IDE or do `mvn clean install && java -jar target/mass-x.x.x.jar`
 2. The `src/main/resources/application.yml` can be configured as needed.
 3. Run bitcoind on [regtest](https://developer.bitcoin.org/examples/testing.html)
-4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool!
+4. Setup LND nodes for invoice generation and settling. *[Polar](https://lightningpolar.com/) is a cool tool! See [LND Reference API](https://api.lightning.community/#lnd-rest-api-reference) for documentation.
 5. Run Monero on two [stagenet](https://monerodocs.org/infrastructure/networks/) servers. Get those lovely piconeros at the [Stagenet Faucet](https://melo.tools/faucet/stagenet/) or by mining.
 6. H2 db runs at host/h2-console.
 7. Currently working on Bitcoin core 0.21, LND 0.13.x, Fedora 34, Java 11, Maven 3.6 and Monero 0.17.2
@@ -25,6 +27,10 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 ```bash
 ~/monero-x86_64-linux-gnu-v0.17.2.3/monero-wallet-rpc --rpc-bind-port=18083 --wallet-dir=/home/USER/Monero/wallets/mass/ --disable-rpc-login --stagenet
 ```
+
+### Docker
+
+see [docker.md](./docker.md)
 
 ## API
 

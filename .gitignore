@@ -38,3 +38,12 @@ data.trace.db
 
 ### npm
 node_modules/
+
+### release stuff
+*.bz2
+*.gpg
+
+### docker stuff
+bitcoin*/
+lnd*/
+monero-*/

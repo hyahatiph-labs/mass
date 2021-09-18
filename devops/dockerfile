@@ -1,0 +1,40 @@
+# This is the image for bootstrapping the development environment
+# It will pull bitcoin-core, monero-wallet-rpc and lnd
+# seeds are displayed after image build, use those for unlockwallet api
+FROM ubuntu 
+LABEL name = support@hiahatf.org
+
+# update ubuntu
+RUN apt-get update -y
+# install wget curl git maven and java11 
+RUN apt-get install -y wget curl git xxd
+RUN cd root && wget https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz
+RUN cd root && tar -xvf /root/openjdk-11.0.2_linux-x64_bin.tar.gz
+ENV JAVA_HOME=/root/jdk-11.0.2
+ENV PATH=$PATH:$JAVA_HOME/bin
+RUN java --version
+RUN cd root && wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+RUN cd root && tar -xvf /root/apache-maven-3.6.3-bin.tar.gz
+RUN /root/apache-maven-3.6.3/bin/mvn --version
+# get bitcoin, monero and lnd binaries
+RUN cd root && wget https://bitcoin.org/bin/bitcoin-core-0.21.1/bitcoin-0.21.1-x86_64-linux-gnu.tar.gz && wget https://github.com/lightningnetwork/lnd/releases/download/v0.13.1-beta/lnd-linux-amd64-v0.13.1-beta.tar.gz && wget https://downloads.getmonero.org/cli/linux64
+# extract binaries
+RUN cd root && tar -xvf bitcoin-0.21.1-x86_64-linux-gnu.tar.gz && tar -xvf lnd-linux-amd64-v0.13.1-beta.tar.gz && tar -xvf linux64
+# add lnd and bitcoin.conf
+RUN mkdir /root/.bitcoin
+COPY bitcoin.conf /root/.bitcoin/bitcoin.conf
+RUN mkdir /root/.lnd-regtest-1
+RUN mkdir /root/.lnd-regtest-2
+RUN mkdir /root/Monero && mkdir /root/Monero/wallets/ && mkdir /root/Monero/wallets/mass/
+COPY lnd-1.conf /root/.lnd-regtest-1/lnd.conf
+COPY lnd-2.conf /root/.lnd-regtest-2/lnd.conf
+# add the bash script for starting apps
+COPY start-mass-dev.sh /root
+RUN chmod +x /root/start-mass-dev.sh
+# clone mass with associated .yml files
+RUN mkdir /root/mass-alice
+RUN cd /root/mass-alice && git clone -v https://github.com/hyahatiph-labs/mass.git
+COPY application-alice.yml /root/mass-alice/mass/src/main/resources/application-alice.yml
+RUN mkdir /root/mass-bob
+RUN cp -r /root/mass-alice/mass /root/mass-bob/
+COPY application.yml /root/mass-bob/mass/src/main/resources/application.yml
