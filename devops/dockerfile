@@ -1,6 +1,5 @@
 # This is the image for bootstrapping the development environment
 # It will pull bitcoin-core, monero-wallet-rpc and lnd
-# seeds are displayed after image build, use those for unlockwallet api
 FROM ubuntu 
 LABEL name = support@hiahatf.org
 
