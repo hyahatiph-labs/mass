@@ -2,12 +2,12 @@ server.port: 6789
 # hosts for external data
 host: 
   price: https://min-api.cryptocompare.com
-  monero: http://localhost:18083
+  monero: http://localhost:38083
   lightning: https://localhost:8180
 # reserve proof address
 rp-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
 send-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
-mass-wallet-filename: mass-bobs
+mass-wallet-filename: mass-bob
 # macaroon path
 macaroon-path: /root/.lnd-regtest-2/data/chain/bitcoin/regtest/admin.macaroon
 # Rate lock mode will lock rate for xmr -> btc swaps.

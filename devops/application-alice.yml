@@ -2,7 +2,7 @@ server.port: 6788
 # hosts for external data
 host: 
   price: https://min-api.cryptocompare.com
-  monero: http://localhost:18084
+  monero: http://localhost:38082
   lightning: https://localhost:8080
 # reserve proof address
 rp-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
