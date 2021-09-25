@@ -10,6 +10,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ExtensionIcon from '@material-ui/icons/Extension';
+import FlashOnIcon from '@material-ui/icons/FlashOn';
 import AccountBalanceWalletIcon from '@material-ui/icons/AccountBalanceWallet';
 import ListItemText from '@material-ui/core/ListItemText';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
@@ -113,6 +114,12 @@ const App: React.FC = (): ReactElement => {
                 <ExtensionIcon />
               </ListItemIcon>
               <ListItemText primary="MASS" />
+            </ListItem>
+            <ListItem button key="LN">
+              <ListItemIcon>
+                <FlashOnIcon />
+              </ListItemIcon>
+              <ListItemText primary="LN" />
             </ListItem>
             <ListItem button key="Settings">
               <ListItemIcon>
