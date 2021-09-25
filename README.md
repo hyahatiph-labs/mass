@@ -54,7 +54,7 @@ MASS works well with the [Glowroot](https://glowroot.org/) open-source project
 * Application performance dashboard is located at `http://localhost:4000`
 
 ## MASC - Client Development
-coming soon!
+see client [readme.md](https://github.com/hyahatiph-labs/mass/tree/dev/masc)
 
 ## TODOs
 
