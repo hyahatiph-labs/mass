@@ -4,13 +4,13 @@
 [![Test](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml)
 [![CodeQL](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml)
 
-[ POC ] / [ WIP ] Java implementation of monero anon swaps server
+[ POC ] / [ WIP ] Java implementation of monero anon swaps suite
 
 This is an experimental Spring Boot Application that utilizes [LND hold invoices](https://wiki.ion.radar.tech/tech/research/hodl-invoice)
 
 If successfully settled the equivalent amount in Monero or Bitcoin is sent
 
-## Development
+## MASS - Server Development
 
 ### Manual
 
@@ -52,6 +52,9 @@ MASS works well with the [Glowroot](https://glowroot.org/) open-source project
 * Extract the zip to your home directory
 * Run MASS with `java -javaagent:/home/USER/glowroot/glowroot.jar -jar target/mass-x.x.x-beta.jar`
 * Application performance dashboard is located at `http://localhost:4000`
+
+## MASC - Client Development
+coming soon!
 
 ## TODOs
 
