@@ -12,7 +12,7 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.codec.binary.Hex;
-import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
+import org.hiahatf.mass.models.bitcoin.BitcoinQuote;
 import org.hiahatf.mass.models.bitcoin.InitRequest;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
@@ -80,7 +80,7 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Fund Swap Service Test")
     public void fundSwapTest() {
         String expectedAddress = "addy123";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<BitcoinQuote> table = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
             .swap_filename("swap_filename")
@@ -108,7 +108,7 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Initialize Swap Service Test")
     public void initializeSwapTest() throws SSLException, IOException {
         String expectedSwapInfo = "Multisig123";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<BitcoinQuote> table = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
             .swap_filename("swap_filename")
@@ -155,7 +155,7 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Finalize Swap Service Test")
     public void finalizeSwapTest() {
         String expectedAddress = "sendAddy";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<BitcoinQuote> table = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
             .swap_filename("swap_filename")

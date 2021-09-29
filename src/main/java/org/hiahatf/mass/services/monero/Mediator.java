@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.InitRequest;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -54,7 +54,7 @@ public class Mediator implements Runnable {
      * submits the multisig transaction for the intervention.
      */
     public void run() {
-        XmrQuoteTable table = quoteRepository.findById(quoteId).get();
+        MoneroQuote table = quoteRepository.findById(quoteId).get();
         logger.info("Executing mediator for swap {}", table.getQuote_id());
         SwapService.isWalletOpen = true;
         String mfn = table.getMediator_filename();
@@ -90,7 +90,7 @@ public class Mediator implements Runnable {
      * @param txset
      * @param quote
      */
-    private void signAndSubmitCancel(String txset, XmrQuoteTable quote) {
+    private void signAndSubmitCancel(String txset, MoneroQuote quote) {
         logger.info("Signing mediator intervention");
         String sfn = quote.getSwap_filename();
          monero.controlWallet(WalletState.OPEN, sfn).subscribe(o -> {

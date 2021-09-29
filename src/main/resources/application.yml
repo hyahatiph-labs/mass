@@ -44,3 +44,8 @@ spring.jpa:
   hibernate.ddl-auto: update
 # temp fix for mulitsig time outs
 spring.mvc.async.request-timeout: -1
+# share peers
+peer:
+  id:
+  max: 6
+  share: false

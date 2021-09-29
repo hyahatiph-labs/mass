@@ -21,3 +21,10 @@ CREATE TABLE BTC_QUOTE_TABLE (
     refund_address VARCHAR(200) NOT NULL,
     swap_filename VARCHAR(100) NOT NULL
 );   
+
+CREATE TABLE PEER_TABLE (
+    peer_id VARCHAR(64) PRIMARY KEY,
+    active BOOLEAN,
+    vetted BOOLEAN,
+    malicious BOOLEAN
+);

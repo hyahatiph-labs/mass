@@ -15,7 +15,7 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.monero.InitResponse;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.SignResponse;
 import org.hiahatf.mass.models.monero.multisig.SignResult;
 import org.hiahatf.mass.models.monero.multisig.SubmitResponse;
@@ -61,7 +61,7 @@ public class MediatorTest {
     @DisplayName("Mediator Test")
     public void mediatorTest() throws SSLException, IOException {
         String txset = "txset";
-        XmrQuoteTable table = XmrQuoteTable.builder()
+        MoneroQuote table = MoneroQuote.builder()
             .amount(0.1)
             .dest_address("dest_address")
             .funding_txid("funding_txid")

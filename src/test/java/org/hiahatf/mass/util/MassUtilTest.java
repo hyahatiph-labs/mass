@@ -21,7 +21,7 @@ import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResult;
 import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
@@ -136,7 +136,7 @@ public class MassUtilTest {
     @DisplayName("Export Multisig Test")
     public void exportMultisigTest() {
         String importInfo = "MultisigIinfo";
-        XmrQuoteTable table = XmrQuoteTable.builder()
+        MoneroQuote table = MoneroQuote.builder()
             .amount(0.123).dest_address("54destx")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
@@ -180,7 +180,7 @@ public class MassUtilTest {
     @DisplayName("Finalize Multisig Test")
     public void finalizeMultisigTest() {
         String expectedAddress = "addy123";
-        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address("54destx")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")

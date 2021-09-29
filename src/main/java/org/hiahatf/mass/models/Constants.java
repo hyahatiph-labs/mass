@@ -20,6 +20,8 @@ public final class Constants {
     public static final String BTC_SWAP_FUND_PATH = "/swap/fund/btc";
     public static final String BTC_SWAP_INIT_PATH = "/swap/initialize/btc";
     public static final String BTC_CANCEL_PATH = "/swap/cancel/btc";
+    public static final String PEER_ADD_PATH = "/peer/add";
+    public static final String PEER_VIEW_PATH = "/peer/view";
 
     // Integrity values
     public static final String XMR_QUOTE_CONTROLLER_SRC = 
@@ -153,5 +155,9 @@ public final class Constants {
     public static final String XMR_QUOTE_SERVICE = "MoneroQuoteService";
     public static final String XMR_SWAP_SERVICE = "MoneroSwapService";
     public static final String XMR_QUOTE_REPO = "MoneroQuoteRepository";
+
+    public static final String PEER_CONTROLLER = "PeerController";
+    public static final String PEER_SERVICE = "PeerService";
+    public static final String PEER_REPO = "PeerRepo";
 
 }

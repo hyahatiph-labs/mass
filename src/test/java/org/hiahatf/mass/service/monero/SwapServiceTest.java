@@ -20,7 +20,7 @@ import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.balance.BalanceResponse;
 import org.hiahatf.mass.models.monero.balance.BalanceResult;
 import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
@@ -84,7 +84,7 @@ public class SwapServiceTest {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional<MoneroQuote> table = Optional.of(MoneroQuote.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
         .quote_id("qid")
@@ -129,7 +129,7 @@ public class SwapServiceTest {
     public void sweepFailSwapTest() throws SSLException, IOException {
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional<XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional<MoneroQuote> table = Optional.of(MoneroQuote.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
         .quote_id("qid")
@@ -174,7 +174,7 @@ public class SwapServiceTest {
         FundRequest fundRequest = FundRequest.builder()
             .makeMultisigInfo("makeMultisigInfo")
             .hash("hash").build();
-        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address(expectedAddress)
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
@@ -224,7 +224,7 @@ public class SwapServiceTest {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address(expectedAddress)
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn")
@@ -288,7 +288,7 @@ public class SwapServiceTest {
     @DisplayName("Test Import / Export Info")
     public void importExportTest() {
         String expectedHash = "hash123";
-        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address("address")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn")

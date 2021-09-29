@@ -10,7 +10,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.LiquidityType;
-import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
+import org.hiahatf.mass.models.bitcoin.BitcoinQuote;
 import org.hiahatf.mass.models.bitcoin.Quote;
 import org.hiahatf.mass.models.bitcoin.Request;
 import org.hiahatf.mass.models.monero.MultisigData;
@@ -184,7 +184,7 @@ public class QuoteService {
      */
     private void persistQuote(Request request, MultisigData data, byte[] preimage, 
     byte[] hash, String hexHash, Double lockedRate) {
-        BtcQuoteTable table = BtcQuoteTable.builder()
+        BitcoinQuote table = BitcoinQuote.builder()
             .amount(request.getAmount())
             .locked_rate(isRateLocked ? lockedRate : 0.0)
             .preimage(preimage)

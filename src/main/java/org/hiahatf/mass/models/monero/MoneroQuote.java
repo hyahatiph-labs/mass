@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class XmrQuoteTable {
+public class MoneroQuote {
 
     @Id // preimage hash from client
     private String quote_id;

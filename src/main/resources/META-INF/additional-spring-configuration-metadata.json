@@ -58,5 +58,20 @@
     "name": "mode.price-confidence",
     "type": "java.lang.String",
     "description": "Use this value for price threshold floating when mode.rate-lock is FALSE"
+  },
+  {
+    "name": "peer.max",
+    "type": "java.lang.String",
+    "description": "Max peers that can connect at once"
+  },
+  {
+    "name": "peer.share",
+    "type": "java.lang.String",
+    "description": "Share peers across the network"
+  },
+  {
+    "name": "peer.id",
+    "type": "java.lang.String",
+    "description": "The peer id tof the application"
   }
 ]}

@@ -12,7 +12,7 @@ import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
 import org.hiahatf.mass.models.monero.ReserveProof;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.proof.GetProofResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
@@ -152,7 +152,7 @@ public class QuoteService {
     private void persistQuote(String address, String hash, byte[] bHash, 
     Double amount, MultisigData data) {
         // store in db to settle the invoice later 
-        XmrQuoteTable table = XmrQuoteTable.builder()
+        MoneroQuote table = MoneroQuote.builder()
             .amount(amount).dest_address(address)
             .mediator_filename(data.getMediatorFilename())
             .mediator_finalize_msig(data.getMediatorFinalizeMultisigInfo())

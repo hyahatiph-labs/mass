@@ -264,3 +264,8 @@ GET http://localhost:6789/integrity
 
 ### rate check
 GET http://localhost:6789/rate
+
+
+### I2P CGI stuff
+
+GET http://kq2hzhfc3tuiqaehctjd3neqyrdfisfckkefqkmvcv7bllu3j5na.b32.i2p/help/

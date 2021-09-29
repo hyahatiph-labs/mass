@@ -10,7 +10,7 @@ import javax.net.ssl.SSLException;
 import org.apache.commons.codec.binary.Hex;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
+import org.hiahatf.mass.models.bitcoin.BitcoinQuote;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
 import org.hiahatf.mass.models.lightning.PaymentStatus;
@@ -79,7 +79,7 @@ public class SwapService {
         if(isWalletOpen) {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
-        BtcQuoteTable table = quoteRepository.findById(request.getHash()).get();
+        BitcoinQuote table = quoteRepository.findById(request.getHash()).get();
         return massUtil.rFinalizeSwapMultisig(request, table.getSwap_filename()).flatMap(fm -> {
             String address = fm.getResult().getAddress();
             table.setSwap_address(address);
@@ -97,7 +97,7 @@ public class SwapService {
      * @return Mono<InitResponse> - swap export_multisig_info 
      */
     public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
-        BtcQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
+        BitcoinQuote table = quoteRepository.findById(initRequest.getHash()).get();
         String sfn = table.getSwap_filename();
         isWalletOpen = true;
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
@@ -123,7 +123,7 @@ public class SwapService {
      * @param rate
      * @return Mono<Quote>
      */
-    private Mono<InitResponse> decodePayReq(InitRequest request, BtcQuoteTable table, String sfn) {
+    private Mono<InitResponse> decodePayReq(InitRequest request, BitcoinQuote table, String sfn) {
         String rate = rateService.getMoneroRate();
         Double parsedRate = isRateLocked ? table.getLocked_rate() : 
             (massUtil.parseMoneroRate(rate) * priceConfidence);
@@ -180,7 +180,7 @@ public class SwapService {
      */
     public Mono<SwapResponse> processBitcoinSwap(SwapRequest swapRequest) {
         String txset = swapRequest.getTxset();
-        BtcQuoteTable table = quoteRepository.findById(swapRequest.getHash()).get();
+        BitcoinQuote table = quoteRepository.findById(swapRequest.getHash()).get();
         Double amount = table.getAmount() * Constants.PICONERO;
         // could add multiple destinations in the future here...
         Destination expectDestination = Destination.builder()
