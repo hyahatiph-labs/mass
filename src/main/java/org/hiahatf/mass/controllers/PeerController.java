@@ -2,7 +2,6 @@ package org.hiahatf.mass.controllers;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.peer.AddPeer;
-import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.models.peer.ViewPeerResponse;
 import org.hiahatf.mass.services.peer.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;

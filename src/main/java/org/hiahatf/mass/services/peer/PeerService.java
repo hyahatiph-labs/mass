@@ -1,7 +1,11 @@
 package org.hiahatf.mass.services.peer;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableList;
+
+import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.peer.AddPeer;
 import org.hiahatf.mass.models.peer.Peer;
@@ -36,6 +40,22 @@ public class PeerService {
      * @return AddPeer
      */
     public Mono<AddPeer> addPeer(AddPeer request) {
+        Iterable<Peer> peers = peerRepository.findAll();
+        List<Peer> peerList = ImmutableList.copyOf(peers);
+        if(peerList.size() >= Constants.MAX_PEERS) {
+            return Mono.error(new MassException(Constants.MAX_PEER_ERROR));
+        }
+        // base32 validation
+        String b32RegEx = "/^[A-Z2-7]+=*$/";
+        String peerId = request.getPeerId();
+        boolean isValidPeer = Pattern.compile(b32RegEx).matcher(peerId).matches()
+            && peerId.length() % 8 == 0;
+        if(!isValidPeer) {
+            return Mono.error(new MassException(Constants.INVALID_PEER_ERROR));
+        }
+        Peer peer = Peer.builder().peer_id(peerId).is_active(true)
+            .is_malicous(false).is_vetted(false).build();
+        peerRepository.save(peer);
         AddPeer response = AddPeer.builder().build();
         return Mono.just(response);
     }
@@ -47,13 +67,11 @@ public class PeerService {
      */
     public Mono<ViewPeerResponse> viewPeer() {
         Iterable<Peer> peers = peerRepository.findAll();
-        ViewPeerResponse response = ViewPeerResponse.builder()
-            .peers(peers).build();
+        List<Peer> peerList = ImmutableList.copyOf(peers);
+        ViewPeerResponse response = ViewPeerResponse.builder().peers(peerList).build();
         return Mono.just(response);
     }
 
-    // TODO: base32 validation
-
-    // TODO: max peer and share peer checks
+    // TODO: p2p discovery, vetting and sharing with spring scheduler
 
 }

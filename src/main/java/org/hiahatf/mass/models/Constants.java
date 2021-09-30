@@ -124,6 +124,17 @@ public final class Constants {
     public static final String RATE_LOCK_MODE = "${mode.rate-lock}";
     public static final String PRICE_CONFIDENCE = "${mode.price-confidence}";
 
+    // peer service values
+
+    /* 
+      This is a magic number for max peers. I'm too lazy to write up the p2p
+      architecture. It is based on n+1 where n equals six degrees of separation.
+      Linking peers are n and n+1 become linking peers as the network expands 
+      in a fractal pattern.
+      TODO: publish diagrams and stuff of the p2p architecture.
+    */
+    public static final int MAX_PEERS = 7;
+
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
     public static final String OPEN_INVOICE_ERROR = "Invoice is still open!";
@@ -142,6 +153,8 @@ public final class Constants {
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
     public static final String INVALID_AMT_ERROR = "Funding amount is invalid. This could be due to a an unacceptable price fluctuation for a not rate-locked server. Please create a new swap.";
+    public static final String MAX_PEER_ERROR = "Max peer error";
+    public static final String INVALID_PEER_ERROR = "Invalid base32 peer. Don't send '.b32.i2p'";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";

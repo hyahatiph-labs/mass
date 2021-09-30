@@ -84,7 +84,7 @@ public class SwapServiceTest {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional<MoneroQuote> table = Optional.of(MoneroQuote.builder()
+        Optional<MoneroQuote> quote = Optional.of(MoneroQuote.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
         .quote_id("qid")
@@ -106,16 +106,16 @@ public class SwapServiceTest {
         BalanceResponse balanceResponse = BalanceResponse.builder()
             .result(balanceResult).build();
         // mocks
-        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(quote);
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
-        when(monero.sweepAll(table.get().getDest_address()))
+        when(monero.sweepAll(quote.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(swapRequest, table.get(), true)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest, quote.get(), true)).thenReturn(Mono.just(entity));
         Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
         StepVerifier.create(testRes)
@@ -129,7 +129,7 @@ public class SwapServiceTest {
     public void sweepFailSwapTest() throws SSLException, IOException {
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional<MoneroQuote> table = Optional.of(MoneroQuote.builder()
+        Optional<MoneroQuote> quote = Optional.of(MoneroQuote.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
         .quote_id("qid")
@@ -148,14 +148,14 @@ public class SwapServiceTest {
         BalanceResponse balanceResponse = BalanceResponse.builder()
             .result(balanceResult).build();
         // mocks
-        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(table);
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(quoteRepository.findById(swapRequest.getHash())).thenReturn(quote);
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
-        when(monero.sweepAll(table.get().getDest_address()))
+        when(monero.sweepAll(quote.get().getDest_address()))
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(swapRequest, table.get(), false)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest, quote.get(), false)).thenReturn(Mono.just(entity));
         
         Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
@@ -174,7 +174,7 @@ public class SwapServiceTest {
         FundRequest fundRequest = FundRequest.builder()
             .makeMultisigInfo("makeMultisigInfo")
             .hash("hash").build();
-        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
+        Optional <MoneroQuote> quote = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address(expectedAddress)
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
@@ -198,15 +198,15 @@ public class SwapServiceTest {
         FinalizeResponse finalizeResponse = FinalizeResponse.builder()
             .result(finalizeResult).build();
         // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
         when(massUtil.finalizeMediatorMultisig(fundRequest)).thenReturn(Mono.just(finalizeResponse));
         when(monero.controlWallet(WalletState.OPEN, "test"))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, "test"))
             .thenReturn(Mono.just(walletStateResponse));
-        when(lightning.lookupInvoice(table.get().getQuote_id()))
+        when(lightning.lookupInvoice(quote.get().getQuote_id()))
             .thenReturn(Mono.just(invoiceLookupResponse));
-        when(monero.transfer(table.get().getSwap_address(), table.get().getAmount()))
+        when(monero.transfer(quote.get().getSwap_address(), quote.get().getAmount()))
             .thenReturn(Mono.just(transferResponse));
         
         Mono<FundResponse> testResponse = swapService.fundMoneroSwap(fundRequest);
@@ -224,7 +224,7 @@ public class SwapServiceTest {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
-        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
+        Optional <MoneroQuote> quote = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address(expectedAddress)
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn")
@@ -257,24 +257,24 @@ public class SwapServiceTest {
         BalanceResponse balanceResponse = BalanceResponse.builder()
             .result(balanceResult).build();
         // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
         when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.OPEN, table.get().getMediator_filename()))
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getMediator_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.sweepAll("54testrpaddress")).thenReturn(Mono.just(sweepAllResponse));
-        String mfn = table.get().getMediator_filename();
+        String mfn = quote.get().getMediator_filename();
         when(monero.controlWallet(WalletState.OPEN, mfn)).thenReturn(Mono.just(walletStateResponse));
         when(monero.controlWallet(WalletState.CLOSE, mfn)).thenReturn(Mono.just(walletStateResponse));
         when(monero.signMultisig(anyString())).thenReturn(Mono.just(signResponse));
         when(monero.submitMultisig(anyString())).thenReturn(Mono.just(submitResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(lightning.handleInvoice(swapRequest,table.get(), false)).thenReturn(Mono.just(entity));
+        when(lightning.handleInvoice(swapRequest,quote.get(), false)).thenReturn(Mono.just(entity));
 
         Mono<SwapResponse> testResponse = swapService.processCancel(swapRequest);
         
@@ -288,7 +288,7 @@ public class SwapServiceTest {
     @DisplayName("Test Import / Export Info")
     public void importExportTest() {
         String expectedHash = "hash123";
-        Optional <MoneroQuote> table = Optional.of(MoneroQuote.builder()
+        Optional <MoneroQuote> quote = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address("address")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn")
@@ -307,12 +307,12 @@ public class SwapServiceTest {
         BalanceResult balanceResult = BalanceResult.builder().blocks_to_unlock(0).build();
         BalanceResponse balanceResponse = BalanceResponse.builder().result(balanceResult).build();
             // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(massUtil.exportSwapInfo(table.get(), initRequest)).thenReturn(Mono.just(initResponse));
+        when(massUtil.exportSwapInfo(quote.get(), initRequest)).thenReturn(Mono.just(initResponse));
         when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
         Mono<InitResponse> testResponse = swapService.importAndExportInfo(initRequest);
 

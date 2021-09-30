@@ -46,6 +46,7 @@ spring.jpa:
 spring.mvc.async.request-timeout: -1
 # share peers
 peer:
+  # this is the peer id of the current mass app
+  # TODO: configure by command line
   id:
-  max: 6
-  share: false
+  share: true

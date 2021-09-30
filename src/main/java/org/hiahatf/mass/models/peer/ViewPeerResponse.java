@@ -1,5 +1,7 @@
 package org.hiahatf.mass.models.peer;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +15,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ViewPeerResponse {
-    private int maxPeers;
-    private int connectedPeers;
-    private Iterable<Peer> peers;
+    private List<Peer> peers;
 }

@@ -184,7 +184,7 @@ public class QuoteService {
      */
     private void persistQuote(Request request, MultisigData data, byte[] preimage, 
     byte[] hash, String hexHash, Double lockedRate) {
-        BitcoinQuote table = BitcoinQuote.builder()
+        BitcoinQuote quote = BitcoinQuote.builder()
             .amount(request.getAmount())
             .locked_rate(isRateLocked ? lockedRate : 0.0)
             .preimage(preimage)
@@ -193,7 +193,7 @@ public class QuoteService {
             .refund_address(request.getRefundAddress())
             .swap_filename(data.getSwapFilename())
             .build();
-        bitcoinQuoteRepository.save(table);
+        bitcoinQuoteRepository.save(quote);
     }
 
     /**

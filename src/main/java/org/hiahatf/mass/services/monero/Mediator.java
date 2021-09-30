@@ -54,13 +54,13 @@ public class Mediator implements Runnable {
      * submits the multisig transaction for the intervention.
      */
     public void run() {
-        MoneroQuote table = quoteRepository.findById(quoteId).get();
-        logger.info("Executing mediator for swap {}", table.getQuote_id());
+        MoneroQuote quote = quoteRepository.findById(quoteId).get();
+        logger.info("Executing mediator for swap {}", quote.getQuote_id());
         SwapService.isWalletOpen = true;
-        String mfn = table.getMediator_filename();
+        String mfn = quote.getMediator_filename();
         InitRequest mediatorRequest = InitRequest.builder()
             .importInfo(Constants.MEDIATOR_CHECK).build();
-        massUtil.exportSwapInfo(table, mediatorRequest).subscribe(i -> {
+        massUtil.exportSwapInfo(quote, mediatorRequest).subscribe(i -> {
             monero.controlWallet(WalletState.OPEN, mfn).subscribe(o -> {
                  monero.sweepAll(refundAddress).subscribe(r -> {
                     // null check, since rpc since 200 on null result
@@ -77,7 +77,7 @@ public class Mediator implements Runnable {
                     } else {
                         monero.controlWallet(WalletState.CLOSE, mfn).subscribe(c -> {
                             logger.info("Mediator sweep complete");
-                            signAndSubmitCancel(r.getResult().getMultisig_txset(), table);
+                            signAndSubmitCancel(r.getResult().getMultisig_txset(), quote);
                         });
                     }
                 });

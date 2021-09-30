@@ -152,7 +152,7 @@ public class QuoteService {
     private void persistQuote(String address, String hash, byte[] bHash, 
     Double amount, MultisigData data) {
         // store in db to settle the invoice later 
-        MoneroQuote table = MoneroQuote.builder()
+        MoneroQuote quote = MoneroQuote.builder()
             .amount(amount).dest_address(address)
             .mediator_filename(data.getMediatorFilename())
             .mediator_finalize_msig(data.getMediatorFinalizeMultisigInfo())
@@ -161,7 +161,7 @@ public class QuoteService {
             .swap_filename(data.getSwapFilename())
             .quote_id(hash)
             .build();
-        quoteRepository.save(table);
+        quoteRepository.save(quote);
     }
 
     /**

@@ -22,11 +22,12 @@ import lombok.NoArgsConstructor;
 public class Peer {
     
     @Id // base32 peer id
-    private String quote_id;
+    private String peer_id;
     @Column // peer was online in the past 3600s
-    private boolean isActive;
+    private boolean is_active;
     @Column // peer has good reputation (e.g. multiple successful swaps)
-    private boolean isVetted;
+    private boolean is_vetted;
     @Column // peer has bad reputation (e.g. multiple successive swap cancels)
-    private boolean isMalicous;
+    private boolean is_malicous;
+    
 }
