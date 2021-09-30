@@ -1,6 +1,7 @@
 -- Login in to h2 console and verify creation on first app initialization
 CREATE TABLE XMR_QUOTE_TABLE (
     quote_id VARCHAR(64) PRIMARY KEY,
+    peer_id VARCHAR(64) NOT NULL,
     amount FLOAT(30) NOT NULL,
     dest_address VARCHAR(200) NOT NULL,
     funding_txid VARCHAR(200),
@@ -14,6 +15,7 @@ CREATE TABLE XMR_QUOTE_TABLE (
 
 CREATE TABLE BTC_QUOTE_TABLE (
     quote_id VARCHAR(64) PRIMARY KEY,
+    peer_id VARCHAR(64) NOT NULL,
     amount FLOAT(30) NOT NULL,
     locked_rate FLOAT(30),
     payment_hash VARCHAR(64) NOT NULL,

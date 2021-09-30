@@ -1,11 +1,10 @@
 package org.hiahatf.mass.models.peer;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import reactor.core.publisher.Flux;
 
 /**
  * POJO for the ViewPeerResponse
@@ -15,5 +14,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ViewPeerResponse {
-    private List<Peer> peers;
+    private Flux<Peer> peers;
 }

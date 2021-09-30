@@ -126,7 +126,7 @@ public final class Constants {
 
     // peer service values
 
-    /* 
+    /** 
       This is a magic number for max peers. I'm too lazy to write up the p2p
       architecture. It is based on n+1 where n equals six degrees of separation.
       Linking peers are n and n+1 become linking peers as the network expands 
@@ -134,6 +134,17 @@ public final class Constants {
       TODO: publish diagrams and stuff of the p2p architecture.
     */
     public static final int MAX_PEERS = 7;
+    public static final String PEER_PROXY = "http://localhost:4444";
+    public static final String BASE32_REGEX = "/^[A-Z2-7]+=*$/";
+    public static final String PEER_DISCOVERY_MSG = "Starting peer discovery";
+    public static final String PEER_ADDED_MSG = "Adding peer {} from discovery";
+    public static final String PEER_UPDATE_MSG = "Starting peer update";
+    public static final String PEER_VETTED_MSG = "Vetted peer {}";
+    public static final String PEER_MALICIOUS_MSG = "Tagged peer {} as malicious";
+    public static final String PEER_ACTIVE_MSG = "Peer {} is active";
+    public static final String PEER_INACTIVE_MSG = "Peer {} is inactive";
+    public static final String PEER_HOST_FORMAT = "http://{0}.b32.ip";
+    public static final String IS_SHARING_PEERS = "${peer.share}";
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
@@ -155,6 +166,7 @@ public final class Constants {
     public static final String INVALID_AMT_ERROR = "Funding amount is invalid. This could be due to a an unacceptable price fluctuation for a not rate-locked server. Please create a new swap.";
     public static final String MAX_PEER_ERROR = "Max peer error";
     public static final String INVALID_PEER_ERROR = "Invalid base32 peer. Don't send '.b32.i2p'";
+    public static final String PEER_SHARE_ERROR = "Peer is not sharing";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";
