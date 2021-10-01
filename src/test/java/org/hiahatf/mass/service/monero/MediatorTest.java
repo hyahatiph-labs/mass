@@ -26,6 +26,7 @@ import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.monero.Mediator;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
@@ -53,9 +54,11 @@ public class MediatorTest {
     MassUtil massUtil;
     @Mock
     MoneroQuoteRepository moneroQuoteRepository;
+    @Mock
+    PeerRepository peerRepository;
     @InjectMocks
     Mediator mediator = new Mediator(moneroQuoteRepository, "quoteId", monero, 
-        massUtil, "refundAddress", 0);
+        massUtil, "refundAddress", 0, peerRepository);
     
     @Test
     @DisplayName("Mediator Test")

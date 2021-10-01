@@ -38,6 +38,7 @@ import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.bitcoin.SwapService;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -65,6 +66,8 @@ public class BitcoinSwapServiceTest {
     @Mock
     private BitcoinQuoteRepository quoteRepository;
     @Mock
+    private PeerRepository peerRepository;
+    @Mock
     private RateService rateService;
     @Mock
     private Lightning lightning;
@@ -74,7 +77,7 @@ public class BitcoinSwapServiceTest {
     private Monero monero;
     @InjectMocks
     SwapService swapService = new SwapService(quoteRepository, lightning, monero, massUtil, 
-        rateService, "sendAddy", 0.95, false);
+        rateService, "sendAddy", 0.95, peerRepository, false);
 
     @Test
     @DisplayName("Fund Swap Service Test")

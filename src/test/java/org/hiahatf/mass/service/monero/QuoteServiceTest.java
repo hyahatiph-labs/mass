@@ -24,6 +24,7 @@ import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.monero.QuoteService;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -59,11 +60,14 @@ public class QuoteServiceTest {
     private MassUtil massUtil;
     @Mock
     private MoneroQuoteRepository quoteRepository;
+    @Mock
+    private PeerRepository peerRepository;
     private final Long minPay = 10000L;
     private final Long maxPay = 1000000L;
     @InjectMocks
     private QuoteService quoteService = new QuoteService(rateService, massUtil,
-    moneroRpc, lightning, quoteRepository, minPay, maxPay, "54rpvxxx", "test");
+        moneroRpc, lightning, quoteRepository, minPay, maxPay, "54rpvxxx", 
+        peerRepository, "test");
 
     @Test
     @DisplayName("Monero Quote Service Test")

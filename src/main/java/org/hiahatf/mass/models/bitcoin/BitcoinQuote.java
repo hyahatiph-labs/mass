@@ -37,6 +37,8 @@ public class BitcoinQuote {
     private String mediator_filename;
     @Column // mediators' info for finalizing the consensus wallet
     private String mediator_finalize_msig;
+    @Column // base32 id of the client
+    private String peer_id;
     @Column // store the preimage as byte array
     private byte[] preimage;
     @Column // store the preimage hash as byte array

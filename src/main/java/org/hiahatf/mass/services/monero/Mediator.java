@@ -8,7 +8,9 @@ import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ public class Mediator implements Runnable {
     private ScheduledExecutorService executorService = 
         Executors.newSingleThreadScheduledExecutor();
     private MoneroQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     private int retryCounter;
     private String refundAddress;
     private MassUtil massUtil;
@@ -39,8 +42,10 @@ public class Mediator implements Runnable {
     * @param quoteId
     */
     public Mediator(MoneroQuoteRepository quoteRepository, String quoteId,
-    Monero monero, MassUtil massUtil, String refundAddress, int retryCounter) {
+    Monero monero, MassUtil massUtil, String refundAddress, int retryCounter,
+    PeerRepository peerRepository) {
         this.quoteRepository = quoteRepository;
+        this.peerRepository = peerRepository;
         this.refundAddress = refundAddress;
         this.retryCounter = retryCounter;
         this.massUtil = massUtil;
@@ -70,8 +75,8 @@ public class Mediator implements Runnable {
                         retryCounter++;
                         if(retryCounter < 3) {
                             executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                            massUtil, refundAddress, retryCounter), Constants.MEDIATOR_RETRY_DELAY, 
-                                TimeUnit.SECONDS);
+                            massUtil, refundAddress, retryCounter, peerRepository), 
+                            Constants.MEDIATOR_RETRY_DELAY, TimeUnit.SECONDS);
                         }
                         logger.error(Constants.MEDIATOR_ERROR);
                     } else {
@@ -103,6 +108,10 @@ public class Mediator implements Runnable {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
                     monero.controlWallet(WalletState.CLOSE, sfn).subscribe(c -> {
                         SwapService.isWalletOpen = false;
+                        Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                        int cancels = peer.getCancel_counter() + 1;
+                        Peer updatePeer = Peer.builder().cancel_counter(cancels).build();
+                        peerRepository.save(updatePeer);
                         logger.info("Cancel complete");
                     });
                 });

@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.Optional;
 
 import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -16,7 +17,9 @@ import org.hiahatf.mass.models.bitcoin.Request;
 import org.hiahatf.mass.models.monero.MultisigData;
 import org.hiahatf.mass.models.monero.proof.CheckReserveProofResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
@@ -36,6 +39,7 @@ public class QuoteService {
 
     private Logger logger = LoggerFactory.getLogger(QuoteService.class);
     private BitcoinQuoteRepository bitcoinQuoteRepository;
+    private PeerRepository peerRepository;
     public static boolean isWalletOpen;
     private String massWalletFilename;
     private RateService rateService;
@@ -51,9 +55,10 @@ public class QuoteService {
     @Value(Constants.MIN_PAY) Long minPay, @Value(Constants.MAX_PAY) Long maxPay, 
     MassUtil massUtil, RateService rateService, Monero monero, @Value(Constants.SEND_ADDRESS) 
     String sendAddress, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
-    @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked) {
+    @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked, PeerRepository peerRepository) {
         this.bitcoinQuoteRepository = bitcoinQuoteRepository;
         this.massWalletFilename = massWalletFilename;
+        this.peerRepository = peerRepository;
         this.isRateLocked = isRateLocked;
         this.rateService = rateService;
         this.sendAddress = sendAddress;
@@ -73,6 +78,11 @@ public class QuoteService {
         // reject a request that occurs during wallet operations
         if(isWalletOpen) {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
+        }
+        // reject invalid peer
+        Optional<Peer> peer = peerRepository.findById(request.getPeerId());
+        if(!peer.isPresent()) {
+            return Mono.error(new MassException(Constants.INVALID_PEER_ERROR));
         }
         String rate = rateService.getMoneroRate();
         Double parsedRate = massUtil.parseMoneroRate(rate);
@@ -185,12 +195,9 @@ public class QuoteService {
     private void persistQuote(Request request, MultisigData data, byte[] preimage, 
     byte[] hash, String hexHash, Double lockedRate) {
         BitcoinQuote quote = BitcoinQuote.builder()
-            .amount(request.getAmount())
-            .locked_rate(isRateLocked ? lockedRate : 0.0)
-            .preimage(preimage)
-            .payment_hash(hash)
-            .quote_id(hexHash)
-            .refund_address(request.getRefundAddress())
+            .amount(request.getAmount()).locked_rate(isRateLocked ? lockedRate : 0.0)
+            .peer_id(request.getPeerId()).preimage(preimage).payment_hash(hash)
+            .quote_id(hexHash).refund_address(request.getRefundAddress())
             .swap_filename(data.getSwapFilename())
             .build();
         bitcoinQuoteRepository.save(quote);
@@ -208,13 +215,8 @@ public class QuoteService {
      */
     private Mono<Quote> finalizeQuote(Request request, MultisigData data, Double rate, String hash) {
         Quote quote = Quote.builder()
-            .quoteId(hash)
-            .amount(request.getAmount())
-            .refundAddress(request.getRefundAddress())
-            .rate(rate)
-            .minSwapAmt(minPay)
-            .maxSwapAmt(maxPay)
-            .sendTo(sendAddress)
+            .quoteId(hash).amount(request.getAmount()).refundAddress(request.getRefundAddress())
+            .rate(rate).minSwapAmt(minPay).maxSwapAmt(maxPay).sendTo(sendAddress)
             .swapMakeMultisigInfo(data.getSwapMakeMultisigInfo())
             .swapFinalizeMultisigInfo(data.getSwapFinalizeMultisigInfo())
             .build();

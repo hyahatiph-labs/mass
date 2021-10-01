@@ -1,10 +1,8 @@
 package org.hiahatf.mass.services.peer;
 
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.ImmutableList;
+import java.util.stream.StreamSupport;
 
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
@@ -25,7 +23,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.http.server.ProxyProtocolSupportType;
 import reactor.netty.transport.ProxyProvider.Proxy;
 
 /**
@@ -34,13 +31,15 @@ import reactor.netty.transport.ProxyProvider.Proxy;
 @Service(Constants.PEER_SERVICE)
 public class PeerService {
 
-    // update peers every 7200 sec.
     private Logger logger = LoggerFactory.getLogger(PeerService.class);
-    private static final int INITIAL_DELAY = 86400000;
-    private static final int UPDATE_FREQUENCY = 7200000;
+    // discover new peers every
     private static final int DISCOVER_FREQUENCY = 3600000;
+    // update peers every 7200 sec.
+    private static final int UPDATE_FREQUENCY = 7200000;
+    private static final int INITIAL_DELAY = 60000;
     private PeerRepository peerRepository;
     private boolean isSharingPeers;
+    private String seedNode;
 
     /**
      * Peer Service DI
@@ -48,9 +47,11 @@ public class PeerService {
      */
     @Autowired
     public PeerService(PeerRepository peerRepository,
-        @Value(Constants.IS_SHARING_PEERS) boolean isSharingPeers) {
+        @Value(Constants.IS_SHARING_PEERS) boolean isSharingPeers,
+        @Value(Constants.SEED_NODE) String seedNode) {
         this.peerRepository = peerRepository;
         this.isSharingPeers = isSharingPeers;
+        this.seedNode = seedNode;
     }
 
     /**
@@ -61,8 +62,8 @@ public class PeerService {
      */
     public Mono<AddPeer> addPeer(AddPeer request) {
         Iterable<Peer> peers = peerRepository.findAll();
-        List<Peer> peerList = ImmutableList.copyOf(peers);
-        if(peerList.size() >= Constants.MAX_PEERS) {
+        long peerCount = StreamSupport.stream(peers.spliterator(), false).count();
+        if(peerCount >= Constants.MAX_PEERS) {
             return Mono.error(new MassException(Constants.MAX_PEER_ERROR));
         }
         // base32 validation
@@ -107,12 +108,11 @@ public class PeerService {
         Peer updatePeer = Peer.builder().build();
         peerFlux.subscribe(p -> {
             String pid = p.getPeer_id();
-            WebClient client = buildPeerProxy(pid);
-            client.get().uri(uri -> uri.path(Constants.HEALTH_PATH).build())
+            buildPeerProxy(pid).get().uri(uri -> uri.path(Constants.HEALTH_PATH).build())
                 .retrieve().toBodilessEntity().subscribe(r -> {
                 if(r.getStatusCode() != HttpStatus.OK) {
                     logger.info(Constants.PEER_INACTIVE_MSG, pid);
-                    updatePeer.set_active(true);
+                    updatePeer.set_active(false);
                     peerRepository.save(updatePeer);
                 } else {
                     // if they are inactive on the second check remove them
@@ -122,6 +122,7 @@ public class PeerService {
                     updatePeer.set_active(false);
                     logger.info(Constants.PEER_ACTIVE_MSG, pid);
                 }
+                updatePeerBehavior(p, pid);
             });
         });
     }
@@ -134,20 +135,19 @@ public class PeerService {
     public void discoverPeers() {
         logger.info(Constants.PEER_DISCOVERY_MSG);
         Iterable<Peer> peers = peerRepository.findAll();
-        Flux<Peer> peerFlux = Flux.fromIterable(peers);
-        peerFlux.subscribe(p -> {
-            String pid = p.getPeer_id();
-            WebClient client = buildPeerProxy(pid);
-            client.get().uri(uri -> uri.path(Constants.PEER_VIEW_PATH).build())
-                .retrieve().bodyToMono(ViewPeerResponse.class).subscribe(r -> {
-                r.getPeers().subscribe(peer -> {
-                    if(!peer.is_malicous() && peer.is_vetted()) {
-                        logger.info(Constants.PEER_ADDED_MSG, pid);
-                        peerRepository.save(peer);
-                    }
+        long peerCount = StreamSupport.stream(peers.spliterator(), false).count();
+        if(peerCount < Constants.MAX_PEERS) {
+            Flux<Peer> peerFlux = Flux.fromIterable(peers);
+            peerFlux.subscribe(p -> {
+                String pid = p.getPeer_id();
+                    executePeerDiscovery(pid);
                 });
-            });
-        });
+        }
+        // set the seed node
+        if(peerCount == 0) {
+            logger.info(Constants.SEED_NODE_MSG);
+            executePeerDiscovery(seedNode);
+        }
     }
 
     /**
@@ -164,13 +164,40 @@ public class PeerService {
         return WebClient.builder().baseUrl(host).clientConnector(connector).build();
     }
 
-    // TODO: add peer vetting logic to swap and mediator services
+    /**
+     * Reusable method for executing peer discovery on current peers
+     * or seeding the server on startup 
+     * @param peerId
+     */
+    private void executePeerDiscovery(String peerId) {
+        buildPeerProxy(peerId).get().uri(uri -> uri.path(Constants.PEER_VIEW_PATH).build())
+            .retrieve().bodyToMono(ViewPeerResponse.class).subscribe(r -> {
+                r.getPeers().subscribe(peer -> {
+                    if(!peer.is_malicous() && peer.is_vetted()) {
+                        logger.info(Constants.PEER_ADDED_MSG, peerId);
+                        peerRepository.save(peer);
+                    }
+                });
+            });
+    }
 
-    // TODO: add peer id to quote request and DB persistence
-
-    // TODO: reject quote request if peer not added
-
-    // TODO: verify peers comms over i2p
-
-    // TODO: junit
+    /**
+     * Update peers whom have had excessive cancelled swaps or peers
+     * that have reaching 3 consecutive successful swaps.
+     * @param p
+     * @param peerId
+     */
+    private void updatePeerBehavior(Peer p, String peerId) {
+        if(p.getCancel_counter() == Constants.PEER_PERFORMANCE_THESHOLD) {
+            logger.info(Constants.PEER_MALICIOUS_MSG, peerId);
+            Peer maliciousPeer = Peer.builder().is_malicous(true).build();
+            peerRepository.save(maliciousPeer);
+        }
+        if(p.getSwap_counter() == Constants.PEER_PERFORMANCE_THESHOLD) {
+            logger.info(Constants.PEER_VETTED_MSG, peerId);
+            Peer vettedPeer = Peer.builder().is_vetted(true).build();
+            peerRepository.save(vettedPeer);
+        }
+    }
+    
 }

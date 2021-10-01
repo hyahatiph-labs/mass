@@ -39,6 +39,8 @@ public class MoneroQuote {
     private String mediator_finalize_msig;
     @Column // store the preimage hash as byte array
     private byte[] payment_hash;
+    @Column // base32 id of the client
+    private String peer_id;
     @Column // multisig address generated for participants
     private String swap_address;
     @Column // filename used for wallet control

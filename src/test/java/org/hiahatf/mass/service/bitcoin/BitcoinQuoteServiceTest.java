@@ -22,6 +22,7 @@ import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.bitcoin.QuoteService;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -48,6 +49,8 @@ public class BitcoinQuoteServiceTest {
     @Mock
     private BitcoinQuoteRepository bitcoinQuoteRepository;
     @Mock
+    private PeerRepository peerRepository;
+    @Mock
     private RateService rateService;
     @Mock
     private Monero monero;
@@ -55,7 +58,7 @@ public class BitcoinQuoteServiceTest {
     private MassUtil massUtil;
     @InjectMocks
     private QuoteService quoteService = new QuoteService(bitcoinQuoteRepository, 10000L, 100000L, 
-        massUtil, rateService, monero, "sendAddy", "test", false);
+        massUtil, rateService, monero, "sendAddy", "test", false, peerRepository);
         
     @Test
     @DisplayName("Bitcoin Quote Service Test")

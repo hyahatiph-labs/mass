@@ -20,7 +20,9 @@ import org.hiahatf.mass.models.monero.SwapResponse;
 import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
@@ -40,11 +42,12 @@ import reactor.core.publisher.Mono;
 public class SwapService {
     
     private Logger logger = LoggerFactory.getLogger(SwapService.class);
-    private MoneroQuoteRepository quoteRepository;
     private ScheduledExecutorService executorService = 
         Executors.newSingleThreadScheduledExecutor();
-    private String massWalletFilename;
+    private MoneroQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     public static boolean isWalletOpen;
+    private String massWalletFilename;
     private Lightning lightning;
     private MassUtil massUtil;
     private String rpAddress;
@@ -57,9 +60,10 @@ public class SwapService {
     public SwapService(
         MoneroQuoteRepository quoteRepository, Lightning lightning, Monero monero,
         MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
-        @Value(Constants.RP_ADDRESS) String rpAddress) {
-            this.quoteRepository = quoteRepository;
+        @Value(Constants.RP_ADDRESS) String rpAddress, PeerRepository peerRepository) {
             this.massWalletFilename = massWalletFilename;
+            this.quoteRepository = quoteRepository;
+            this.peerRepository = peerRepository;
             this.lightning = lightning;
             this.rpAddress = rpAddress;
             this.massUtil = massUtil;
@@ -129,7 +133,8 @@ public class SwapService {
                             .swapAddress(swapAddress)
                             .txid(txid).build();
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                            massUtil, rpAddress, 0), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
+                            massUtil, rpAddress, 0, peerRepository), 
+                            Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
                 });
             });
@@ -292,6 +297,11 @@ public class SwapService {
                         .hash(quote.getQuote_id())
                         .multisigTxSet(sweepAllResponse.getResult().getMultisig_txset())
                         .build();
+                    // update peer
+                    Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                    int swaps = peer.getSwap_counter() + 1;
+                    Peer updatePeer = Peer.builder().swap_counter(swaps).build();
+                    peerRepository.save(updatePeer);
                     // remove quote from db
                     quoteRepository.deleteById(quote.getQuote_id());
                     return Mono.just(res);

@@ -133,7 +133,7 @@ public final class Constants {
       in a fractal pattern.
       TODO: publish diagrams and stuff of the p2p architecture.
     */
-    public static final int MAX_PEERS = 7;
+    public static final long MAX_PEERS = 7;
     public static final String PEER_PROXY = "http://localhost:4444";
     public static final String BASE32_REGEX = "/^[A-Z2-7]+=*$/";
     public static final String PEER_DISCOVERY_MSG = "Starting peer discovery";
@@ -145,6 +145,9 @@ public final class Constants {
     public static final String PEER_INACTIVE_MSG = "Peer {} is inactive";
     public static final String PEER_HOST_FORMAT = "http://{0}.b32.ip";
     public static final String IS_SHARING_PEERS = "${peer.share}";
+    public static final String SEED_NODE = "${peer.seed}";
+    public static final String SEED_NODE_MSG = "Setting seed node";
+    public static final int PEER_PERFORMANCE_THESHOLD = 3;
 
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";

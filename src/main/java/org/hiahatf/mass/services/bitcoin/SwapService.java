@@ -20,7 +20,9 @@ import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.bitcoin.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -41,6 +43,7 @@ public class SwapService {
 
     private Logger logger = LoggerFactory.getLogger(SwapService.class);
     private BitcoinQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     public static boolean isWalletOpen;
     private RateService rateService;
     private double priceConfidence;
@@ -57,10 +60,11 @@ public class SwapService {
     public SwapService(
         BitcoinQuoteRepository quoteRepository, Lightning lightning, Monero monero,
         MassUtil massUtil, RateService rateService, @Value(Constants.SEND_ADDRESS) String sendAddress,
-        @Value(Constants.PRICE_CONFIDENCE) double priceConfidence,
+        @Value(Constants.PRICE_CONFIDENCE) double priceConfidence, PeerRepository peerRepository,
         @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked) {
             this.quoteRepository = quoteRepository;
             this.priceConfidence = priceConfidence;
+            this.peerRepository = peerRepository;
             this.isRateLocked = isRateLocked;
             this.rateService = rateService;
             this.sendAddress = sendAddress;
@@ -196,6 +200,13 @@ public class SwapService {
                     }
                     SwapResponse response = SwapResponse.builder()
                         .preimage(Hex.encodeHexString(quote.getPreimage())).build();
+                    // update peer
+                    Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                    int swaps = peer.getSwap_counter() + 1;
+                    Peer updatePeer = Peer.builder().swap_counter(swaps).build();
+                    peerRepository.save(updatePeer);
+                    // delete quote from db
+                    quoteRepository.deleteById(quote.getQuote_id());
                     return Mono.just(response);
                 });
             });

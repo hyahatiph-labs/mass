@@ -68,5 +68,10 @@
     "name": "peer.id",
     "type": "java.lang.String",
     "description": "The peer id tof the application"
+  },
+  {
+    "name": "peer.seed",
+    "type": "java.lang.String",
+    "description": "Node to use for initial network connectivity"
   }
 ]}
