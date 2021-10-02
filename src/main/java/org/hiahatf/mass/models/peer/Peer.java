@@ -23,6 +23,8 @@ public class Peer {
     
     @Id // base32 peer id
     private String peer_id;
+    @Column // consecutive cancel counter
+    private int cancel_counter;
     @Column // peer was online in the past 7200s
     private boolean is_active;
     @Column // peer has good reputation (e.g. 3 consecutive successful swaps)
@@ -31,7 +33,5 @@ public class Peer {
     private boolean is_malicous;
     @Column // consecutive swap counter
     private int swap_counter;
-    @Column // consective cancel counter
-    private int cancel_counter;
     
 }

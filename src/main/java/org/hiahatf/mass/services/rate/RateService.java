@@ -41,7 +41,8 @@ public class RateService {
      * with Spring Scheduling. Use accessor to get the 
      * most recent data.
      */
-    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = FREQUENCY)
+    // TODO: Re-enable rate service after p2p testing complete
+    // @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = FREQUENCY)
     public void updateMoneroRate() {
     logger.info(Constants.UPDATE_RATE_MSG);
         // Monero rate web client

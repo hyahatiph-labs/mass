@@ -1,6 +1,7 @@
 package org.hiahatf.mass.services.peer;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
@@ -72,16 +73,19 @@ public class PeerService {
         }
         // base32 validation
         String peerId = request.getPeerId();
-        boolean isValidPeer = Pattern.compile(Constants.BASE32_REGEX)
-            .matcher(peerId).matches()
-            && peerId.length() % 8 == 0;
+        boolean isValidPeer = Pattern.compile(Constants.I2P_CHECK).matcher(peerId).find();
         if(!isValidPeer) {
             return Mono.error(new MassException(Constants.INVALID_PEER_ERROR));
         }
-        Peer peer = Peer.builder().peer_id(peerId).is_active(true)
-            .is_malicous(false).is_vetted(false).build();
+        Peer peer = Peer.builder().cancel_counter(0).peer_id(peerId).is_active(true)
+            .swap_counter(0).is_malicous(false).is_vetted(false).build();
+        // no dups or overwrite on add
+        Optional<Peer> peerCheck = peerRepository.findById(peerId);
+        if(peerCheck.isPresent()) {
+            return Mono.error(new MassException(Constants.DUPLICATE_PEER_ERROR));
+        }
         peerRepository.save(peer);
-        AddPeer response = AddPeer.builder().build();
+        AddPeer response = AddPeer.builder().peerId(massId).build();
         return Mono.just(response);
     }
 
@@ -156,9 +160,9 @@ public class PeerService {
                 .retrieve().toBodilessEntity().subscribe(r -> {
                     if(r.getStatusCode() == HttpStatus.OK) {
                         logger.info(Constants.SEED_NODE_MSG, seedNode);
+                        executePeerDiscovery(seedNode);
                     }
             });
-            executePeerDiscovery(seedNode);
         }
     }
 
