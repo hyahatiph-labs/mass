@@ -34,12 +34,14 @@ public class PeerService {
     private Logger logger = LoggerFactory.getLogger(PeerService.class);
     // discover new peers every
     private static final int DISCOVER_FREQUENCY = 3600000;
+    private static final int DISCOVER_INITIAL_DELAY = 60000;
     // update peers every 7200 sec.
     private static final int UPDATE_FREQUENCY = 7200000;
-    private static final int INITIAL_DELAY = 60000;
+    private static final int UPDATE_INITIAL_DELAY = 3600000;
     private PeerRepository peerRepository;
     private boolean isSharingPeers;
     private String seedNode;
+    private String massId;
 
     /**
      * Peer Service DI
@@ -48,10 +50,12 @@ public class PeerService {
     @Autowired
     public PeerService(PeerRepository peerRepository,
         @Value(Constants.IS_SHARING_PEERS) boolean isSharingPeers,
-        @Value(Constants.SEED_NODE) String seedNode) {
+        @Value(Constants.SEED_NODE) String seedNode,
+        @Value(Constants.MASS_ID) String massId) {
         this.peerRepository = peerRepository;
         this.isSharingPeers = isSharingPeers;
         this.seedNode = seedNode;
+        this.massId = massId;
     }
 
     /**
@@ -100,7 +104,7 @@ public class PeerService {
      * This method updates peer status as active every 7200s by pinging
      * the peer's /health API.
      */
-    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = UPDATE_FREQUENCY)
+    @Scheduled(initialDelay = UPDATE_INITIAL_DELAY, fixedDelay = UPDATE_FREQUENCY)
     public void updatePeerStatus() {
         logger.info(Constants.PEER_UPDATE_MSG);
         Iterable<Peer> peers = peerRepository.findAll();
@@ -131,7 +135,7 @@ public class PeerService {
      * This method updates peer status as active every 3600s by pinging
      * the peer's /peer/view API.
      */
-    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = DISCOVER_FREQUENCY)
+    @Scheduled(initialDelay = DISCOVER_INITIAL_DELAY, fixedDelay = DISCOVER_FREQUENCY)
     public void discoverPeers() {
         logger.info(Constants.PEER_DISCOVERY_MSG);
         Iterable<Peer> peers = peerRepository.findAll();
@@ -143,9 +147,17 @@ public class PeerService {
                     executePeerDiscovery(pid);
                 });
         }
-        // set the seed node
+        // set the seed node and seed nodes peers
         if(peerCount == 0) {
-            logger.info(Constants.SEED_NODE_MSG);
+            AddPeer addPeer = AddPeer.builder().peerId(massId).build();
+            buildPeerProxy(seedNode).post().uri(uri -> 
+                uri.path(Constants.PEER_ADD_PATH).build())
+                .bodyValue(addPeer)
+                .retrieve().toBodilessEntity().subscribe(r -> {
+                    if(r.getStatusCode() == HttpStatus.OK) {
+                        logger.info(Constants.SEED_NODE_MSG, seedNode);
+                    }
+            });
             executePeerDiscovery(seedNode);
         }
     }

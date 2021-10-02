@@ -146,7 +146,8 @@ public final class Constants {
     public static final String PEER_HOST_FORMAT = "http://{0}.b32.ip";
     public static final String IS_SHARING_PEERS = "${peer.share}";
     public static final String SEED_NODE = "${peer.seed}";
-    public static final String SEED_NODE_MSG = "Setting seed node";
+    public static final String MASS_ID = "${peer.id}";
+    public static final String SEED_NODE_MSG = "Setting seed node {}";
     public static final int PEER_PERFORMANCE_THESHOLD = 3;
 
     // error messages
