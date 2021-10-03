@@ -37,6 +37,7 @@ import org.hiahatf.mass.models.monero.multisig.SubmitResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
 import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.bitcoin.SwapService;
@@ -158,10 +159,11 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Finalize Swap Service Test")
     public void finalizeSwapTest() {
         String expectedAddress = "sendAddy";
+        Optional<Peer> peer = Optional.of(Peer.builder().peer_id("peer_id").build());
         Optional<BitcoinQuote> quote = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
-            .swap_filename("swap_filename")
+            .swap_filename("swap_filename").peer_id("peer_id")
             .swap_address("swap_address").build());
         List<Destination> destinations = Lists.newArrayList();
         Destination destination = Destination.builder().address(expectedAddress)
@@ -179,6 +181,7 @@ public class BitcoinSwapServiceTest {
         SubmitResponse submitResponse = SubmitResponse.builder().result(submitResult).build();
         SwapRequest swapRequest = SwapRequest.builder().hash("hash").txset("").build();
         // mocks
+        when(peerRepository.findById(anyString())).thenReturn(peer);
         when(quoteRepository.findById(anyString())).thenReturn(quote);
         when(monero.describeTransfer(anyString())).thenReturn(Mono.just(describeResponse));
         when(monero.signMultisig(anyString())).thenReturn(Mono.just(signResponse));

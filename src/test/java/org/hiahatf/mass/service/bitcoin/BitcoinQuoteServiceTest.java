@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.google.common.collect.Lists;
 
@@ -21,6 +22,7 @@ import org.hiahatf.mass.models.monero.validate.ValidateAddressResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
 import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.bitcoin.QuoteService;
@@ -65,10 +67,11 @@ public class BitcoinQuoteServiceTest {
     public void processBitcoinQuoteTest() {
         Double expectedAmount = 0.1 * Constants.PICONERO;
         // build test data
+        Optional<Peer> peer = Optional.of(Peer.builder().build());
         List<String> infos = Lists.newArrayList();
         Request req = Request.builder().proofAddress("proofAddress")
             .proofSignature("proofSignature").refundAddress("refundAddress")
-            .swapMultisigInfos(infos).amount(0.1).build();
+            .swapMultisigInfos(infos).amount(0.1).peerId("peerId").build();
         WalletStateResult walletStateResult = WalletStateResult.builder().build();
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();
@@ -84,6 +87,7 @@ public class BitcoinQuoteServiceTest {
             .swapFilename("sfn").mediatorMakeMultisigInfo("mmsi")
             .mediatorFilename("mfn").build();
         // mocks
+        when(peerRepository.findById(anyString())).thenReturn(peer);
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))

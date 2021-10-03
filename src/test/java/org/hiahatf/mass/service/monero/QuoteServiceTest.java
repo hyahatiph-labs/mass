@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.net.ssl.SSLException;
 
@@ -23,6 +24,7 @@ import org.hiahatf.mass.models.monero.validate.ValidateAddressResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.monero.QuoteService;
@@ -74,9 +76,10 @@ public class QuoteServiceTest {
     public void processQuoteTest() throws SSLException, IOException {
         String prs = "proofresultsigxxx";
         // build test data
+        Optional<Peer> peer = Optional.of(Peer.builder().build());
         byte[] ph = new byte[32];
         Request req = Request.builder().address("54xxx").preimageHash(ph)
-            .amount(0.1).multisigInfo("multisigInfo").build();
+            .amount(0.1).multisigInfo("multisigInfo").peerId("peerId").build();
         GetProofResult getProofResult = GetProofResult.builder()
             .signature(prs).build();
         GetReserveProofResponse reserveProof = GetReserveProofResponse
@@ -94,6 +97,7 @@ public class QuoteServiceTest {
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();
         // mocks
+        when(peerRepository.findById(anyString())).thenReturn(peer);
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))
@@ -123,7 +127,8 @@ public class QuoteServiceTest {
     @DisplayName("Monero Swap Reserve Proof Error Test")
     public void reserveProofErrorTest() throws SSLException, IOException {
         // build test data
-        Request req = Request.builder().address("54xxx")
+        Optional<Peer> peer = Optional.of(Peer.builder().build());
+        Request req = Request.builder().address("54xxx").peerId("peerId")
             .amount(0.1).build();
         GetReserveProofResponse reserveProof = GetReserveProofResponse
             .builder().result(null)
@@ -132,6 +137,7 @@ public class QuoteServiceTest {
         WalletStateResponse walletStateResponse = WalletStateResponse.builder()
             .result(walletStateResult).build();
         // mocks
+        when(peerRepository.findById(anyString())).thenReturn(peer);
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(massUtil.validateLiquidity(anyDouble(), any()))

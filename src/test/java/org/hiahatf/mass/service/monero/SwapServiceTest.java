@@ -36,6 +36,7 @@ import org.hiahatf.mass.models.monero.transfer.TransferResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
 import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.monero.SwapService;
@@ -87,9 +88,11 @@ public class SwapServiceTest {
         String txset = "expectedTxset";
         SwapRequest swapRequest = SwapRequest.builder()
             .hash("hash").preimage(new byte[32]).build();
+        Optional<Peer> peer = Optional.of(Peer.builder().peer_id("peer_id").build());
         Optional<MoneroQuote> quote = Optional.of(MoneroQuote.builder()
         .amount(0.1)
         .payment_hash(new byte[32])
+        .peer_id("peer_id")
         .quote_id("qid")
         .dest_address("54xxx")
         .swap_filename("sfn")
@@ -119,6 +122,7 @@ public class SwapServiceTest {
             .thenReturn(Mono.just(sweepAllResponse));
         when(entity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(lightning.handleInvoice(swapRequest, quote.get(), true)).thenReturn(Mono.just(entity));
+        when(peerRepository.findById(anyString())).thenReturn(peer);
         Mono<SwapResponse> testRes = swapService.transferMonero(swapRequest);
         
         StepVerifier.create(testRes)
