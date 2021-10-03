@@ -2,7 +2,7 @@ package org.hiahatf.mass.controllers;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.peer.AddPeer;
-import org.hiahatf.mass.models.peer.ViewPeerResponse;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.services.peer.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -51,7 +52,7 @@ public class PeerController {
      */
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Constants.PEER_VIEW_PATH)
-    public Mono<ViewPeerResponse> viewPeer() {
+    public Flux<Peer> viewPeer() {
         return peerService.viewPeer();
     }
 

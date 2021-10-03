@@ -9,7 +9,6 @@ import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.peer.AddPeer;
 import org.hiahatf.mass.models.peer.Peer;
-import org.hiahatf.mass.models.peer.ViewPeerResponse;
 import org.hiahatf.mass.repo.PeerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +76,8 @@ public class PeerService {
         if(!isValidPeer) {
             return Mono.error(new MassException(Constants.INVALID_PEER_ERROR));
         }
-        Peer peer = Peer.builder().cancel_counter(0).peer_id(peerId).is_active(true)
-            .swap_counter(0).is_malicous(false).is_vetted(false).build();
+        Peer peer = Peer.builder().cancel_counter(0).peer_id(peerId).active(true)
+            .swap_counter(0).malicous(false).vetted(false).build();
         // no dups or overwrite on add
         Optional<Peer> peerCheck = peerRepository.findById(peerId);
         if(peerCheck.isPresent()) {
@@ -94,14 +93,12 @@ public class PeerService {
      * associate p2p information
      * @return ViewPeerResponse
      */
-    public Mono<ViewPeerResponse> viewPeer() {
+    public Flux<Peer> viewPeer() {
         if(!isSharingPeers) {
-            return Mono.error(new MassException(Constants.PEER_SHARE_ERROR));
+            return Flux.error(new MassException(Constants.PEER_SHARE_ERROR));
         }
         Iterable<Peer> peers = peerRepository.findAll();
-        Flux<Peer> peerFlux = Flux.fromIterable(peers);
-        ViewPeerResponse response = ViewPeerResponse.builder().peers(peerFlux).build();
-        return Mono.just(response);
+        return Flux.fromIterable(peers);
     }
 
     /**
@@ -120,14 +117,14 @@ public class PeerService {
                 .retrieve().toBodilessEntity().subscribe(r -> {
                 if(r.getStatusCode() != HttpStatus.OK) {
                     logger.info(Constants.PEER_INACTIVE_MSG, pid);
-                    updatePeer.set_active(false);
+                    updatePeer.setActive(false);
                     peerRepository.save(updatePeer);
                 } else {
                     // if they are inactive on the second check remove them
-                    if(!p.is_active()) {
+                    if(!p.isActive()) {
                         peerRepository.delete(p);
                     }
-                    updatePeer.set_active(false);
+                    updatePeer.setActive(true);
                     logger.info(Constants.PEER_ACTIVE_MSG, pid);
                 }
                 updatePeerBehavior(p, pid);
@@ -175,7 +172,8 @@ public class PeerService {
     private WebClient buildPeerProxy(String peerId) {
         String host = MessageFormat.format(Constants.PEER_HOST_FORMAT, peerId);
         HttpClient httpClient = HttpClient.create()
-            .proxy(proxy -> proxy.type(Proxy.HTTP).host(Constants.PEER_PROXY));
+            .proxy(proxy -> proxy.type(Proxy.HTTP)
+            .host(Constants.PEER_PROXY_HOST).port(Constants.PEER_PROXY_PORT));
         ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
         return WebClient.builder().baseUrl(host).clientConnector(connector).build();
     }
@@ -187,14 +185,12 @@ public class PeerService {
      */
     private void executePeerDiscovery(String peerId) {
         buildPeerProxy(peerId).get().uri(uri -> uri.path(Constants.PEER_VIEW_PATH).build())
-            .retrieve().bodyToMono(ViewPeerResponse.class).subscribe(r -> {
-                r.getPeers().subscribe(peer -> {
-                    if(!peer.is_malicous() && peer.is_vetted()) {
+            .retrieve().bodyToFlux(Peer.class).subscribe(peer -> {
+                    if(!peer.isMalicous() && peer.isVetted()) {
                         logger.info(Constants.PEER_ADDED_MSG, peerId);
                         peerRepository.save(peer);
                     }
                 });
-            });
     }
 
     /**
@@ -206,12 +202,12 @@ public class PeerService {
     private void updatePeerBehavior(Peer p, String peerId) {
         if(p.getCancel_counter() == Constants.PEER_PERFORMANCE_THESHOLD) {
             logger.info(Constants.PEER_MALICIOUS_MSG, peerId);
-            Peer maliciousPeer = Peer.builder().is_malicous(true).build();
+            Peer maliciousPeer = Peer.builder().malicous(true).build();
             peerRepository.save(maliciousPeer);
         }
         if(p.getSwap_counter() == Constants.PEER_PERFORMANCE_THESHOLD) {
             logger.info(Constants.PEER_VETTED_MSG, peerId);
-            Peer vettedPeer = Peer.builder().is_vetted(true).build();
+            Peer vettedPeer = Peer.builder().vetted(true).build();
             peerRepository.save(vettedPeer);
         }
     }

@@ -27,8 +27,8 @@ CREATE TABLE BTC_QUOTE_TABLE (
 CREATE TABLE PEER_TABLE (
     peer_id VARCHAR(64) PRIMARY KEY,
     cancel_counter INT,
-    is_active BOOLEAN,
-    is_vetted BOOLEAN,
-    is_malicious BOOLEAN,
+    active BOOLEAN,
+    vetted BOOLEAN,
+    malicious BOOLEAN,
     swap_counter INT
 );

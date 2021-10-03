@@ -275,3 +275,6 @@ Content-Type: application/json
 {
     "peerId": "wtsythnq4l3dqg5kzdwdl2ml4stta6iu24ygmredg4gzbnlo7ujq.b32.i2p"
 }
+
+### view peer
+GET http://5rndva7adxvok4s44g6yelvggdihxz3vat46lxpsd6rlfqlsyeda.b32.i2p/peer/view

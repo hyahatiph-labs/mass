@@ -134,7 +134,8 @@ public final class Constants {
       TODO: publish diagrams and stuff of the p2p architecture.
     */
     public static final long MAX_PEERS = 7;
-    public static final String PEER_PROXY = "http://localhost:4444";
+    public static final String PEER_PROXY_HOST = "127.0.0.1";
+    public static final int PEER_PROXY_PORT = 4444;
     public static final String I2P_CHECK = ".b32.i2p$";
     public static final String PEER_DISCOVERY_MSG = "Starting peer discovery";
     public static final String PEER_ADDED_MSG = "Adding peer {} from discovery";

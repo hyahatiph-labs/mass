@@ -26,11 +26,11 @@ public class Peer {
     @Column // consecutive cancel counter
     private int cancel_counter;
     @Column // peer was online in the past 7200s
-    private boolean is_active;
+    private boolean active;
     @Column // peer has good reputation (e.g. 3 consecutive successful swaps)
-    private boolean is_vetted;
+    private boolean vetted;
     @Column // peer has bad reputation (e.g. 3 consecutive swap cancels)
-    private boolean is_malicous;
+    private boolean malicous;
     @Column // consecutive swap counter
     private int swap_counter;
     
