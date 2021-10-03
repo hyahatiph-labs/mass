@@ -117,17 +117,17 @@ public class PeerService {
                 .retrieve().toBodilessEntity().subscribe(r -> {
                 if(r.getStatusCode() != HttpStatus.OK) {
                     logger.info(Constants.PEER_INACTIVE_MSG, pid);
-                    updatePeer.setActive(false);
-                    peerRepository.save(updatePeer);
-                } else {
                     // if they are inactive on the second check remove them
                     if(!p.isActive()) {
                         peerRepository.delete(p);
                     }
+                    updatePeer.setActive(false);
+                    peerRepository.save(updatePeer);
+                } else {                  
                     updatePeer.setActive(true);
                     logger.info(Constants.PEER_ACTIVE_MSG, pid);
+                    updatePeerBehavior(p, pid);
                 }
-                updatePeerBehavior(p, pid);
             });
         });
     }

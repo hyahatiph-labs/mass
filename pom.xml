@@ -205,8 +205,8 @@
 						<configuration>
 							<rules>
 								<rule>
-									<!-- build restrict the individual packages -->
-									<element>PACKAGE</element>
+									<!-- build restrict the application -->
+									<element>BUNDLE</element>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
