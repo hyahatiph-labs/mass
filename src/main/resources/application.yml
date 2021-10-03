@@ -44,3 +44,12 @@ spring.jpa:
   hibernate.ddl-auto: update
 # temp fix for mulitsig time outs
 spring.mvc.async.request-timeout: -1
+# share peers
+peer:
+  # this is the peer id of the current mass app
+  # TODO: configure by command line
+  id: 5rndva7adxvok4s44g6yelvggdihxz3vat46lxpsd6rlfqlsyeda.b32.i2p
+  # seed to get on the network
+  # TODO configure by command line
+  seed: wtsythnq4l3dqg5kzdwdl2ml4stta6iu24ygmredg4gzbnlo7ujq.b32.i2p
+  share: true

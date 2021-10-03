@@ -6,6 +6,7 @@ CREATE TABLE XMR_QUOTE_TABLE (
     funding_txid VARCHAR(200),
     mediator_filename VARCHAR(100) NOT NULL,
     mediator_finalize_msig VARCHAR(200) NOT NULL,
+    peer_id VARCHAR(64) NOT NULL,
     swap_finalize_msig VARCHAR(200) NOT NULL,
     payment_hash VARCHAR(64) NOT NULL,
     swap_filename VARCHAR(100) NOT NULL,
@@ -17,7 +18,17 @@ CREATE TABLE BTC_QUOTE_TABLE (
     amount FLOAT(30) NOT NULL,
     locked_rate FLOAT(30),
     payment_hash VARCHAR(64) NOT NULL,
+    peer_id VARCHAR(64) NOT NULL,
     preimage VARCHAR(64) NOT NULL,
     refund_address VARCHAR(200) NOT NULL,
     swap_filename VARCHAR(100) NOT NULL
 );   
+
+CREATE TABLE PEER_TABLE (
+    peer_id VARCHAR(64) PRIMARY KEY,
+    cancel_counter INT,
+    active BOOLEAN,
+    vetted BOOLEAN,
+    malicious BOOLEAN,
+    swap_counter INT
+);

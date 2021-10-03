@@ -15,7 +15,7 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Lists;
 
 import org.hiahatf.mass.models.monero.InitResponse;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.SignResponse;
 import org.hiahatf.mass.models.monero.multisig.SignResult;
 import org.hiahatf.mass.models.monero.multisig.SubmitResponse;
@@ -26,6 +26,7 @@ import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.monero.Mediator;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
@@ -53,15 +54,17 @@ public class MediatorTest {
     MassUtil massUtil;
     @Mock
     MoneroQuoteRepository moneroQuoteRepository;
+    @Mock
+    PeerRepository peerRepository;
     @InjectMocks
     Mediator mediator = new Mediator(moneroQuoteRepository, "quoteId", monero, 
-        massUtil, "refundAddress", 0);
+        massUtil, "refundAddress", 0, peerRepository);
     
     @Test
     @DisplayName("Mediator Test")
     public void mediatorTest() throws SSLException, IOException {
         String txset = "txset";
-        XmrQuoteTable table = XmrQuoteTable.builder()
+        MoneroQuote table = MoneroQuote.builder()
             .amount(0.1)
             .dest_address("dest_address")
             .funding_txid("funding_txid")

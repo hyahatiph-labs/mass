@@ -21,7 +21,7 @@ import org.hiahatf.mass.models.monero.FundRequest;
 import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.MultisigData;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResponse;
 import org.hiahatf.mass.models.monero.multisig.ExportInfoResult;
 import org.hiahatf.mass.models.monero.multisig.FinalizeResponse;
@@ -136,7 +136,7 @@ public class MassUtilTest {
     @DisplayName("Export Multisig Test")
     public void exportMultisigTest() {
         String importInfo = "MultisigIinfo";
-        XmrQuoteTable table = XmrQuoteTable.builder()
+        MoneroQuote quote = MoneroQuote.builder()
             .amount(0.123).dest_address("54destx")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
@@ -157,18 +157,18 @@ public class MassUtilTest {
         ImportInfoResponse importInfoResponse = ImportInfoResponse.builder()
             .result(importInfoResult).build();
         // mocks
-        when(monero.controlWallet(WalletState.OPEN, table.getSwap_filename()))
+        when(monero.controlWallet(WalletState.OPEN, quote.getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.OPEN, table.getMediator_filename()))
+        when(monero.controlWallet(WalletState.OPEN, quote.getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.getMediator_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.exportMultisigInfo()).thenReturn(Mono.just(exportInfoResponse));
         when(monero.importMultisigInfo(anyList())).thenReturn(Mono.just(importInfoResponse));
 
-        Mono<InitResponse> testData = util.exportSwapInfo(table, initRequest);
+        Mono<InitResponse> testData = util.exportSwapInfo(quote, initRequest);
 
         StepVerifier.create(testData)
         .expectNextMatches(d -> d.getSwapExportInfo()
@@ -180,7 +180,7 @@ public class MassUtilTest {
     @DisplayName("Finalize Multisig Test")
     public void finalizeMultisigTest() {
         String expectedAddress = "addy123";
-        Optional <XmrQuoteTable> table = Optional.of(XmrQuoteTable.builder()
+        Optional <MoneroQuote> quote = Optional.of(MoneroQuote.builder()
             .amount(0.123).dest_address("54destx")
             .funding_txid("0xfundtxid")
             .mediator_filename("mfn").mediator_finalize_msig("mfmsig")
@@ -195,14 +195,14 @@ public class MassUtilTest {
         FinalizeResult finalizeResult = FinalizeResult.builder().address(expectedAddress).build();
         FinalizeResponse finalizeResponse = FinalizeResponse.builder().result(finalizeResult).build();
         // mocks
-        when(moneroQuoteRepository.findById(anyString())).thenReturn(table);
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(moneroQuoteRepository.findById(anyString())).thenReturn(quote);
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.OPEN, table.get().getMediator_filename()))
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getMediator_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getMediator_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.finalizeMultisig(anyList())).thenReturn(Mono.just(finalizeResponse));
 

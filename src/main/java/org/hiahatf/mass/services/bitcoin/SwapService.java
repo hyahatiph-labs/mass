@@ -10,7 +10,7 @@ import javax.net.ssl.SSLException;
 import org.apache.commons.codec.binary.Hex;
 import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
-import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
+import org.hiahatf.mass.models.bitcoin.BitcoinQuote;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
 import org.hiahatf.mass.models.lightning.PaymentStatus;
@@ -20,7 +20,9 @@ import org.hiahatf.mass.models.monero.FundResponse;
 import org.hiahatf.mass.models.bitcoin.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
@@ -41,6 +43,7 @@ public class SwapService {
 
     private Logger logger = LoggerFactory.getLogger(SwapService.class);
     private BitcoinQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     public static boolean isWalletOpen;
     private RateService rateService;
     private double priceConfidence;
@@ -57,10 +60,11 @@ public class SwapService {
     public SwapService(
         BitcoinQuoteRepository quoteRepository, Lightning lightning, Monero monero,
         MassUtil massUtil, RateService rateService, @Value(Constants.SEND_ADDRESS) String sendAddress,
-        @Value(Constants.PRICE_CONFIDENCE) double priceConfidence,
+        @Value(Constants.PRICE_CONFIDENCE) double priceConfidence, PeerRepository peerRepository,
         @Value(Constants.RATE_LOCK_MODE) boolean isRateLocked) {
             this.quoteRepository = quoteRepository;
             this.priceConfidence = priceConfidence;
+            this.peerRepository = peerRepository;
             this.isRateLocked = isRateLocked;
             this.rateService = rateService;
             this.sendAddress = sendAddress;
@@ -79,11 +83,11 @@ public class SwapService {
         if(isWalletOpen) {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
-        BtcQuoteTable table = quoteRepository.findById(request.getHash()).get();
-        return massUtil.rFinalizeSwapMultisig(request, table.getSwap_filename()).flatMap(fm -> {
+        BitcoinQuote quote = quoteRepository.findById(request.getHash()).get();
+        return massUtil.rFinalizeSwapMultisig(request, quote.getSwap_filename()).flatMap(fm -> {
             String address = fm.getResult().getAddress();
-            table.setSwap_address(address);
-            quoteRepository.save(table);
+            quote.setSwap_address(address);
+            quoteRepository.save(quote);
             FundResponse fundResponse = FundResponse.builder().swapAddress(address).build();
             return Mono.just(fundResponse);
         });
@@ -97,8 +101,8 @@ public class SwapService {
      * @return Mono<InitResponse> - swap export_multisig_info 
      */
     public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
-        BtcQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
-        String sfn = table.getSwap_filename();
+        BitcoinQuote quote = quoteRepository.findById(initRequest.getHash()).get();
+        String sfn = quote.getSwap_filename();
         isWalletOpen = true;
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.getBalance().flatMap(b -> {
@@ -110,7 +114,7 @@ public class SwapService {
                 }
                 return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
                     isWalletOpen = false;
-                    return decodePayReq(initRequest, table, sfn);
+                    return decodePayReq(initRequest, quote, sfn);
                 });
             });
         });
@@ -123,9 +127,9 @@ public class SwapService {
      * @param rate
      * @return Mono<Quote>
      */
-    private Mono<InitResponse> decodePayReq(InitRequest request, BtcQuoteTable table, String sfn) {
+    private Mono<InitResponse> decodePayReq(InitRequest request, BitcoinQuote quote, String sfn) {
         String rate = rateService.getMoneroRate();
-        Double parsedRate = isRateLocked ? table.getLocked_rate() : 
+        Double parsedRate = isRateLocked ? quote.getLocked_rate() : 
             (massUtil.parseMoneroRate(rate) * priceConfidence);
         try {
             logger.info("Decoding payment request");
@@ -139,8 +143,8 @@ public class SwapService {
                 Double rawAmt = value / (parsedRate * Constants.COIN);
                 Double moneroAmt = BigDecimal.valueOf(rawAmt)
                     .setScale(12, RoundingMode.HALF_UP).doubleValue();
-                if(moneroAmt < table.getAmount()) {
-                    quoteRepository.delete(table);
+                if(moneroAmt < quote.getAmount()) {
+                    quoteRepository.delete(quote);
                     return Mono.error(new MassException(Constants.INVALID_AMT_ERROR));
                 }
                 return payInvoice(request, sfn);
@@ -180,8 +184,8 @@ public class SwapService {
      */
     public Mono<SwapResponse> processBitcoinSwap(SwapRequest swapRequest) {
         String txset = swapRequest.getTxset();
-        BtcQuoteTable table = quoteRepository.findById(swapRequest.getHash()).get();
-        Double amount = table.getAmount() * Constants.PICONERO;
+        BitcoinQuote quote = quoteRepository.findById(swapRequest.getHash()).get();
+        Double amount = quote.getAmount() * Constants.PICONERO;
         // could add multiple destinations in the future here...
         Destination expectDestination = Destination.builder()
             .address(sendAddress).amount(amount.longValue()).build();
@@ -195,7 +199,14 @@ public class SwapService {
                         return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR)); 
                     }
                     SwapResponse response = SwapResponse.builder()
-                        .preimage(Hex.encodeHexString(table.getPreimage())).build();
+                        .preimage(Hex.encodeHexString(quote.getPreimage())).build();
+                    // update peer
+                    Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                    int swaps = peer.getSwap_counter() + 1;
+                    Peer updatePeer = Peer.builder().swap_counter(swaps).build();
+                    peerRepository.save(updatePeer);
+                    // delete quote from db
+                    quoteRepository.deleteById(quote.getQuote_id());
                     return Mono.just(response);
                 });
             });

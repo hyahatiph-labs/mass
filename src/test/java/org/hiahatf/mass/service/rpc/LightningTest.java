@@ -16,7 +16,7 @@ import org.hiahatf.mass.models.lightning.InvoiceState;
 import org.hiahatf.mass.models.lightning.Liquidity;
 import org.hiahatf.mass.models.lightning.PaymentRequest;
 import org.hiahatf.mass.models.monero.SwapRequest;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -128,7 +128,7 @@ public class LightningTest {
     @DisplayName("Handle Invoice Test")
     public void handleInvoiceTest() throws JsonProcessingException, IOException,
     SSLException {
-        XmrQuoteTable quote = XmrQuoteTable.builder()
+        MoneroQuote quote = MoneroQuote.builder()
             .amount(0.1)
             .quote_id("qid")
             .build();
