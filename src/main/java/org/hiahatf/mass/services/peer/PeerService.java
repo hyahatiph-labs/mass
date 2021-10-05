@@ -120,9 +120,10 @@ public class PeerService {
                     // if they are inactive on the second check remove them
                     if(!p.isActive()) {
                         peerRepository.delete(p);
+                    } else {
+                        updatePeer.setActive(false);
+                        peerRepository.save(updatePeer);
                     }
-                    updatePeer.setActive(false);
-                    peerRepository.save(updatePeer);
                 } else {                  
                     updatePeer.setActive(true);
                     logger.info(Constants.PEER_ACTIVE_MSG, pid);
