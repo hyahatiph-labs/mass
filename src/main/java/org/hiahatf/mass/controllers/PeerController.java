@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
  */
 @RequestMapping
 @RestController(Constants.PEER_CONTROLLER)
-public class PeerController {
+public class PeerController extends BaseController {
     
     private PeerService peerService;
 

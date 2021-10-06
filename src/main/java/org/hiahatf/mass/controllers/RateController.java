@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  */
 @RequestMapping
 @RestController
-public class RateController {
+public class RateController extends BaseController {
     
     private RateService rateService;
     private MassUtil massUtil;

@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
  */
 @RequestMapping
 @RestController
-public class HealthController extends BaseController{
+public class HealthController extends BaseController {
     
 	private Lightning lightning;
 
