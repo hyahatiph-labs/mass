@@ -30,11 +30,11 @@ NOTE: currently have an issue with Monero digest authentication rpc calls, so us
 
 ### Docker
 
-see [docker.md](./docker.md)
+see [docker.md](./docs/docker.md)
 
 ## API
 
-see [api.md](./api.md)
+see [api.md](./docs/api.md)
 
 ## Tests
 
