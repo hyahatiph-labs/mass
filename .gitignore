@@ -42,3 +42,4 @@ node_modules/
 ### release stuff
 *.bz2
 *.gpg
+/masc-proxy/dist/
