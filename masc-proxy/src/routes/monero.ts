@@ -3,7 +3,7 @@ const router = express.Router();
 import axios from 'axios';
 import { CONFIG, MASC_ENV } from '../config';
 
-const isMainnet: boolean = process.env.MASC_PROXY_ENV === MASC_ENV.MAINNET
+const isMainnet: boolean = process.env.MASC_PROXY_ENV === MASC_ENV.MAINNET;
 const HOST = isMainnet ? CONFIG.MAINNET_HOST : CONFIG.STAGENET_HOST;
 const PORT = isMainnet ? CONFIG.MAINNET_PORT : CONFIG.STAGENET_PORT;
 

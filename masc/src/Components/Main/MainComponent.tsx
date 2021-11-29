@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
@@ -22,6 +22,7 @@ import { PICO, PROXY } from '../../Config/constants';
 // TODO: refactor to Main Component
 
 const drawerWidth = 240;
+let loaded = false;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -75,9 +76,14 @@ const MainComponent: React.FC = (): ReactElement => {
           unlockedBalance: allBalances.unlockedBalance,
           subAddresses: [],
         });
+        loaded = true;
       }).catch(() => { /* TODO: and snackbar for error handling */ });
   };
-  loadXmrBalance();
+
+  useEffect(() => {
+    if (!loaded) { loadXmrBalance(); }
+  });
+
   // TODO: implement pending balance, unlock time, etc.
   const pendingBalance = 10.78;
   const unlockTime = 10;
