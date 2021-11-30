@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect } from 'react';
+import React, { ReactElement } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
@@ -14,16 +14,10 @@ import FlashOnIcon from '@material-ui/icons/FlashOn';
 import AccountBalanceWalletIcon from '@material-ui/icons/AccountBalanceWallet';
 import ListItemText from '@material-ui/core/ListItemText';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
-import axios from 'axios';
 import logo from '../../Assets/logo.png';
-import { setGlobalState, useGlobalState } from '../../state';
-import { PICO, PROXY } from '../../Config/constants';
-
-// TODO: refactor to Main Component
+import MoneroAccountComponent from '../Monero/MoneroAccountComponent';
 
 const drawerWidth = 240;
-let loaded = false;
-
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
@@ -56,37 +50,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const MainComponent: React.FC = (): ReactElement => {
-  const [gBalance] = useGlobalState('balance');
   const classes = useStyles();
-  const body = {
-    jsonrpc: '2.0',
-    id: '0',
-    method: 'get_balance',
-    params: { account_index: 0, address_indices: [0, 0] },
-  };
-  const loadXmrBalance = async (): Promise<void> => {
-    await axios
-      .post(`${PROXY}/monero/balance`, body)
-      .then((res) => {
-        const allBalances = res.data.result;
-        setGlobalState('balance', {
-          primaryAddress: '',
-          walletBalance: allBalances.balance,
-          unlockTime: allBalances.timeToUnlock,
-          unlockedBalance: allBalances.unlockedBalance,
-          subAddresses: [],
-        });
-        loaded = true;
-      }).catch(() => { /* TODO: and snackbar for error handling */ });
-  };
 
-  useEffect(() => {
-    if (!loaded) { loadXmrBalance(); }
-  });
-
-  // TODO: implement pending balance, unlock time, etc.
-  const pendingBalance = 10.78;
-  const unlockTime = 10;
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -120,11 +85,11 @@ const MainComponent: React.FC = (): ReactElement => {
               </ListItemIcon>
               <ListItemText primary="Transactions" />
             </ListItem>
-            <ListItem button key="MASS">
+            <ListItem button key="Swap">
               <ListItemIcon>
                 <ExtensionIcon />
               </ListItemIcon>
-              <ListItemText primary="MASS" />
+              <ListItemText primary="Swap" />
             </ListItem>
             <ListItem button key="LN">
               <ListItemIcon>
@@ -143,11 +108,7 @@ const MainComponent: React.FC = (): ReactElement => {
       </Drawer>
       <main className={classes.content}>
         <Toolbar />
-        <h1 color="#FF5722">
-          {`${(gBalance.walletBalance / PICO).toFixed(12)} XMR`}
-        </h1>
-        <h4>{`*${pendingBalance.toFixed(2)} XMR`}</h4>
-        <h4>{`Time to unlock: ~${unlockTime} min.`}</h4>
+        <MoneroAccountComponent />
       </main>
     </div>
   );
