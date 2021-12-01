@@ -16,6 +16,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
 import logo from '../../Assets/logo.png';
 import MoneroAccountComponent from '../Monero/MoneroAccountComponent';
+import { useGlobalState } from '../../state';
+import WalletInitComponent from './WalletInitComponent';
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
@@ -50,6 +52,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const MainComponent: React.FC = (): ReactElement => {
+  const [gInit] = useGlobalState('init');
   const classes = useStyles();
 
   return (
@@ -108,7 +111,8 @@ const MainComponent: React.FC = (): ReactElement => {
       </Drawer>
       <main className={classes.content}>
         <Toolbar />
-        <MoneroAccountComponent />
+        {!gInit.isWalletInitialized && <WalletInitComponent />}
+        {gInit.isWalletInitialized && <MoneroAccountComponent />}
       </main>
     </div>
   );

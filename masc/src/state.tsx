@@ -15,4 +15,8 @@ export const {
     unlockTime: 0,
     subAddresses: [],
   },
+  init: {
+    isWalletInitialized: false,
+    remoteNodeUrl: 'http://localhost:18083',
+  },
 });

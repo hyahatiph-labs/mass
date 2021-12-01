@@ -10,4 +10,4 @@ export interface Balance {
 
 export default interface State {
     balance: Balance
-}
+};

@@ -1,5 +1,6 @@
 import React, { ReactElement, useEffect } from 'react';
 import axios from 'axios';
+import Button from '@material-ui/core/Button';
 import { setGlobalState, useGlobalState } from '../../state';
 import { PICO, PROXY } from '../../Config/constants';
 
@@ -43,6 +44,10 @@ const MoneroAccountComponent: React.FC = (): ReactElement => {
       </h1>
       <h4>{`*${(pendingBalance / PICO).toFixed(6)} (pending XMR)`}</h4>
       <h4>{`Time to unlock: ~${unlockTime} min.`}</h4>
+      <div>
+        <Button variant="outlined" color="primary">Send</Button>
+        <Button variant="outlined" color="primary">Receive</Button>
+      </div>
     </div>
   );
 };
