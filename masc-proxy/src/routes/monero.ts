@@ -34,4 +34,38 @@ router.post("/balance", (req:any, res:any) => {
     })
 });
 
+// @route POST /proxy/monero/wallet/create
+// @desc create_wallet rpc call
+// @access Public
+// @status Working
+router.post("/wallet/create", (req:any, res:any) => {
+    console.log(req.body);
+      axios
+        .post(`http://${HOST}:${PORT}/json_rpc`, req.body)
+        .then((createWallet) => {
+          console.log(`DEBUG: ${JSON.stringify(createWallet.data)}`);
+          res.json( createWallet.data )
+      }).catch((e) => {
+          console.error(e);
+          res.status(400).json({error:"create_wallet failed"});
+      })
+});
+
+// @route POST /proxy/monero/wallet/open
+// @desc open_wallet rpc call
+// @access Public
+// @status Working
+router.post("/wallet/open", (req:any, res:any) => {
+    console.log(req.body);
+      axios
+        .post(`http://${HOST}:${PORT}/json_rpc`, req.body)
+        .then((openWallet) => {
+          console.log(`DEBUG: ${JSON.stringify(openWallet.data)}`);
+          res.json( openWallet.data )
+      }).catch((e) => {
+          console.error(e);
+          res.status(400).json({error:"open_wallet failed"});
+      })
+});
+
 module.exports = router;

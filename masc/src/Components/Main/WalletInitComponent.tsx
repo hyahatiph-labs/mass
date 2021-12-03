@@ -1,4 +1,5 @@
 import React, { ReactElement } from 'react';
+import axios from 'axios';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import Backdrop from '@material-ui/core/Backdrop';
@@ -12,7 +13,9 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import { Visibility } from '@material-ui/icons';
-import { useGlobalState } from '../../state';
+import { Button, CircularProgress } from '@material-ui/core';
+import { setGlobalState, useGlobalState } from '../../state';
+import { HTTP_OK, PROXY } from '../../Config/constants';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   modal: {
@@ -21,6 +24,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     justifyContent: 'center',
   },
   paper: {
+    fontSize: '20px',
     backgroundColor: theme.palette.background.paper,
     border: '2px solid #000',
     boxShadow: theme.shadows[5],
@@ -45,13 +49,14 @@ interface State {
     url: string;
     password: string;
     showPassword: boolean;
+    isInitializing: boolean;
   }
 
 /**
  * If the user wants to configure a remote node,
  * do it in here. Otherwise use the default. Initialize
  * a wallet for the user by accepting name and password.
- * Display seed phrase verify user stores securely before
+ * Display seed phrase and verify user stores securely before
  * proceeding to the balance display.
  * @returns WalletInit
  */
@@ -63,6 +68,7 @@ const WalletInitComponent: React.FC = (): ReactElement => {
     url: '',
     password: '',
     showPassword: false,
+    isInitializing: false,
   });
 
   const handleChange = (prop: keyof State) => (event:
@@ -77,6 +83,44 @@ const WalletInitComponent: React.FC = (): ReactElement => {
   const handleMouseDownPassword = (event:
     React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
+  };
+
+  // Create and open wallet
+  const createWalletBody = {
+    jsonrpc: '2.0',
+    id: '0',
+    method: 'create_wallet',
+    params: { filename: gInit.walletName, password: values.password, language: 'English' },
+  };
+  const openWalletBody = {
+    jsonrpc: '2.0',
+    id: '0',
+    method: 'open_wallet',
+    params: { filename: gInit.walletName, password: values.password },
+  };
+  const createAndOpenWallet = async (): Promise<void> => {
+    let isWalletCreated = false;
+    setValues({ ...values, isInitializing: true });
+    await axios
+      .post(`${PROXY}/monero/wallet/create`, createWalletBody)
+      .then((createRes) => {
+        if (createRes.status === HTTP_OK) {
+          isWalletCreated = true;
+        }
+      }).catch(() => { /* TODO: and snackbar for error handling */ });
+    if (isWalletCreated) {
+      await axios
+        .post(`${PROXY}/monero/wallet/open`, openWalletBody)
+        .then((openRes) => {
+          if (openRes.status === HTTP_OK) {
+            setGlobalState('init', {
+              isWalletInitialized: true,
+              remoteNodeUrl: gInit.remoteNodeUrl,
+              walletName: gInit.walletName,
+            });
+          }
+        }).catch(() => { /* TODO: and snackbar for error handling */ });
+    }
   };
 
   return (
@@ -100,11 +144,13 @@ const WalletInitComponent: React.FC = (): ReactElement => {
               node configure it below.
             </p>
             <p id="transition-modal-description">
-              If not, worry not, one will be configured for you.
+              If not, leave blank, one will be configured for you.
               Also, set a strong password below.
             </p>
             <p id="transition-modal-description">
               Once the wallet is created your seed phrase will be presented.
+            </p>
+            <p id="transition-modal-description">
               Be sure to keep it somewhere safe, it is the only way to recover
               your funds!
             </p>
@@ -142,6 +188,17 @@ const WalletInitComponent: React.FC = (): ReactElement => {
             )}
               />
             </FormControl>
+            <br />
+            <Button
+              disabled={values.isInitializing}
+              onClick={() => { createAndOpenWallet(); }}
+              variant="outlined"
+              color="primary"
+            >
+              Initialize
+            </Button>
+            {/* Add restore from seed functionality */}
+            {values.isInitializing && <CircularProgress />}
           </div>
         </Fade>
       </Modal>

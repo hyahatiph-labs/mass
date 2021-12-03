@@ -18,5 +18,7 @@ export const {
   init: {
     isWalletInitialized: false,
     remoteNodeUrl: 'http://localhost:18083',
+    // TODO: wallet naming convention
+    walletName: 'masc',
   },
 });
