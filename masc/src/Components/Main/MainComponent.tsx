@@ -54,6 +54,12 @@ const useStyles = makeStyles((theme) => ({
 const MainComponent: React.FC = (): ReactElement => {
   const [gInit] = useGlobalState('init');
   const classes = useStyles();
+  /*
+    If you want to use an existing wallet in development
+    then set REACT_APP_MASC_DEV=DEV in .env.local
+    This will override wallet initialization.
+  */
+  const isDev = process.env.REACT_APP_MASC_DEV === 'DEV';
 
   return (
     <div className={classes.root}>
@@ -111,8 +117,8 @@ const MainComponent: React.FC = (): ReactElement => {
       </Drawer>
       <main className={classes.content}>
         <Toolbar />
-        {!gInit.isWalletInitialized && <WalletInitComponent />}
-        {gInit.isWalletInitialized && <MoneroAccountComponent />}
+        {!gInit.isWalletInitialized && !isDev && <WalletInitComponent />}
+        {(gInit.isWalletInitialized || isDev) && <MoneroAccountComponent />}
       </main>
     </div>
   );
