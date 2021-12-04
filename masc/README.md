@@ -12,6 +12,9 @@ A Node.js typescript server that facilitates React <-> Monero RPC
 
 * proxy must run before the UI
 * `cd masc-proxy && npm run clean && npm run build && node dist/proxy.js`
+* If you want to use an existing wallet in development:
+    * set `REACT_APP_MASC_DEV=DEV` in `.env.local`
+    * This will override wallet initialization.
 
 ## Development
 
