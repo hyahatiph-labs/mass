@@ -14,5 +14,5 @@
             ]
         }
     },
-    "include": [ "src/**/*", "src/proxy.ts"]
+    "include": [ "src/**/*", "utils.ts", "src/proxy.ts"]
 }
