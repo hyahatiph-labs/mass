@@ -1,5 +1,5 @@
-# MASC build workflow
-name: Client-Build
+# MASS build workflow
+name: Server-Build
 
 # Controls when the action will run. 
 on:
@@ -24,6 +24,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Build the client .jar without running test suite
-      - name: Client Build
-        run: cd masc/ && mvn clean && mvn install -DskipTests=true
+      # Build the .jar without running test suite
+      - name: Build
+        run: mvn clean && mvn install -DskipTests=true
