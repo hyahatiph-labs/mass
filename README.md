@@ -1,7 +1,9 @@
 # MASS
 
-[![Build](https://github.com/hyahatiph-labs/mass/actions/workflows/build.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/build.yml)
-[![Test](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/test.yml)
+[![Server-Build](https://github.com/hyahatiph-labs/mass/actions/workflows/mass-build.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/mass-build.yml)
+[![Server-Test](https://github.com/hyahatiph-labs/mass/actions/workflows/mass-test.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/mass-test.yml)
+[![Client-Build](https://github.com/hyahatiph-labs/mass/actions/workflows/masc-build.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/masc-build.yml)
+[![Client-Test](https://github.com/hyahatiph-labs/mass/actions/workflows/masc-test.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/masc-test.yml)
 [![CodeQL](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hyahatiph-labs/mass/actions/workflows/codeql-analysis.yml)
 
 [ POC ] / [ WIP ] Java implementation of monero anon swaps suite
