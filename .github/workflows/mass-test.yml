@@ -1,5 +1,5 @@
 # Mass test workflow
-name: Test
+name: Server-Test
 
 # Controls when the action will run. 
 on:
@@ -25,5 +25,5 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs the test suite
-      - name: Test
+      - name: Server Test
         run: mvn clean install
