@@ -22,6 +22,10 @@ public final class Constants {
     public static final String BTC_CANCEL_PATH = "/swap/cancel/btc";
     public static final String PEER_ADD_PATH = "/peer/add";
     public static final String PEER_VIEW_PATH = "/peer/view";
+    public static final String CLIENT_XMR_QUOTE_PATH = "/client/quote/xmr/generate";
+    public static final String CLIENT_XMR_SWAP_PATH = "/client/swap/xmr/execute";
+    public static final String CLIENT_BTC_QUOTE_PATH = "/client/quote/btc/generate";
+    public static final String CLIENT_BTC_SWAP_PATH = "/client/swap/btc/execute";
 
     // Integrity values
     public static final String XMR_QUOTE_CONTROLLER_SRC = 
