@@ -53,9 +53,6 @@ MASS works well with the [Glowroot](https://glowroot.org/) open-source project
 * Run MASS with `java -javaagent:/home/USER/glowroot/glowroot.jar -jar target/mass-x.x.x-beta.jar`
 * Application performance dashboard is located at `http://localhost:4000`
 
-## MASC - Client Development
-see client [readme.md](https://github.com/hyahatiph-labs/mass/tree/dev/masc)
-
 ## TODOs
 
 See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
