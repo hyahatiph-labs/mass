@@ -159,7 +159,7 @@ public class QuoteService {
      * 
      * @return byte[] 
      */
-    private byte[] createPreimage() {
+    public byte[] createPreimage() {
         SecureRandom random = new SecureRandom();
         byte bytes[] = new byte[32];
         random.nextBytes(bytes);
@@ -172,7 +172,7 @@ public class QuoteService {
      * @param preimage
      * @return byte[]
      */
-    private byte[] createPreimageHash(byte[] preimage) {
+    public byte[] createPreimageHash(byte[] preimage) {
         Security.addProvider(new BouncyCastleProvider());
         MessageDigest digest = null;
         try {

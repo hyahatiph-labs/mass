@@ -170,7 +170,7 @@ public class PeerService {
      * @param peerId
      * @return WebClient
      */
-    private WebClient buildPeerProxy(String peerId) {
+    public WebClient buildPeerProxy(String peerId) {
         String host = MessageFormat.format(Constants.PEER_HOST_FORMAT, peerId);
         HttpClient httpClient = HttpClient.create()
             .proxy(proxy -> proxy.type(Proxy.HTTP)

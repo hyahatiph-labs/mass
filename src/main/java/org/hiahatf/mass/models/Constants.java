@@ -189,6 +189,7 @@ public final class Constants {
     public static final String XMR_SWAP_CONTROLLER = "MoneroSwapController";
     public static final String XMR_QUOTE_SERVICE = "MoneroQuoteService";
     public static final String XMR_SWAP_SERVICE = "MoneroSwapService";
+    public static final String XMR_ClIENT_SERVICE = "MoneroClientService";
     public static final String XMR_QUOTE_REPO = "MoneroQuoteRepository";
 
     public static final String PEER_CONTROLLER = "PeerController";
