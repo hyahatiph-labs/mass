@@ -131,9 +131,9 @@ public class ClientService {
 
     /**
      * Persist the Client's MoneroQuote to the database for future processing.
+     * @param request - client request
+     * @param data - data for consensus wallet
      * @param hash - preimage hash
-     * @param bHash - byte array of preimage hash
-     * @param amount - amount of Monero
      */
     private void persistQuote(Request request, MultisigData data, String hash) {
         // store in db to settle the invoice later 
