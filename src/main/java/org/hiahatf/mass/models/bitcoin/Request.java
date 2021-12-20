@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 public class Request {
     // client's amount of monero (must be same as reserve proof)
     private Double amount;
+    // base32 peerId
+    private String peerId;
     // address to use for reserve proof
     private String proofAddress;
     // clients's reserve proof

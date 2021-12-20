@@ -1,5 +1,5 @@
-# Mass build workflow
-name: Build
+# MASS build workflow
+name: Server-Build
 
 # Controls when the action will run. 
 on:

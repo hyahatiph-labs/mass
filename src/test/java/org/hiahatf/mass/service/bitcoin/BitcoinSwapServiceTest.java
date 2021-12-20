@@ -12,7 +12,7 @@ import javax.net.ssl.SSLException;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.codec.binary.Hex;
-import org.hiahatf.mass.models.bitcoin.BtcQuoteTable;
+import org.hiahatf.mass.models.bitcoin.BitcoinQuote;
 import org.hiahatf.mass.models.bitcoin.InitRequest;
 import org.hiahatf.mass.models.bitcoin.SwapRequest;
 import org.hiahatf.mass.models.bitcoin.SwapResponse;
@@ -37,7 +37,9 @@ import org.hiahatf.mass.models.monero.multisig.SubmitResult;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResponse;
 import org.hiahatf.mass.models.monero.wallet.state.WalletStateResult;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.BitcoinQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.bitcoin.SwapService;
 import org.hiahatf.mass.services.rate.RateService;
 import org.hiahatf.mass.services.rpc.Lightning;
@@ -65,6 +67,8 @@ public class BitcoinSwapServiceTest {
     @Mock
     private BitcoinQuoteRepository quoteRepository;
     @Mock
+    private PeerRepository peerRepository;
+    @Mock
     private RateService rateService;
     @Mock
     private Lightning lightning;
@@ -74,13 +78,13 @@ public class BitcoinSwapServiceTest {
     private Monero monero;
     @InjectMocks
     SwapService swapService = new SwapService(quoteRepository, lightning, monero, massUtil, 
-        rateService, "sendAddy", 0.95, false);
+        rateService, "sendAddy", 0.95, peerRepository, false);
 
     @Test
     @DisplayName("Fund Swap Service Test")
     public void fundSwapTest() {
         String expectedAddress = "addy123";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<BitcoinQuote> quote = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
             .swap_filename("swap_filename")
@@ -92,8 +96,8 @@ public class BitcoinSwapServiceTest {
         FinalizeResponse finalizeResponse = FinalizeResponse.builder()
             .result(finalizeResult).build();
         // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
-        when(massUtil.rFinalizeSwapMultisig(fundRequest, table.get().getSwap_filename()))
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
+        when(massUtil.rFinalizeSwapMultisig(fundRequest, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(finalizeResponse));
 
         Mono<FundResponse> testResponse = swapService.fundBitcoinSwap(fundRequest);
@@ -108,7 +112,7 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Initialize Swap Service Test")
     public void initializeSwapTest() throws SSLException, IOException {
         String expectedSwapInfo = "Multisig123";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<BitcoinQuote> quote = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
             .swap_filename("swap_filename")
@@ -130,17 +134,17 @@ public class BitcoinSwapServiceTest {
         RouterSendResponse routerSendResponse = RouterSendResponse.builder()
             .status(PaymentStatus.IN_FLIGHT).build();
         // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
-        when(monero.controlWallet(WalletState.OPEN, table.get().getSwap_filename()))
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
+        when(monero.controlWallet(WalletState.OPEN, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
-        when(monero.controlWallet(WalletState.CLOSE, table.get().getSwap_filename()))
+        when(monero.controlWallet(WalletState.CLOSE, quote.get().getSwap_filename()))
             .thenReturn(Mono.just(walletStateResponse));
         when(monero.getBalance()).thenReturn(Mono.just(balanceResponse));
         when(rateService.getMoneroRate()).thenReturn("{BTC: 0.00777}");
         when(massUtil.parseMoneroRate(anyString())).thenReturn(0.008);
         when(lightning.decodePaymentRequest(anyString())).thenReturn(Mono.just(paymentRequest));
         when(lightning.sendPayment(anyString())).thenReturn(Mono.just(routerSendResponse));
-        when(massUtil.rExportSwapInfo(table.get().getSwap_filename(), initRequest))
+        when(massUtil.rExportSwapInfo(quote.get().getSwap_filename(), initRequest))
             .thenReturn(Mono.just(initResponse));
 
         Mono<InitResponse> testResponse = swapService.importAndExportInfo(initRequest);
@@ -155,10 +159,11 @@ public class BitcoinSwapServiceTest {
     @DisplayName("Finalize Swap Service Test")
     public void finalizeSwapTest() {
         String expectedAddress = "sendAddy";
-        Optional<BtcQuoteTable> table = Optional.of(BtcQuoteTable.builder()
+        Optional<Peer> peer = Optional.of(Peer.builder().peer_id("peer_id").build());
+        Optional<BitcoinQuote> quote = Optional.of(BitcoinQuote.builder()
             .amount(0.1).funding_txid("funding_txid").payment_hash(new byte[32])
             .preimage(new byte[32]).quote_id("quote_id").refund_address("refund_address")
-            .swap_filename("swap_filename")
+            .swap_filename("swap_filename").peer_id("peer_id")
             .swap_address("swap_address").build());
         List<Destination> destinations = Lists.newArrayList();
         Destination destination = Destination.builder().address(expectedAddress)
@@ -176,7 +181,8 @@ public class BitcoinSwapServiceTest {
         SubmitResponse submitResponse = SubmitResponse.builder().result(submitResult).build();
         SwapRequest swapRequest = SwapRequest.builder().hash("hash").txset("").build();
         // mocks
-        when(quoteRepository.findById(anyString())).thenReturn(table);
+        when(peerRepository.findById(anyString())).thenReturn(peer);
+        when(quoteRepository.findById(anyString())).thenReturn(quote);
         when(monero.describeTransfer(anyString())).thenReturn(Mono.just(describeResponse));
         when(monero.signMultisig(anyString())).thenReturn(Mono.just(signResponse));
         when(monero.submitMultisig(anyString())).thenReturn(Mono.just(submitResponse));
@@ -185,7 +191,7 @@ public class BitcoinSwapServiceTest {
 
         StepVerifier.create(testResponse)
         .expectNextMatches(r -> r.getPreimage()
-          .equals(Hex.encodeHexString(table.get().getPreimage())))
+          .equals(Hex.encodeHexString(quote.get().getPreimage())))
         .verifyComplete();
     }
 

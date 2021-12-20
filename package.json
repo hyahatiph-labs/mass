@@ -1,0 +1,24 @@
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{,java}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.1",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.1.2",
+    "prettier": "^2.3.1",
+    "prettier-plugin-java": "^1.4.0"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.12.3",
+    "uuid": "^8.3.2"
+  }
+}

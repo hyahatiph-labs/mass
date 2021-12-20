@@ -20,6 +20,12 @@ public final class Constants {
     public static final String BTC_SWAP_FUND_PATH = "/swap/fund/btc";
     public static final String BTC_SWAP_INIT_PATH = "/swap/initialize/btc";
     public static final String BTC_CANCEL_PATH = "/swap/cancel/btc";
+    public static final String PEER_ADD_PATH = "/peer/add";
+    public static final String PEER_VIEW_PATH = "/peer/view";
+    public static final String CLIENT_XMR_QUOTE_PATH = "/client/quote/xmr/generate";
+    public static final String CLIENT_XMR_SWAP_PATH = "/client/swap/xmr/execute";
+    public static final String CLIENT_BTC_QUOTE_PATH = "/client/quote/btc/generate";
+    public static final String CLIENT_BTC_SWAP_PATH = "/client/swap/btc/execute";
 
     // Integrity values
     public static final String XMR_QUOTE_CONTROLLER_SRC = 
@@ -122,6 +128,33 @@ public final class Constants {
     public static final String RATE_LOCK_MODE = "${mode.rate-lock}";
     public static final String PRICE_CONFIDENCE = "${mode.price-confidence}";
 
+    // peer service values
+
+    /** 
+      This is a magic number for max peers. I'm too lazy to write up the p2p
+      architecture. It is based on n+1 where n equals six degrees of separation.
+      Linking peers are n and n+1 become linking peers as the network expands 
+      in a fractal pattern.
+      TODO: publish diagrams and stuff of the p2p architecture.
+    */
+    public static final long MAX_PEERS = 7;
+    public static final String PEER_PROXY_HOST = "127.0.0.1";
+    public static final int PEER_PROXY_PORT = 4444;
+    public static final String I2P_CHECK = ".b32.i2p$";
+    public static final String PEER_DISCOVERY_MSG = "Starting peer discovery";
+    public static final String PEER_ADDED_MSG = "Adding peer {} from discovery";
+    public static final String PEER_UPDATE_MSG = "Starting peer update";
+    public static final String PEER_VETTED_MSG = "Vetted peer {}";
+    public static final String PEER_MALICIOUS_MSG = "Tagged peer {} as malicious";
+    public static final String PEER_ACTIVE_MSG = "Peer {} is active";
+    public static final String PEER_INACTIVE_MSG = "Peer {} is inactive";
+    public static final String PEER_HOST_FORMAT = "http://{0}";
+    public static final String IS_SHARING_PEERS = "${peer.share}";
+    public static final String SEED_NODE = "${peer.seed}";
+    public static final String MASS_ID = "${peer.id}";
+    public static final String SEED_NODE_MSG = "Setting seed node {}";
+    public static final int PEER_PERFORMANCE_THESHOLD = 3;
+
     // error messages
     public static final String UNK_ERROR = "Unknown error occurred";
     public static final String OPEN_INVOICE_ERROR = "Invoice is still open!";
@@ -140,6 +173,10 @@ public final class Constants {
     public static final String MEDIATOR_ERROR = "Mediator intervention error";
     public static final String MULTISIG_CONFIG_ERROR = "Multisig configuration error";
     public static final String INVALID_AMT_ERROR = "Funding amount is invalid. This could be due to a an unacceptable price fluctuation for a not rate-locked server. Please create a new swap.";
+    public static final String MAX_PEER_ERROR = "Max peer error";
+    public static final String INVALID_PEER_ERROR = "Invalid i2p peer. Send with '.b32.i2p'";
+    public static final String DUPLICATE_PEER_ERROR = "Peer already exists";
+    public static final String PEER_SHARE_ERROR = "Peer is not sharing";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";
@@ -153,5 +190,9 @@ public final class Constants {
     public static final String XMR_QUOTE_SERVICE = "MoneroQuoteService";
     public static final String XMR_SWAP_SERVICE = "MoneroSwapService";
     public static final String XMR_QUOTE_REPO = "MoneroQuoteRepository";
+
+    public static final String PEER_CONTROLLER = "PeerController";
+    public static final String PEER_SERVICE = "PeerService";
+    public static final String PEER_REPO = "PeerRepo";
 
 }

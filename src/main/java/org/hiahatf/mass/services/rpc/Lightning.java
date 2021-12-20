@@ -20,7 +20,7 @@ import org.hiahatf.mass.models.lightning.RouterSendRequest;
 import org.hiahatf.mass.models.lightning.RouterSendResponse;
 import org.hiahatf.mass.models.lightning.SettleInvoiceRequest;
 import org.hiahatf.mass.models.monero.SwapRequest;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
@@ -130,7 +130,7 @@ public class Lightning {
      * @throws IOException
      */
     public Mono<ResponseEntity<Void>> handleInvoice(SwapRequest swapRequest,
-    XmrQuoteTable quote, boolean settle)
+    MoneroQuote quote, boolean settle)
         throws SSLException, IOException {
             String path = settle ? Constants.SETTLE : Constants.CANCEL;
             SettleInvoiceRequest settleReq = SettleInvoiceRequest

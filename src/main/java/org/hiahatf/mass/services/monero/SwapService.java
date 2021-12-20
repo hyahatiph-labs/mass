@@ -17,10 +17,12 @@ import org.hiahatf.mass.models.monero.InitRequest;
 import org.hiahatf.mass.models.monero.InitResponse;
 import org.hiahatf.mass.models.monero.SwapRequest;
 import org.hiahatf.mass.models.monero.SwapResponse;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.multisig.SweepAllResponse;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
@@ -40,11 +42,12 @@ import reactor.core.publisher.Mono;
 public class SwapService {
     
     private Logger logger = LoggerFactory.getLogger(SwapService.class);
-    private MoneroQuoteRepository quoteRepository;
     private ScheduledExecutorService executorService = 
         Executors.newSingleThreadScheduledExecutor();
-    private String massWalletFilename;
+    private MoneroQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     public static boolean isWalletOpen;
+    private String massWalletFilename;
     private Lightning lightning;
     private MassUtil massUtil;
     private String rpAddress;
@@ -57,9 +60,10 @@ public class SwapService {
     public SwapService(
         MoneroQuoteRepository quoteRepository, Lightning lightning, Monero monero,
         MassUtil massUtil, @Value(Constants.MASS_WALLET_FILENAME) String massWalletFilename,
-        @Value(Constants.RP_ADDRESS) String rpAddress) {
-            this.quoteRepository = quoteRepository;
+        @Value(Constants.RP_ADDRESS) String rpAddress, PeerRepository peerRepository) {
             this.massWalletFilename = massWalletFilename;
+            this.quoteRepository = quoteRepository;
+            this.peerRepository = peerRepository;
             this.lightning = lightning;
             this.rpAddress = rpAddress;
             this.massUtil = massUtil;
@@ -75,9 +79,9 @@ public class SwapService {
         if(isWalletOpen) {
             return Mono.error(new MassException(Constants.WALLET_ERROR));
         }
-        XmrQuoteTable table = quoteRepository.findById(request.getHash()).get();
+        MoneroQuote quote = quoteRepository.findById(request.getHash()).get();
         isWalletOpen = true;
-        return processMoneroSwap(request, table);
+        return processMoneroSwap(request, quote);
     }
 
     /**
@@ -88,14 +92,14 @@ public class SwapService {
      * @param SwapRequest
      * @return SwapResponse
      */
-    public Mono<FundResponse> processMoneroSwap(FundRequest request, XmrQuoteTable table) {
+    public Mono<FundResponse> processMoneroSwap(FundRequest request, MoneroQuote quote) {
         // verify inflight payment, state should be ACCEPTED
         try {
-            return lightning.lookupInvoice(table.getQuote_id()).flatMap(l -> {
+            return lightning.lookupInvoice(quote.getQuote_id()).flatMap(l -> {
                 if(l.getState() == InvoiceState.ACCEPTED) {
                     return massUtil.finalizeMediatorMultisig(request).flatMap(fm -> {
-                        table.setSwap_address(fm.getResult().getAddress());
-                        return sendToConsensusWallet(request, table);
+                        quote.setSwap_address(fm.getResult().getAddress());
+                        return sendToConsensusWallet(request, quote);
                     });
                 }
                 return Mono.error(new MassException(Constants.OPEN_INVOICE_ERROR));
@@ -109,27 +113,28 @@ public class SwapService {
 
     /**
      * Helper method for funding of the consensus wallet.
-     * @param table
+     * @param quote
      * @param fundResponse
      * @return Mono<FundResponse>
      */
-    private Mono<FundResponse> sendToConsensusWallet(FundRequest request, XmrQuoteTable table) {
+    private Mono<FundResponse> sendToConsensusWallet(FundRequest request, MoneroQuote quote) {
         return monero.controlWallet(WalletState.OPEN, massWalletFilename).flatMap(mwo -> {
-            return monero.transfer(table.getSwap_address(), table.getAmount()).flatMap(t -> {
+            return monero.transfer(quote.getSwap_address(), quote.getAmount()).flatMap(t -> {
                 if(t.getResult() == null) {
                     return Mono.error(new MassException(Constants.FATAL_SWAP_ERROR));
                 }
                 return monero.controlWallet(WalletState.CLOSE, massWalletFilename).flatMap(mwc -> {
                         String txid = t.getResult().getTx_hash();
-                        String quoteId = table.getQuote_id();
-                        table.setFunding_txid(txid);
-                        quoteRepository.save(table);
-                        String swapAddress = table.getSwap_address();
+                        String quoteId = quote.getQuote_id();
+                        quote.setFunding_txid(txid);
+                        quoteRepository.save(quote);
+                        String swapAddress = quote.getSwap_address();
                         FundResponse fundResponse = FundResponse.builder()
                             .swapAddress(swapAddress)
                             .txid(txid).build();
                         executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                            massUtil, rpAddress, 0), Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
+                            massUtil, rpAddress, 0, peerRepository), 
+                            Constants.MEDIATOR_INTERVENE_TIME, TimeUnit.SECONDS);
                         return Mono.just(fundResponse);
                 });
             });
@@ -144,8 +149,8 @@ public class SwapService {
      * @return Mono<InitResponse> - Mediator / swap export_multisig_info 
      */
     public Mono<InitResponse> importAndExportInfo(InitRequest initRequest) {
-        XmrQuoteTable table = quoteRepository.findById(initRequest.getHash()).get();
-        String sfn = table.getSwap_filename();
+        MoneroQuote quote = quoteRepository.findById(initRequest.getHash()).get();
+        String sfn = quote.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.getBalance().flatMap(b -> {
                 int blocksRemaining = b.getResult().getBlocks_to_unlock();
@@ -155,7 +160,7 @@ public class SwapService {
                     return Mono.error(new MassException(msg));
                 }
                 return monero.controlWallet(WalletState.CLOSE, sfn).flatMap(c -> {
-                    return massUtil.exportSwapInfo(table, initRequest);
+                    return massUtil.exportSwapInfo(quote, initRequest);
                 });
             });
         });
@@ -169,7 +174,7 @@ public class SwapService {
      */
     public Mono<SwapResponse> processCancel(SwapRequest swapRequest) {
         isWalletOpen = true;
-        XmrQuoteTable quote = quoteRepository.findById(swapRequest.getHash()).get();
+        MoneroQuote quote = quoteRepository.findById(swapRequest.getHash()).get();
         String sfn = quote.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(o -> {
             return monero.getBalance().flatMap(b -> {
@@ -202,7 +207,7 @@ public class SwapService {
      * @return Mono<SwapResponse> - empty response with HTTP OK status
      */
     private Mono<SwapResponse> signAndSubmitCancel(SwapRequest swapRequest,
-    String txset, XmrQuoteTable quote) {
+    String txset, MoneroQuote quote) {
         String mfn = quote.getMediator_filename();
         return monero.controlWallet(WalletState.OPEN, mfn).flatMap(o -> {
             return monero.signMultisig(txset).flatMap(r -> {
@@ -227,7 +232,7 @@ public class SwapService {
      * @return Mono<SwapResponse>
      */
     public Mono<SwapResponse> transferMonero(SwapRequest request) {
-        XmrQuoteTable quote = quoteRepository.findById(request.getHash()).get();
+        MoneroQuote quote = quoteRepository.findById(request.getHash()).get();
         String sfn = quote.getSwap_filename();
         return monero.controlWallet(WalletState.OPEN, sfn).flatMap(mwo -> {
             return monero.getBalance().flatMap(b -> {
@@ -257,7 +262,7 @@ public class SwapService {
      * @param quote
      * @return Mono
      */
-    private Mono<SwapResponse> cancelMoneroSwap(SwapRequest swapRequest, XmrQuoteTable quote) {
+    private Mono<SwapResponse> cancelMoneroSwap(SwapRequest swapRequest, MoneroQuote quote) {
         isWalletOpen = false;
         try {
             return lightning.handleInvoice(swapRequest, quote, false).flatMap(c -> {
@@ -281,7 +286,7 @@ public class SwapService {
      * @param quote
      * @return Mono<SwapResponse>
      */
-    private Mono<SwapResponse> settleMoneroSwap(SwapRequest swapRequest, XmrQuoteTable quote, 
+    private Mono<SwapResponse> settleMoneroSwap(SwapRequest swapRequest, MoneroQuote quote, 
     SweepAllResponse sweepAllResponse) {
         try {
             return lightning.handleInvoice(swapRequest, quote, true).flatMap(c -> {
@@ -292,6 +297,11 @@ public class SwapService {
                         .hash(quote.getQuote_id())
                         .multisigTxSet(sweepAllResponse.getResult().getMultisig_txset())
                         .build();
+                    // update peer
+                    Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                    int swaps = peer.getSwap_counter() + 1;
+                    Peer updatePeer = Peer.builder().swap_counter(swaps).build();
+                    peerRepository.save(updatePeer);
                     // remove quote from db
                     quoteRepository.deleteById(quote.getQuote_id());
                     return Mono.just(res);

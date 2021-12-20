@@ -6,9 +6,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.InitRequest;
-import org.hiahatf.mass.models.monero.XmrQuoteTable;
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.wallet.WalletState;
+import org.hiahatf.mass.models.peer.Peer;
 import org.hiahatf.mass.repo.MoneroQuoteRepository;
+import org.hiahatf.mass.repo.PeerRepository;
 import org.hiahatf.mass.services.rpc.Monero;
 import org.hiahatf.mass.util.MassUtil;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ public class Mediator implements Runnable {
     private ScheduledExecutorService executorService = 
         Executors.newSingleThreadScheduledExecutor();
     private MoneroQuoteRepository quoteRepository;
+    private PeerRepository peerRepository;
     private int retryCounter;
     private String refundAddress;
     private MassUtil massUtil;
@@ -39,8 +42,10 @@ public class Mediator implements Runnable {
     * @param quoteId
     */
     public Mediator(MoneroQuoteRepository quoteRepository, String quoteId,
-    Monero monero, MassUtil massUtil, String refundAddress, int retryCounter) {
+    Monero monero, MassUtil massUtil, String refundAddress, int retryCounter,
+    PeerRepository peerRepository) {
         this.quoteRepository = quoteRepository;
+        this.peerRepository = peerRepository;
         this.refundAddress = refundAddress;
         this.retryCounter = retryCounter;
         this.massUtil = massUtil;
@@ -54,13 +59,13 @@ public class Mediator implements Runnable {
      * submits the multisig transaction for the intervention.
      */
     public void run() {
-        XmrQuoteTable table = quoteRepository.findById(quoteId).get();
-        logger.info("Executing mediator for swap {}", table.getQuote_id());
+        MoneroQuote quote = quoteRepository.findById(quoteId).get();
+        logger.info("Executing mediator for swap {}", quote.getQuote_id());
         SwapService.isWalletOpen = true;
-        String mfn = table.getMediator_filename();
+        String mfn = quote.getMediator_filename();
         InitRequest mediatorRequest = InitRequest.builder()
             .importInfo(Constants.MEDIATOR_CHECK).build();
-        massUtil.exportSwapInfo(table, mediatorRequest).subscribe(i -> {
+        massUtil.exportSwapInfo(quote, mediatorRequest).subscribe(i -> {
             monero.controlWallet(WalletState.OPEN, mfn).subscribe(o -> {
                  monero.sweepAll(refundAddress).subscribe(r -> {
                     // null check, since rpc since 200 on null result
@@ -70,14 +75,14 @@ public class Mediator implements Runnable {
                         retryCounter++;
                         if(retryCounter < 3) {
                             executorService.schedule(new Mediator(quoteRepository, quoteId, monero, 
-                            massUtil, refundAddress, retryCounter), Constants.MEDIATOR_RETRY_DELAY, 
-                                TimeUnit.SECONDS);
+                            massUtil, refundAddress, retryCounter, peerRepository), 
+                            Constants.MEDIATOR_RETRY_DELAY, TimeUnit.SECONDS);
                         }
                         logger.error(Constants.MEDIATOR_ERROR);
                     } else {
                         monero.controlWallet(WalletState.CLOSE, mfn).subscribe(c -> {
                             logger.info("Mediator sweep complete");
-                            signAndSubmitCancel(r.getResult().getMultisig_txset(), table);
+                            signAndSubmitCancel(r.getResult().getMultisig_txset(), quote);
                         });
                     }
                 });
@@ -90,7 +95,7 @@ public class Mediator implements Runnable {
      * @param txset
      * @param quote
      */
-    private void signAndSubmitCancel(String txset, XmrQuoteTable quote) {
+    private void signAndSubmitCancel(String txset, MoneroQuote quote) {
         logger.info("Signing mediator intervention");
         String sfn = quote.getSwap_filename();
          monero.controlWallet(WalletState.OPEN, sfn).subscribe(o -> {
@@ -103,6 +108,10 @@ public class Mediator implements Runnable {
                     logger.info("Cancel tx: {}", s.getResult().getTx_hash_list().get(0));
                     monero.controlWallet(WalletState.CLOSE, sfn).subscribe(c -> {
                         SwapService.isWalletOpen = false;
+                        Peer peer = peerRepository.findById(quote.getPeer_id()).get();
+                        int cancels = peer.getCancel_counter() + 1;
+                        Peer updatePeer = Peer.builder().cancel_counter(cancels).build();
+                        peerRepository.save(updatePeer);
                         logger.info("Cancel complete");
                     });
                 });

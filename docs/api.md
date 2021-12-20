@@ -316,3 +316,28 @@ POST http://localhost:6789/swap/btc
 
 * `./src/main/resources/application.yml` property `mode.rate-lock`
 * There is default price confidence interval of 95% to handle the bug that causes /swap/initialize/btc to fail when large price fluctuations occur over swap duration. The value will be configurable as well. Markup must be > 0.05 in order to run a profitable swap server. Swaps with larger price fluctuations will be destroyed and new swaps must be created. Rate lock mode will not be enabled by default.
+
+## P2P
+
+MASS web flux proxy is hardcoded for i2p at `http://localhost:4444`
+
+Get I2P [here](https://geti2p.net/)
+
+* Run `i2prouter start`
+* Go to the console at `http://localhost:7657/i2ptunnelmgr`
+* Create a new `http` hidden service for MASS and point to the port (default: 6789)
+
+Manually add peer - responds with http 200 and Mass base32
+
+POST http://{MASSbase32Address}.b32.i2p/peer/add
+Content-Type: application/json
+
+```json
+{
+    "peerId": "{PeerToAddbase32Address}.b32.i2p"
+}
+```
+
+View peers - responds with JSON array of peers
+
+GET http://{MASSbase32Address}.b32.i2p/peer/view

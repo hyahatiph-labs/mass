@@ -4,10 +4,8 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLException;
 
-import org.hiahatf.mass.models.lightning.Info;
-import org.hiahatf.mass.services.rpc.Lightning;
 import org.hiahatf.mass.models.Constants;
-
+import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,34 +16,31 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
- * Health Check Controller
+ * Entry for client APIs
  */
 @RequestMapping
 @RestController
-public class HealthController extends BaseController {
-    
-	private Lightning lightning;
+public class ClientController {
 
 	/**
 	 * HealthController dependency injection
 	 * @param lightning
 	 */
 	@Autowired
-	public HealthController(Lightning lightning) {
-		this.lightning = lightning;
+	public ClientController() {
+        // wip
 	}
 
 	/**
-	 * Ping MASS and return information about the underlying
-	 * LND node. 
+	 * Accept Client's Monero Address and amount requested
+     * to quote generation. 
 	 * @return Mono<Info>
 	 * @throws SSLException
 	 * @throws IOException
 	 */
-    @GetMapping(Constants.HEALTH_PATH)
+    @GetMapping(Constants.CLIENT_XMR_QUOTE_PATH)
 	@ResponseStatus(HttpStatus.OK)
-	public Mono<Info> ping() throws SSLException, IOException {
-		return lightning.getInfo();
+	public Mono<MoneroQuote> generateMoneroQuote() throws SSLException, IOException {
+		return null;
 	}
-    
 }
