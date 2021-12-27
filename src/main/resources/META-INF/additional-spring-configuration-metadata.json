@@ -51,17 +51,17 @@
   },
   {
     "name": "mode.rate-lock",
-    "type": "java.lang.String",
+    "type": "java.lang.Boolean",
     "description": "Set to true to enable locking in price rate for swap duration"
   },
   {
     "name": "mode.price-confidence",
-    "type": "java.lang.String",
+    "type": "java.lang.Float",
     "description": "Use this value for price threshold floating when mode.rate-lock is FALSE"
   },
   {
     "name": "peer.share",
-    "type": "java.lang.String",
+    "type": "java.lang.Boolean",
     "description": "Share peers across the network"
   },
   {
@@ -73,5 +73,10 @@
     "name": "peer.seed",
     "type": "java.lang.String",
     "description": "Node to use for initial network connectivity"
+  },
+  {
+    "name": "mode.client-service",
+    "type": "java.lang.Boolean",
+    "description": "Allow API access for simplified external clients"
   }
 ]}

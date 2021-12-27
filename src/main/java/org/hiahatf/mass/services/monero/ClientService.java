@@ -6,6 +6,7 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.codec.binary.Hex;
+import org.hiahatf.mass.exception.MassException;
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.MoneroQuote;
 import org.hiahatf.mass.models.monero.MultisigData;
@@ -35,6 +36,7 @@ public class ClientService {
     private Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private MoneroQuoteRepository quoteRepository;
+    private boolean isAcceptingClients;
     public static boolean isWalletOpen;
     private QuoteService quoteService;
     private PeerService peerService;
@@ -47,7 +49,8 @@ public class ClientService {
     @Autowired
     public ClientService(PeerService peerService, QuoteService quoteService, 
         @Value(Constants.SEED_NODE) String seedNode, MoneroQuoteRepository quoteRepository, 
-        Monero monero) {
+        Monero monero, @Value(Constants.CLIENT_SERVICE_MODE) boolean isAcceptingClients) {
+            this.isAcceptingClients = isAcceptingClients;
             this.quoteRepository = quoteRepository;
             this.quoteService = quoteService;
             this.peerService = peerService;
@@ -61,6 +64,9 @@ public class ClientService {
      * @return
      */
     public Mono<Quote> relayQuote(Request request) {
+        if (!isAcceptingClients) {
+            return Mono.error(new MassException(Constants.CLIENT_MODE_ERROR));
+        }
         MultisigData data = MultisigData.builder().build();
         // get the preimage
         byte[] preimage = quoteService.createPreimage();

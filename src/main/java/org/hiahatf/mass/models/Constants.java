@@ -128,6 +128,9 @@ public final class Constants {
     public static final String RATE_LOCK_MODE = "${mode.rate-lock}";
     public static final String PRICE_CONFIDENCE = "${mode.price-confidence}";
 
+    // client service values
+    public static final String CLIENT_SERVICE_MODE = "${mode.client-service}";
+
     // peer service values
 
     /** 
@@ -177,6 +180,7 @@ public final class Constants {
     public static final String INVALID_PEER_ERROR = "Invalid i2p peer. Send with '.b32.i2p'";
     public static final String DUPLICATE_PEER_ERROR = "Peer already exists";
     public static final String PEER_SHARE_ERROR = "Peer is not sharing";
+    public static final String CLIENT_MODE_ERROR = "Not accepting simplified clients";
 
     // beans
     public static final String BTC_QUOTE_CONTROLLER = "BitcoinQuoteController";
