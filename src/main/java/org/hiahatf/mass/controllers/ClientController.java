@@ -1,9 +1,5 @@
 package org.hiahatf.mass.controllers;
 
-import java.io.IOException;
-
-import javax.net.ssl.SSLException;
-
 import org.hiahatf.mass.models.Constants;
 import org.hiahatf.mass.models.monero.Quote;
 import org.hiahatf.mass.models.monero.Request;
@@ -22,7 +18,7 @@ import reactor.core.publisher.Mono;
  * Entry for client APIs
  */
 @RequestMapping
-@RestController
+@RestController(Constants.XMR_ClIENT_CONTROLLER)
 public class ClientController {
 
     private ClientService service;
@@ -38,9 +34,7 @@ public class ClientController {
 	/**
 	 * Accept Client's Monero Address and amount requested
      * to quote generation. 
-	 * @return Mono<MoneroQuote>
-	 * @throws SSLException
-	 * @throws IOException
+	 * @return Mono<Quote>
 	 */
     @GetMapping(Constants.CLIENT_XMR_QUOTE_PATH)
 	@ResponseStatus(HttpStatus.OK)
