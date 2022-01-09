@@ -49,9 +49,8 @@ public class RateServiceTest {
 
     @BeforeEach
     void initialize() {
-        String baseUrl = String.format("http://localhost:%s", 
-            mockBackEnd.getPort());
-        rateService = new RateService(baseUrl);
+        String baseUrl = String.format("http://localhost:%s", mockBackEnd.getPort());
+        rateService = new RateService(baseUrl, 4444, true);
     }
 
     @Test
@@ -62,9 +61,9 @@ public class RateServiceTest {
         res.put("BTC", "0.00777");
         mockBackEnd.enqueue(new MockResponse()
             .setBody(objectMapper.writeValueAsString(res))
-            .addHeader(HttpHeaders.CONTENT_TYPE, 
+            .addHeader(HttpHeaders.CONTENT_TYPE,
                 HttpHeaderValues.APPLICATION_JSON.toString()));
-
+        // bypass proxy and test code without proxy
         rateService.updateMoneroRate();
         String testRate = rateService.getMoneroRate();
         assertEquals(expectedRate, testRate);

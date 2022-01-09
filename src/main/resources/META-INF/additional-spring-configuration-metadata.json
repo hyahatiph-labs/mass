@@ -73,5 +73,15 @@
     "name": "peer.seed",
     "type": "java.lang.String",
     "description": "Node to use for initial network connectivity"
+  },
+  {
+    "name": "i2p.port",
+    "type": "java.lang.INTEGER",
+    "description": "I2P http proxy port"
+  },
+  {
+    "name": "proxy-bypass",
+    "type": "java.lang.String",
+    "description": "Default to proxy webclient for fetching rate over i2p port"
   }
 ]}

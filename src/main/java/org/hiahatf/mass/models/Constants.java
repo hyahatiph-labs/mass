@@ -49,6 +49,7 @@ public final class Constants {
     
     // model values
     public static final String MEMO = "mass";
+    public static final String LOCALHOST = "127.0.0.1";
     public static final String EXPIRY = "7200";
     public static final String XMR_RPC_VER = "2.0";
     public static final String XMR_RPC_ID = "0";
@@ -78,6 +79,8 @@ public final class Constants {
     public static final String XMR = "XMR";
     public static final String BTC = "BTC";
     public static final String RATE_HOST = "${host.price}";
+    public static final String RATE_PORT = "${i2p.port}";
+    public static final String PROXY_BYPASS = "${proxy-bypass}";
 
     // lightning service values
     public static final String MACAROON_HEADER = "Grpc-Metadata-macaroon";
@@ -138,7 +141,7 @@ public final class Constants {
       TODO: publish diagrams and stuff of the p2p architecture.
     */
     public static final long MAX_PEERS = 7;
-    public static final String PEER_PROXY_HOST = "127.0.0.1";
+    public static final String PEER_PROXY_HOST = LOCALHOST;
     public static final int PEER_PROXY_PORT = 4444;
     public static final String I2P_CHECK = ".b32.i2p$";
     public static final String PEER_DISCOVERY_MSG = "Starting peer discovery";

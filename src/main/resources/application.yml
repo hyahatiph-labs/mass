@@ -1,9 +1,11 @@
 # why is six scared of seven?
 server.port: 6789
+i2p.port: 4444
+proxy-bypass: false
 # hosts for external data
 host: 
-  price: https://min-api.cryptocompare.com
-  monero: http://localhost:18083
+  price: http://yngj5p7owep45tngzum74hcfvfshlegtl4bzptptqygunpgadycq.b32.i2p/price/xmr
+  monero: http://localhost:38083
   lightning: https://localhost:8180
 # reserve proof address
 rp-address: 5BG7NvDurzu1Mnrb5akNfdZwrQK95m9g8JW61mnxbeFTDHHCoRmt8fQPuHjENNBSRKGtssLyH4xkrhbHKoSzquKpUFcgA3C
@@ -47,9 +49,7 @@ spring.mvc.async.request-timeout: -1
 # share peers
 peer:
   # this is the peer id of the current mass app
-  # TODO: configure by command line
   id: 5rndva7adxvok4s44g6yelvggdihxz3vat46lxpsd6rlfqlsyeda.b32.i2p
   # seed to get on the network
-  # TODO configure by command line
   seed: wtsythnq4l3dqg5kzdwdl2ml4stta6iu24ygmredg4gzbnlo7ujq.b32.i2p
   share: true
