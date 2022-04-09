@@ -65,9 +65,3 @@ See [milestones](https://github.com/hyahatiph-labs/mass/milestones)
     * run `npm install` from the root directory
 * Fork and open pr.
 * Working code is underrated
-
-## Comms
-
-* support@hiahatf.org
-* donations via OpenAlias => hiahatf.org
-* [Element Matrix-based messenger](https://matrix.to/#/#hiahatf:matrix.org)
